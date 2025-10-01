@@ -1,0 +1,219 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>VTiger Auto Cron Controller</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header { text-align: center; color: #2c3e50; margin-bottom: 30px; }
+        .status-box { background: #ecf0f1; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .success { background: #d5edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .btn { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .btn:hover { background: #2980b9; }
+        .btn.danger { background: #e74c3c; }
+        .btn.danger:hover { background: #c0392b; }
+        .btn.success { background: #27ae60; }
+        .btn.success:hover { background: #229954; }
+        .logs { max-height: 300px; overflow-y: auto; background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; }
+        .log-entry { margin: 5px 0; padding: 5px; border-left: 3px solid #3498db; }
+        .log-success { border-left-color: #27ae60; }
+        .log-error { border-left-color: #e74c3c; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .stat-card { background: #3498db; color: white; padding: 15px; border-radius: 5px; text-align: center; }
+        .stat-number { font-size: 24px; font-weight: bold; }
+        .stat-label { font-size: 14px; opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 VTiger Auto Cron Controller</h1>
+            <p>Hệ thống tự động hóa cron job không cần Windows Task Scheduler</p>
+        </div>
+        
+        <div id="status" class="status-box warning">
+            <strong>⏳ Đang khởi tạo...</strong>
+            <p>Hệ thống đang kiểm tra cấu hình và khởi động dịch vụ tự động.</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalRuns">0</div>
+                <div class="stat-label">Tổng lần chạy</div>
+            </div>
+            <div class="stat-card" style="background: #27ae60;">
+                <div class="stat-number" id="successRuns">0</div>
+                <div class="stat-label">Thành công</div>
+            </div>
+            <div class="stat-card" style="background: #e74c3c;">
+                <div class="stat-number" id="failedRuns">0</div>
+                <div class="stat-label">Thất bại</div>
+            </div>
+            <div class="stat-card" style="background: #f39c12;">
+                <div class="stat-number" id="nextRun">--</div>
+                <div class="stat-label">Chạy tiếp theo</div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="btn success" onclick="startAutoCron()">▶️ Bắt đầu Auto Cron</button>
+            <button class="btn danger" onclick="stopAutoCron()">⏹️ Dừng Auto Cron</button>
+            <button class="btn" onclick="triggerNow()">⚡ Chạy ngay</button>
+            <button class="btn" onclick="refreshStatus()">🔄 Refresh</button>
+            <button class="btn" onclick="clearLogs()">🗑️ Xóa logs</button>
+        </div>
+        
+        <div>
+            <h3>📋 Cron Execution Logs</h3>
+            <div id="logs" class="logs">
+                <div>Đang tải logs...</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 5px;">
+            <h4>ℹ️ Thông tin hệ thống:</h4>
+            <ul>
+                <li><strong>Auto Trigger:</strong> JavaScript chạy ngầm mỗi 5 phút</li>
+                <li><strong>Service Worker:</strong> Tiếp tục chạy khi đóng tab</li>
+                <li><strong>Target:</strong> <code>vtigercron.php</code></li>
+                <li><strong>Điều kiện:</strong> Chỉ chạy khi có scheduled workflows</li>
+                <li><strong>Browser Support:</strong> Chrome, Firefox, Edge, Safari</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="js/vtiger-auto-cron.js"></script>
+    <script>
+        let controller = null;
+        let refreshTimer = null;
+        
+        // Khởi tạo khi page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Đợi VtigerAutoCron load xong
+            setTimeout(initializeController, 2000);
+            
+            // Auto refresh mỗi 30 giây
+            refreshTimer = setInterval(refreshStatus, 30000);
+        });
+        
+        function initializeController() {
+            if (window.VtigerAutoCron) {
+                controller = window.VtigerAutoCron;
+                refreshStatus();
+                updateStatus('Hệ thống đã sẵn sàng! Auto cron đang chạy.', 'success');
+            } else {
+                updateStatus('Không thể khởi tạo VtigerAutoCron. Vui lòng refresh trang.', 'error');
+                setTimeout(initializeController, 5000);
+            }
+        }
+        
+        function startAutoCron() {
+            if (controller) {
+                controller.startAutoTrigger();
+                updateStatus('Auto cron đã được bắt đầu.', 'success');
+                setTimeout(refreshStatus, 1000);
+            }
+        }
+        
+        function stopAutoCron() {
+            if (controller) {
+                controller.stopAutoTrigger();
+                updateStatus('Auto cron đã được dừng.', 'warning');
+                setTimeout(refreshStatus, 1000);
+            }
+        }
+        
+        async function triggerNow() {
+            if (controller) {
+                updateStatus('Đang chạy cron job...', 'warning');
+                await controller.triggerCron();
+                setTimeout(refreshStatus, 2000);
+            }
+        }
+        
+        function refreshStatus() {
+            if (!controller) return;
+            
+            const status = controller.showStatus();
+            const logs = controller.getLogs();
+            
+            updateStats(logs);
+            updateLogs(logs);
+            
+            if (status.isAutoRunning) {
+                updateStatus('Auto cron đang hoạt động bình thường.', 'success');
+            } else {
+                updateStatus('Auto cron đã dừng. Click "Bắt đầu Auto Cron" để khởi động.', 'warning');
+            }
+        }
+        
+        function updateStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.className = 'status-box ' + type;
+            statusEl.innerHTML = '<strong>' + message + '</strong>';
+        }
+        
+        function updateStats(logs) {
+            const total = logs.length;
+            const success = logs.filter(l => l.status.includes('SUCCESS')).length;
+            const failed = total - success;
+            
+            document.getElementById('totalRuns').textContent = total;
+            document.getElementById('successRuns').textContent = success;
+            document.getElementById('failedRuns').textContent = failed;
+            
+            // Next run time (5 phút từ lần cuối)
+            if (logs.length > 0) {
+                const lastRun = new Date(logs[0].timestamp);
+                const nextRun = new Date(lastRun.getTime() + 5 * 60 * 1000);
+                const now = new Date();
+                
+                if (nextRun > now) {
+                    const minutes = Math.ceil((nextRun - now) / (60 * 1000));
+                    document.getElementById('nextRun').textContent = minutes + ' phút';
+                } else {
+                    document.getElementById('nextRun').textContent = 'Sẵn sàng';
+                }
+            }
+        }
+        
+        function updateLogs(logs) {
+            const logsEl = document.getElementById('logs');
+            
+            if (logs.length === 0) {
+                logsEl.innerHTML = '<div>Chưa có logs nào.</div>';
+                return;
+            }
+            
+            const logHtml = logs.slice(0, 20).map(log => {
+                const time = new Date(log.timestamp).toLocaleString();
+                const statusClass = log.status.includes('SUCCESS') ? 'log-success' : 'log-error';
+                
+                return `<div class="log-entry ${statusClass}">
+                    <strong>${time}</strong> [${log.trigger}] ${log.status} 
+                    <span style="opacity: 0.7">(${log.duration}ms)</span>
+                </div>`;
+            }).join('');
+            
+            logsEl.innerHTML = logHtml;
+        }
+        
+        function clearLogs() {
+            if (controller && confirm('Bạn có chắc muốn xóa tất cả logs?')) {
+                controller.clearLogs();
+                refreshStatus();
+            }
+        }
+        
+        // Cleanup khi rời khỏi trang
+        window.addEventListener('beforeunload', function() {
+            if (refreshTimer) {
+                clearInterval(refreshTimer);
+            }
+        });
+    </script>
+</body>
+</html> -->
