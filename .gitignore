@@ -1,2 +1,3 @@
-oauth2callback\config.oauth2.php
 /test/
+/logs/
+oauth2callback/config.oauth2.php

@@ -9,8 +9,8 @@ REM # All Rights Reserved.
 REM #
 REM # ********************************************************************************
 
-set VTIGERCRM_ROOTDIR="C:\Program Files\vtigercrm5\apache\htdocs\vtigerCRM"
-set PHP_EXE="C:\Program Files\vtigercrm5\php\php.exe"
+set VTIGERCRM_ROOTDIR="C:\xampp\htdocs\vtigercrm"
+set PHP_EXE="C:\xampp\php\php.exe"
 
 cd /D %VTIGERCRM_ROOTDIR%
 
