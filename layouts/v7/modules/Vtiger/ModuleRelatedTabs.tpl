@@ -126,7 +126,46 @@
                                             {/if}
                                         {/if}
 				</ul>
+				<div class="navbar-right" style="padding: 8px 10px;">
+					<button type="button" id="vtCallButton" class="btn btn-primary">
+						<i class="fa fa-phone"></i>&nbsp;Call
+					</button>
+					<select id="vtCallStatusSelect" class="select2" style="min-width: 180px; margin-left: 8px;">
+						<option value="chua_goi">Chưa gọi</option>
+						<option value="da_goi">Đã gọi</option>
+						<option value="chan">Chặn</option>
+						<option value="khong_nghe_may">Không nghe máy</option>
+					</select>
+				</div>
 			</div>
 		</nav>
 	</div>
 	{strip}
+
+<script>
+(function() {
+	// Mock phone number; replace with real field if available
+	var mockPhoneNumber = '+84123456789';
+	var callButton = document.getElementById('vtCallButton');
+	var statusSelect = document.getElementById('vtCallStatusSelect');
+
+	if (!callButton || !statusSelect) return;
+
+	// Restore saved status from localStorage
+	try {
+		var savedStatus = localStorage.getItem('vt_call_status') || 'chua_goi';
+		statusSelect.value = savedStatus;
+	} catch (e) {}
+
+	// Save status on change
+	statusSelect.addEventListener('change', function() {
+		try { localStorage.setItem('vt_call_status', statusSelect.value); } catch (e) {}
+	});
+
+	// Trigger call using tel: scheme
+	callButton.addEventListener('click', function() {
+		if (!mockPhoneNumber) { return; }
+		window.location.href = 'tel:' + mockPhoneNumber;
+	});
+})();
+</script>
