@@ -31,7 +31,7 @@ $CALENDAR_DISPLAY = 'true';
 $USE_RTE = 'true';
 
 // helpdesk support email id and support name (Example: 'support@vtiger.com' and 'vtiger support')
-$HELPDESK_SUPPORT_EMAIL_ID = 'phtam0907@gmail.com';
+$HELPDESK_SUPPORT_EMAIL_ID = 'todinhvan2608@gmail.com';
 $HELPDESK_SUPPORT_NAME = 'your-support name';
 $HELPDESK_SUPPORT_EMAIL_REPLY_ID = $HELPDESK_SUPPORT_EMAIL_ID;
 
@@ -48,7 +48,7 @@ $dbconfig['db_server'] = 'localhost';
 $dbconfig['db_port'] = ':3306';
 $dbconfig['db_username'] = 'root';
 $dbconfig['db_password'] = '';
-$dbconfig['db_name'] = 'vtigercrm';
+$dbconfig['db_name'] = 'vtiger';
 $dbconfig['db_type'] = 'mysqli';
 $dbconfig['db_status'] = 'true';
 
@@ -156,7 +156,7 @@ $display_empty_home_blocks = false;
 $disable_stats_tracking = false;
 
 // Generating Unique Application Key
-$application_unique_key = '8613f0101da489fc9f5bc88665f359f3';
+$application_unique_key = '2fa82f4e8f73b487d26657338cc6a6c6';
 
 // trim descriptions, titles in listviews to this value
 $listview_max_textlength = 40;
