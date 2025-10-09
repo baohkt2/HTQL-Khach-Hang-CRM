@@ -1,3 +1,5 @@
 /test/
 /logs/
 oauth2callback/config.oauth2.php
+config.inc.php
+
