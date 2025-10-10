@@ -27,7 +27,7 @@ $dbconfig['db_server']   = 'localhost';      // XAMPP chạy MySQL trên localho
 $dbconfig['db_port']     = ':3306';          // cổng mặc định MySQL
 $dbconfig['db_username'] = 'root';           // user mặc định của XAMPP
 $dbconfig['db_password'] = '';               // để trống nếu chưa set password
-$dbconfig['db_name']     = 'vtiger_backup';  // đổi thành tên database bạn import
+$dbconfig['db_name']     = 'vtigercrm';  // đổi thành tên database bạn import
 $dbconfig['db_type']     = 'mysqli';
 $dbconfig['db_status']   = 'true';
 
