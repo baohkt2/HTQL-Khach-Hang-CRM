@@ -1,0 +1,91 @@
+<?php
+/* * *******************************************************************************
+ * The content of this file is subject to the CRMTiger Pro license.
+ * ("License"); You may not use this file except in compliance with the License
+ * The Initial Developer of the Original Code is https://crmtiger.com/
+ * Portions created by CRMTiger.com are Copyright(C) CRMTiger.com
+ * All Rights Reserved.
+ * ****************************************************************************** */
+
+$languageStrings = array(
+    'LBL_CTFACEBOOK_MESSENGER_INTEGRATION_CONFIGURATION' => 'الفيسبوك التكامل رسول التكوين',
+    'LBL_CTFACEBOOK_LOGIN_WITH_FACEBOOK' => 'تسجيل الدخول باستخدام الفيسبوك',
+    'LBL_CTFACEBOOK_LOGOUT_FACEBOOK' => 'تسجيل الخروج من الفيسبوك',
+    'LBL_CTFACEBOOK_PAGE_SELECTION' => 'صفحات الفيسبوك',
+    'LBL_PAGE' => 'صفحة',
+    'LBL_ADD_DELETE_FACEBOOK_PAGE' => 'إضافة / حذف المستخدمين / المجموعات لاستخدام صفحة الفيسبوك',
+    'LBL_SELECT_FACEBOOK_PAGE' => 'حدد صفحة الفيسبوك',
+    'LBL_SELECT_AN_OPTION' => 'حدد اختيارا',
+    'LBL_SELECT_USERS_GROUPS' => 'حدد المستخدمين/المجموعات',
+    'LBL_ACTIVE' => 'نشيط',
+    'LBL_SAVE' => 'يحفظ',
+    'LBL_CANCEL' => 'يلغي',
+    'LBL_DELETE' => 'يمسح',
+    'LBL_EDIT' => 'يحرر',
+    'LBL_ADD_RECORDS' => 'إضافة السجلات',
+    'LBL_STATUS' => 'حالة',
+    'LBL_USERS' => 'المستخدمين',
+    'LBL_ACTIONS' => 'أجراءات',
+    'LBL_NO_RECORD_FOUND' => 'لا يوجد سجلات',
+    'LBL_SYNC_FACEBOOK_PAGES' => 'مزامنة صفحات الفيسبوك',
+    'LBL_FACEBOOK_MESSENGER_INTEGRATION' => 'الفيسبوك رسول التكامل',
+    'LBL_GENERAL_SETTINGS' => 'الاعدادات العامة',
+    'LBL_FACEBOOK_WINDOW_VIEW' => 'عرض نافذة الفيسبوك',
+    'LBL_AUTO_RESPONDER' => 'الرد التلقائي',
+    'LBL_AUTO_RESPONDER_TEXT' => 'نص الرد التلقائي',
+    'LBL_LEFT_TO_RIGHT_VIEW' => 'عرض من اليسار إلى اليمين (افتراضي)',
+    'LBL_RIGHT_TO_LEFT_VIEW' => 'عرض من اليمين إلى اليسار (بلد الشرق الأوسط المفضل)',
+    'LBL_CHOOSE_MODULES_FIELDS' => 'اختر الوحدات/الحقول للوصول إلى Facebook',
+    'LBL_MODULE' => 'وحدة',
+    'LBL_FACEBOOK_FIELD' => 'الفيسبوك # الميدان',
+    'LBL_ATLEAST_SELECT_ONE_MODULE' => 'يرجى تحديد استخدام وحدة واحدة على الأقل لفيسبوك',
+    'LBL_ALLOW_SELECTED_SELECTED_MODULE' => 'السماح للوحدة المحددة',
+    'LBL_FACEBOOK_FIELD' => 'مجال الفيس بوك',
+    'LBL_CLOSE' => 'يغلق',
+    'LBL_AUTO_RESPONDER_TEXT_MESSAGE' => 'تلقى العميل هذه الرسالة تلقائيًا في المرة الأولى',
+    'LBL_LOGGED_IN_WITH' => 'تم تسجيل الدخول باستخدام',
+    'LBL_LOGOUT' => 'تسجيل خروج',
+    'LBL_ADD_FACEBOOK_PAGE_CONFIGURATION' => 'إضافة تكوين صفحة الفيسبوك',
+    'LBL_NOTIFICATION_TONE' => 'نغمة الإخطار',
+    'LBL_SILENT' => 'صامتة',
+    'LBL_LICENCE_SETTINGS' => 'إعداد الترخيص',
+    'LBL_VALIDATE_LICENSE_KEY' => 'التحقق من صحة مفتاح الترخيص',
+    'LBL_SUBMIT_LICENSE' => 'إرسال الترخيص',
+    'LBL_Facebook_Messanger_Default' => 'فيسبوك ماسنجر الافتراضي',
+    'LBL_Hangout_Message' => 'رسالة دردشة الفيديو الجماعية',
+    'CTFacebookMessengerIntegration' => 'التكامل مع فيسبوك ماسنجر', 
+    'Facebook Messenger Integration' => 'الفيسبوك رسول التكامل',
+
+);  
+
+$jsLanguageStrings = array(
+    'JS_FACEBOOK_CONFIG_STATUS_ENABLED' => 'تم تمكين حالة تكوين Facebook.',
+    'JS_FACEBOOK_CONFIG_STATUS_DISABLED' => 'تم تعطيل حالة تكوين الفيسبوك.',
+    'LBL_REQUIRED_FIELD_VALIDATION' => 'يرجى ملء الحقول المطلوبة',
+    'LBL_FACEBOOK_CONFIG_PAGE_ADDED' => 'تمت إضافة تكوين صفحة الفيسبوك بنجاح',
+    'LBL_FACEBOOK_CONFIG_PAGE_UPDATED' => 'تم تحديث تكوين صفحة الفيسبوك بنجاح
+',
+    'LBL_DELETE_CONFIRMATION_MESSAGE' => 'هل أنت متأكد أنك تريد حذف تكوين تكامل Facebook هذا؟',
+    'LBL_FACEBOOK_PAGES_SYNCED_SUCCESSFULLY' => 'تمت مزامنة صفحات الفيسبوك الخاصة بك بنجاح',
+    'LBL_FACEBOOK_PAGES_SYNC_UNSUCCESSFULL' => 'فشل مزامنة صفحات الفيسبوك!!',
+    'LBL_JS_SELECT_MODULE' => 'الرجاء تحديد الوحدة النمطية.',
+    'DELETEMODULE' => 'هل أنت متأكد من حذف هذا السجل؟',
+    'LBL_NO_RECORD_FOUND' => 'لا يوجد سجلات',
+    'LBL_PLEASE_SELECT_FACEBOOK_MODULE' => 'الرجاء تحديد استخدام وحدة واحدة على الأقل للفيسبوك',
+    'LBL_PLEASE_CONFIGURE_ONE_FACEBOOK_PAGE' => 'الرجاء تحديد صفحة واحدة على الأقل',
+    'LBL_NO_PAGE_IN_FACEBOOK' => "حساب الفيسبوك المتصل لا يحتوي على أي صفحة فيسبوك",
+    'LBL_DUPLICATE_FACEBOOK_PAGE' => "الرجاء تحديد صفحة فيسبوك أخرى. تمت إضافة الصفحة المحددة بالفعل!!",
+    'Your License key is already registered with' => 'تم تسجيل مفتاح الترخيص الخاص بك بالفعل', 
+    'Are you Sure Want to Deactivate from there and Activate to current Instance ?' => 'هل أنت متأكد أنك تريد إلغاء التنشيط من هناك والتنشيط إلى المثيل الحالي؟', 
+    'Something went wrong' => 'هناك خطأ ما',
+    'LBL_SETTING_TITLE' => 'إعدادات فيسبوك ماسنجر',
+    'LBL_ANALYTICS_TITLE' => 'التحليلات',
+    'Notifications' => 'إشعارات',
+    'Show All Notifications' => 'عرض كافة الإخطارات',
+    'Please select the date' => 'الرجاء تحديد التاريخ',
+    'Please select any one Option' => 'الرجاء تحديد أي خيار واحد',
+    'Please Select Custom Date' => 'الرجاء تحديد التاريخ المخصص',
+    'Comments Added Successfully' => 'تمت إضافة التعليقات بنجاح',
+    'Selected file type is not supported. Supported file type is png, jpg & jpeg.' => 'نوع الملف المحدد غير مدعوم. نوع الملف المدعوم هو png وjpg وjpeg.',
+    
+);

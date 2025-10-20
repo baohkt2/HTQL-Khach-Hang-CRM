@@ -9,11 +9,11 @@
  * ***********************************************************************************/
 
 Class Google_Config_Connector {
-	static $clientId = '';
-	static $clientSecret = '';
+	static $clientId = '166884792007-bejrv0o7ccaqffuvt0kq2lblg0bq6p69.apps.googleusercontent.com';
+	static $clientSecret = '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';
 
 	static function getRedirectUrl() {
 		global $site_URL;
-		return $site_URL.'index.php?module=Google&view=Authenticate&service=Google';
+		return $site_URL.'/index.php?module=Google&view=Authenticate&service=Google';
 	}
 }

@@ -11,7 +11,7 @@ version_compare(PHP_VERSION, '5.5.0') <= 0
 include('vtigerversion.php');
 
 // Increase memory for PHP
-ini_set('memory_limit','512M');
+ini_set('memory_limit','1024M');
 
 // Enable calendar & RTE
 $CALENDAR_DISPLAY = 'true';
@@ -22,12 +22,17 @@ $HELPDESK_SUPPORT_EMAIL_ID = 'support@example.com';
 $HELPDESK_SUPPORT_NAME = 'Vtiger Support';
 $HELPDESK_SUPPORT_EMAIL_REPLY_ID = $HELPDESK_SUPPORT_EMAIL_ID;
 
+// Enable debug mode
+$LOG4PHP_DEBUG = true;
+$DEBUG = true;
+
+
 /* Database configuration */
 $dbconfig['db_server']   = 'localhost';      // XAMPP chạy MySQL trên localhost
 $dbconfig['db_port']     = ':3306';          // cổng mặc định MySQL
 $dbconfig['db_username'] = 'root';           // user mặc định của XAMPP
 $dbconfig['db_password'] = '';               // để trống nếu chưa set password
-$dbconfig['db_name']     = 'vtigercrm';  // đổi thành tên database bạn import
+$dbconfig['db_name']     = 'vtigercrm_updated';  // đổi thành tên database bạn import
 $dbconfig['db_type']     = 'mysqli';
 $dbconfig['db_status']   = 'true';
 

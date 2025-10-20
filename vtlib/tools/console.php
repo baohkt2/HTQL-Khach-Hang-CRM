@@ -8,6 +8,8 @@
  * All Rights Reserved.
  ************************************************************************************/
 
+echo "vtlib console starting...\n";
+require_once __DIR__ . '/../../vendor/autoload.php';
 chdir(dirname(__FILE__) . '/../..');
 include_once 'vtlib/Vtiger/Module.php';
 include_once 'vtlib/Vtiger/Package.php';
