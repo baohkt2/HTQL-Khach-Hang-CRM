@@ -100,7 +100,7 @@ $upload_dir = 'cache/upload/';
 
 // maximum file size for uploaded files in bytes also used when uploading import files
 // upload_maxsize default value = 3000000
-$upload_maxsize = 3145728;//3MB
+$upload_maxsize = 30145728;//3MB
 
 // flag to allow export functionality
 // 'all' to allow anyone to use exports 
@@ -177,6 +177,12 @@ $default_layout = 'v7';
 
 //Maximum Listview Fields Selection Size
 $maxListFieldsSelectionSize = 15;
+
+$GMAIL_IMAP_PROXY = [
+  'host' => 'localhost',
+  'port' => 993,
+  'ssl' => true
+];
 
 include_once 'config.security.php';
 ?>

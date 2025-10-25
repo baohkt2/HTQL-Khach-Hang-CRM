@@ -20,9 +20,9 @@ SET time_zone = "+00:00";
 --
 -- Database: `vtigercrm`
 --
-DROP DATABASE IF EXISTS `vtigercrm`;
-CREATE DATABASE IF NOT EXISTS `vtigercrm` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE `vtigercrm`;
+DROP DATABASE IF EXISTS `vtiger`;
+CREATE DATABASE IF NOT EXISTS `vtiger` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `vtiger`;
 
 -- --------------------------------------------------------
 
