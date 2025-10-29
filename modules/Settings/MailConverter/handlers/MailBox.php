@@ -95,21 +95,17 @@ class Vtiger_MailBox {
 			$connectString = '{'. $mailboxsettings['server'].':'.$mailboxsettings['port'].'/'.$mailboxsettings['protocol'].'/'.$mailboxsettings['ssltype'].'/'.$mailboxsettings['sslmethod'] .$mailboxsettings['readonly'] ."}";
 			$connectStringShort = '{'. $mailboxsettings['server'].'/'.$mailboxsettings['protocol'].':'.$mailboxsettings['port'] .$mailboxsettings['readonly'] ."}";
 
-			// FIX: Support XOAUTH2 Authentication with proper IMAP4 protocol
 			if ($mailboxsettings['authtype'] == 'XOAUTH2' && $mailboxsettings['mailproxy']) {
-				// Match MailManager implementation: add /IMAP4 protocol
-				$connectString = sprintf("{%s/IMAP4/notls/novalidate-cert}", $mailboxsettings['mailproxy']);
+				$connectString = sprintf("{%s/notls/novalidate-cert}", $mailboxsettings['mailproxy']);
 				$connectStringShort = $connectString;
 				$tokens = json_decode($mailboxsettings["password"], true);
 				$mailboxsettings["password"] = $tokens["access_token"];
-				$this->log("Using XOAUTH2 with proxy: $connectString", true);
 			}
 
 			$this->log("Trying to connect using $connectString$folder", true);
-			// FIX: Add DISABLE_AUTHENTICATOR option for better compatibility
-			if(!$imap = @imap_open("$connectString$folder", $mailboxsettings["username"], $mailboxsettings["password"], NULL, 1, array('DISABLE_AUTHENTICATOR' => 'GSSAPI'))) {
+			if(!$imap = @imap_open("$connectString$folder", $mailboxsettings["username"], $mailboxsettings["password"])) {
 				$this->log("Connect failed using $connectString$folder, trying with $connectStringShort$folder...", true);
-				$imap = @imap_open("$connectStringShort$folder", $mailboxsettings["username"], $mailboxsettings["password"], NULL, 1, array('DISABLE_AUTHENTICATOR' => 'GSSAPI'));
+				$imap = @imap_open("$connectStringShort$folder", $mailboxsettings["username"], $mailboxsettings["password"]);
 				if($imap) {
 					$this->_imapurl = $connectStringShort;
 					$this->_imapfolder = $folder;

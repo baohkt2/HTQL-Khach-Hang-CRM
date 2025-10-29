@@ -74,11 +74,17 @@ jQuery.Class("Vtiger_CkEditor_Js",{},{
 	 * Function to load contents in ckeditor textarea
 	 * @params : textArea Element,contents ;
 	 */
+	// loadContentsInCkeditor : function(contents){
+	// 	var CkEditor = this.getCkEditorInstanceFromName();
+	// 	CkEditor.setData(contents);
+	// },
 	loadContentsInCkeditor : function(contents){
-		var CkEditor = this.getCkEditorInstanceFromName();
-		CkEditor.setData(contents);
-	},
+    var CkEditor = this.getCkEditorInstanceFromName();
 
+    // append to actual content
+    contents = CkEditor.document.getBody().getHtml() + contents;
+    CkEditor.setData(contents);
+	},
     /**
      * Function to remove ckeditor instance
      */

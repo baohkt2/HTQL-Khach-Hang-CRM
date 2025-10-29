@@ -11,28 +11,25 @@ version_compare(PHP_VERSION, '5.5.0') <= 0
 include('vtigerversion.php');
 
 // Increase memory for PHP
-ini_set('memory_limit','1024M');
+ini_set('memory_limit','2048M');
 
 // Enable calendar & RTE
 $CALENDAR_DISPLAY = 'true';
 $USE_RTE = 'true';
+
+$log4phpDebug = 'true';
 
 // Helpdesk support
 $HELPDESK_SUPPORT_EMAIL_ID = 'support@example.com';
 $HELPDESK_SUPPORT_NAME = 'Vtiger Support';
 $HELPDESK_SUPPORT_EMAIL_REPLY_ID = $HELPDESK_SUPPORT_EMAIL_ID;
 
-// Enable debug mode
-$LOG4PHP_DEBUG = true;
-$DEBUG = true;
-
-
 /* Database configuration */
 $dbconfig['db_server']   = 'localhost';      // XAMPP chạy MySQL trên localhost
 $dbconfig['db_port']     = ':3306';          // cổng mặc định MySQL
 $dbconfig['db_username'] = 'root';           // user mặc định của XAMPP
 $dbconfig['db_password'] = '';               // để trống nếu chưa set password
-$dbconfig['db_name']     = 'vtigercrm_updated';  // đổi thành tên database bạn import
+$dbconfig['db_name']     = 'vtiger';  // đổi thành tên database bạn import
 $dbconfig['db_type']     = 'mysqli';
 $dbconfig['db_status']   = 'true';
 
@@ -66,10 +63,10 @@ $cache_dir = 'cache/';
 $tmp_dir = 'cache/images/';
 $import_dir = 'cache/import/';
 $upload_dir = 'cache/upload/';
-$upload_maxsize = 3145728; // 3MB
+$upload_maxsize = 31457280; // 3MB
 
 // Export rules
-$allow_exports = 'all';
+$allow_exports = 'all'; 
 
 // Disallowed extensions
 $upload_badext = array(
@@ -79,15 +76,15 @@ $upload_badext = array(
 );
 
 // UI configs
-$list_max_entries_per_page = '20';
+$list_max_entries_per_page = '40';
 $history_max_viewed = '5';
 $default_action = 'index';
 $default_theme = 'softed';
 
 // Default user credentials (leave empty)
-$default_user_name = '';
-$default_password = '';
-$create_default_user = false;
+$default_user_name = 'admin';
+$default_password = 'admin';
+$create_default_user = true;
 
 // Localization
 $currency_name = 'Vietnam, Dong';
@@ -100,7 +97,7 @@ $disable_stats_tracking = false;
 $application_unique_key = '40709172e88b8f6c672bc88408891a3b';
 
 // Misc
-$listview_max_textlength = 40;
+$listview_max_textlength = '40';
 $php_max_execution_time = 0;
 $default_timezone = 'UTC';
 
