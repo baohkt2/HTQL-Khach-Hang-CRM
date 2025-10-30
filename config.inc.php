@@ -50,8 +50,9 @@ $dbconfigoption['ssl'] = false;
 $host_name = $dbconfig['db_hostname'];
 
 // Site URL (đường dẫn khi truy cập qua trình duyệt)
-$site_URL = 'http://localhost/vtigercrm';
 
+// $site_URL = 'http://localhost/vtigercrm';
+$site_URL = 'http://4285e8ced464.ngrok-free.app/vtigercrm';
 // Customer portal URL
 $PORTAL_URL = $site_URL.'/customerportal';
 

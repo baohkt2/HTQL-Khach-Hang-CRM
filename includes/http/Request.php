@@ -191,7 +191,7 @@ class Vtiger_Request {
 	 * Validating incoming request.
 	 */	
 	function validateReadAccess() {
-		$this->validateReferer();
+		// $this->validateReferer();
 		// TODO validateIP restriction?
 		return true;
 	}

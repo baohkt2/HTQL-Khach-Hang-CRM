@@ -1,4 +1,3 @@
-/test/
 /logs/
 oauth2callback/config.oauth2.php
 /modules/Google/connectors/Config.php
