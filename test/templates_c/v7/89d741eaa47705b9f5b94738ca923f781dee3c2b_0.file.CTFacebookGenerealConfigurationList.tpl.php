@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-19 18:51:16
+/* Smarty version 4.5.5, created on 2025-10-30 08:02:33
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\CTFacebookMessengerIntegration\CTFacebookGenerealConfigurationList.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68f533240633c9_87804962',
+  'unifunc' => 'content_69031b9917a425_01639913',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '89d741eaa47705b9f5b94738ca923f781dee3c2b' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\CTFacebookMessengerIntegration\\CTFacebookGenerealConfigurationList.tpl',
-      1 => 1760898905,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68f533240633c9_87804962 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69031b9917a425_01639913 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_checkPlugins(array(0=>array('file'=>'C:\\xampp\\htdocs\\vtigercrm\\vendor\\smarty\\smarty\\libs\\plugins\\modifier.count.php','function'=>'smarty_modifier_count',),));
 ?>
 <div class="detailViewContainer" id="WhatsappConfiguration" style="margin-top: 20px;"><div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"><div style="float:right;"><input type="hidden" name="accessToken" id="accessToken" value="<?php echo $_smarty_tpl->tpl_vars['ACCESSTOKEN']->value;?>

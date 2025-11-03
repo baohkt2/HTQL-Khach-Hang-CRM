@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-08 08:17:55
+/* Smarty version 4.5.5, created on 2025-11-03 07:37:05
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Import\ImportBasicStep.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68e61e338a7504_45513853',
+  'unifunc' => 'content_69085ba15150d5_13361599',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'ffb569844c51b710247cac6611de035461f620e3' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Import\\ImportBasicStep.tpl',
-      1 => 1758006149,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68e61e338a7504_45513853 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69085ba15150d5_13361599 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class='fc-overlay-modal modal-content'><div class="overlayHeader"><?php ob_start();
 echo call_user_func_array($_smarty_tpl->registered_plugins[ 'modifier' ][ 'vtranslate' ][ 0 ], array( 'LBL_IMPORT',$_smarty_tpl->tpl_vars['MODULE']->value ));

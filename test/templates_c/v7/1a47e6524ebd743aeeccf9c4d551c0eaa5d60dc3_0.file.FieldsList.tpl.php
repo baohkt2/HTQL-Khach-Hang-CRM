@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:40:51
+/* Smarty version 4.5.5, created on 2025-10-30 06:12:42
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\LayoutEditor\FieldsList.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db8983e9d1e2_32112051',
+  'unifunc' => 'content_690301da7242b3_59337055',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '1a47e6524ebd743aeeccf9c4d551c0eaa5d60dc3' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\LayoutEditor\\FieldsList.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db8983e9d1e2_32112051 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690301da7242b3_59337055 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('IS_SORTABLE', $_smarty_tpl->tpl_vars['SELECTED_MODULE_MODEL']->value->isSortableAllowed());
 $_smarty_tpl->_assignInScope('ALL_BLOCK_LABELS', array());?><div class="row fieldsListContainer" style="padding:1% 0"><div class="col-sm-6"><button class="btn btn-default addButton addCustomBlock" type="button"><i class="fa fa-plus"></i>&nbsp;&nbsp;<?php echo vtranslate('LBL_ADD_CUSTOM_BLOCK',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </button></div><div class="col-sm-6"><?php if ($_smarty_tpl->tpl_vars['IS_SORTABLE']->value) {?><span class="pull-right"><button class="btn btn-success saveFieldSequence" type="button" style="opacity:0;margin-right:0px;"><?php echo vtranslate('LBL_SAVE_LAYOUT',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>

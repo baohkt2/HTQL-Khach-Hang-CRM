@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 08:58:22
+/* Smarty version 4.5.5, created on 2025-11-02 07:41:16
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\CronTasks\ListViewRecordActions.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9baecee0b2_98023851',
+  'unifunc' => 'content_69070b1c735331_60702139',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'd18e0167f967abf0e53b7e1e07829c4b4ce8aff3' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\CronTasks\\ListViewRecordActions.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9baecee0b2_98023851 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69070b1c735331_60702139 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div class="table-actions"><span><img src="<?php echo vimage_path('drag.png');?>
 " class="alignTop" title="<?php echo vtranslate('LBL_DRAG',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 " /></span><span><?php

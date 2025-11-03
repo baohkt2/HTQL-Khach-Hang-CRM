@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:40:56
+/* Smarty version 4.5.5, created on 2025-10-30 06:12:47
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\LayoutEditor\DefaultValueUi.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db8988d0e836_65109204',
+  'unifunc' => 'content_690301df2d9252_51259456',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '172b07989d7d642b7ee37e5de6acb9d4e35845e6' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\LayoutEditor\\DefaultValueUi.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db8988d0e836_65109204 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690301df2d9252_51259456 (Smarty_Internal_Template $_smarty_tpl) {
 if ($_smarty_tpl->tpl_vars['FIELD_MODEL']->value->isDefaultValueOptionDisabled() != "true") {?><div class="form-group"><label class="control-label fieldLabel col-sm-5"><img src="<?php echo vimage_path('DefaultValue.png');?>
 " height=14 width=14/> &nbsp; <?php echo vtranslate('LBL_DEFAULT_VALUE',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </label><div class="controls col-sm-7"><div class="defaultValueUi"><?php if (!(isset($_smarty_tpl->tpl_vars['NAME_ATTR']->value)) || !$_smarty_tpl->tpl_vars['NAME_ATTR']->value) {
@@ -38,8 +38,8 @@ $_smarty_tpl->_assignInScope('DEFAULT_VALUE', $_smarty_tpl->tpl_vars['FIELD_MODE
 }
 ob_start();
 echo decode_html($_smarty_tpl->tpl_vars['DEFAULT_VALUE']->value);
-$_prefixVariable15 = ob_get_clean();
-$_smarty_tpl->_assignInScope('DEFAULT_VALUE', $_prefixVariable15);?><select class="col-sm-9 select2" name="<?php echo $_smarty_tpl->tpl_vars['NAME_ATTR']->value;?>
+$_prefixVariable14 = ob_get_clean();
+$_smarty_tpl->_assignInScope('DEFAULT_VALUE', $_prefixVariable14);?><select class="col-sm-9 select2" name="<?php echo $_smarty_tpl->tpl_vars['NAME_ATTR']->value;?>
 "><?php
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['PICKLIST_VALUES']->value, 'PICKLIST_VALUE', false, 'PICKLIST_NAME');
 $_smarty_tpl->tpl_vars['PICKLIST_VALUE']->do_else = true;

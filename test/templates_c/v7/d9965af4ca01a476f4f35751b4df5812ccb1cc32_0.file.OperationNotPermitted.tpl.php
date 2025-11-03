@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 07:20:30
+/* Smarty version 4.5.5, created on 2025-10-30 07:34:34
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\OperationNotPermitted.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de27be1c1867_53331124',
+  'unifunc' => 'content_6903150a1fc123_09509433',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'd9965af4ca01a476f4f35751b4df5812ccb1cc32' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\OperationNotPermitted.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de27be1c1867_53331124 (Smarty_Internal_Template $_smarty_tpl) {
+function content_6903150a1fc123_09509433 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div style="margin:0 auto;width: 50em;">
 	<table border='0' cellpadding='5' cellspacing='0' height='600px' width="700px">
 	<tr><td align='center'>

@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 08:58:16
+/* Smarty version 4.5.5, created on 2025-11-02 07:43:56
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Workflows\ListViewContents.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9ba89977f9_05804121',
+  'unifunc' => 'content_69070bbc7feea2_97104006',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '472d4c8ff8a6c7c9e6ad43803376988f49fea924' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\Workflows\\ListViewContents.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9ba89977f9_05804121 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69070bbc7feea2_97104006 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class="col-sm-12 col-xs-12 "><input type="hidden" id="pageStartRange" value="<?php echo $_smarty_tpl->tpl_vars['PAGING_MODEL']->value->getRecordStartRange();?>
 " /><input type="hidden" id="pageEndRange" value="<?php echo $_smarty_tpl->tpl_vars['PAGING_MODEL']->value->getRecordEndRange();?>

@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 08:10:03
+/* Smarty version 4.5.5, created on 2025-11-02 16:50:57
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\uitypes\Picklist.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de335bcd2a51_21506324',
+  'unifunc' => 'content_69078bf1dbc853_07493725',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '4a98ff0b1bb9483874aca96855c229a9964d1770' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\uitypes\\Picklist.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de335bcd2a51_21506324 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69078bf1dbc853_07493725 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_checkPlugins(array(0=>array('file'=>'C:\\xampp\\htdocs\\vtigercrm\\vendor\\smarty\\smarty\\libs\\plugins\\modifier.replace.php','function'=>'smarty_modifier_replace',),));
 ?>
 

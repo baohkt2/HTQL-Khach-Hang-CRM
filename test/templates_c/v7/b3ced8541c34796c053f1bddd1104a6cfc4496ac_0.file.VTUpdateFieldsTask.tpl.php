@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-25 17:59:11
+/* Smarty version 4.5.5, created on 2025-11-02 16:48:58
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Workflows\Tasks\VTUpdateFieldsTask.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68fd0fef0ad987_86194140',
+  'unifunc' => 'content_69078b7a4417e8_16058011',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'b3ced8541c34796c053f1bddd1104a6cfc4496ac' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\Workflows\\Tasks\\VTUpdateFieldsTask.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68fd0fef0ad987_86194140 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69078b7a4417e8_16058011 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div class="row"><div class="col-sm-2 col-xs-2"><strong><?php echo vtranslate('LBL_SET_FIELD_VALUES',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </strong></div></div><br><div><button type="button" class="btn btn-default" id="addFieldBtn"><?php echo vtranslate('LBL_ADD_FIELD',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </button></div><br><div class="conditionsContainer" id="save_fieldvaluemapping" style="margin-bottom: 70px;"><?php $_smarty_tpl->_assignInScope('FIELD_VALUE_MAPPING', ZEND_JSON::decode($_smarty_tpl->tpl_vars['TASK_OBJECT']->value->field_value_mapping));?><input type="hidden" id="fieldValueMapping" name="field_value_mapping" value='<?php echo Vtiger_Util_Helper::toSafeHTML($_smarty_tpl->tpl_vars['TASK_OBJECT']->value->field_value_mapping);?>

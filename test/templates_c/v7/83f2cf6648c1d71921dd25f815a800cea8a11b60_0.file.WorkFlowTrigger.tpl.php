@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 08:50:17
+/* Smarty version 4.5.5, created on 2025-11-03 01:32:42
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Workflows\WorkFlowTrigger.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de3cc96f8d82_87691959',
+  'unifunc' => 'content_6908063a912135_90273456',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '83f2cf6648c1d71921dd25f815a800cea8a11b60' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\Workflows\\WorkFlowTrigger.tpl',
-      1 => 1752039682,
+      1 => 1762105171,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de3cc96f8d82_87691959 (Smarty_Internal_Template $_smarty_tpl) {
+function content_6908063a912135_90273456 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('EXECUTION_CONDITION', $_smarty_tpl->tpl_vars['WORKFLOW_MODEL_OBJ']->value->executionCondition);?><input type="hidden" name="workflow_trigger" value="<?php echo $_smarty_tpl->tpl_vars['EXECUTION_CONDITION']->value;?>
 " /><div class="form-group"><label for="name" class="col-sm-3 control-label"><?php echo vtranslate('LBL_TRIGGER_WORKFLOW_ON',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </label><div class="col-sm-6 controls"><?php $_smarty_tpl->_assignInScope('SINGLE_SELECTED_MODULE', "SINGLE_".((string)$_smarty_tpl->tpl_vars['SELECTED_MODULE']->value));?><span><input type="radio" name="workflow_trigger" value="1" <?php if ($_smarty_tpl->tpl_vars['EXECUTION_CONDITION']->value == '1') {?> checked="" <?php }?>> <span id="workflowTriggerCreate"><?php echo vtranslate($_smarty_tpl->tpl_vars['SINGLE_SELECTED_MODULE']->value,$_smarty_tpl->tpl_vars['SELECTED_MODULE']->value);?>
@@ -28,7 +28,9 @@ $_smarty_tpl->_assignInScope('EXECUTION_CONDITION', $_smarty_tpl->tpl_vars['WORK
 </span></span><br><span><input type="radio" name="workflow_trigger" value="3" <?php if ($_smarty_tpl->tpl_vars['EXECUTION_CONDITION']->value == '3' || $_smarty_tpl->tpl_vars['EXECUTION_CONDITION']->value == '2') {?> checked="" <?php }?>> <span id="workflowTriggerUpdate"><?php echo vtranslate($_smarty_tpl->tpl_vars['SINGLE_SELECTED_MODULE']->value,$_smarty_tpl->tpl_vars['SELECTED_MODULE']->value);?>
  <?php echo vtranslate('LBL_UPDATED',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </span> &nbsp;(<?php echo vtranslate('LBL_INCLUDES_CREATION',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
-)</span><br><span><input type="radio" name="workflow_trigger" value="6" <?php if ($_smarty_tpl->tpl_vars['EXECUTION_CONDITION']->value == '6') {?> checked="" <?php } elseif ($_smarty_tpl->tpl_vars['SCHEDULED_WORKFLOW_COUNT']->value >= $_smarty_tpl->tpl_vars['MAX_ALLOWED_SCHEDULED_WORKFLOWS']->value) {?> disabled="disabled" <?php }?>> <?php echo vtranslate('LBL_TIME_INTERVAL',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);
+)</span><br><span><input type="radio" name="workflow_trigger" value="5" <?php if ($_smarty_tpl->tpl_vars['EXECUTION_CONDITION']->value == '5') {?> checked="" <?php }?>> <span id="workflowTriggerDelete"><?php echo vtranslate($_smarty_tpl->tpl_vars['SINGLE_SELECTED_MODULE']->value,$_smarty_tpl->tpl_vars['SELECTED_MODULE']->value);?>
+ <?php echo vtranslate('LBL_DELETION',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
+</span></span><br><span><input type="radio" name="workflow_trigger" value="6" <?php if ($_smarty_tpl->tpl_vars['EXECUTION_CONDITION']->value == '6') {?> checked="" <?php } elseif ($_smarty_tpl->tpl_vars['SCHEDULED_WORKFLOW_COUNT']->value >= $_smarty_tpl->tpl_vars['MAX_ALLOWED_SCHEDULED_WORKFLOWS']->value) {?> disabled="disabled" <?php }?>> <?php echo vtranslate('LBL_TIME_INTERVAL',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);
 if ($_smarty_tpl->tpl_vars['SCHEDULED_WORKFLOW_COUNT']->value >= $_smarty_tpl->tpl_vars['MAX_ALLOWED_SCHEDULED_WORKFLOWS']->value) {?>&nbsp;&nbsp;<span class="alert-info textAlignCenter"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;(<?php echo vtranslate('LBL_MAX_SCHEDULED_WORKFLOWS_EXCEEDED',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value,$_smarty_tpl->tpl_vars['MAX_ALLOWED_SCHEDULED_WORKFLOWS']->value);?>
 )</span><?php }?></span></div></div><div class="form-group workflowRecurrenceBlock <?php if (!in_array($_smarty_tpl->tpl_vars['EXECUTION_CONDITION']->value,array(2,3))) {?> hide <?php }?>"><label for="name" class="col-sm-3 control-label"><?php echo vtranslate('LBL_RECURRENCE',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </label><div class="col-sm-5 controls"><span><input type="radio" name="workflow_recurrence" value="2" <?php if ($_smarty_tpl->tpl_vars['EXECUTION_CONDITION']->value == '2') {?> checked="" <?php }?>> <?php echo vtranslate('LBL_FIRST_TIME_CONDITION_MET',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>

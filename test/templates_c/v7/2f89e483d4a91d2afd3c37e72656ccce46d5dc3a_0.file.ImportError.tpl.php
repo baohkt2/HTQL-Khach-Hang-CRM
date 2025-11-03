@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-22 08:06:34
+/* Smarty version 4.5.5, created on 2025-11-03 07:37:03
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Import\ImportError.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68f8908a6367b3_02815602',
+  'unifunc' => 'content_69085b9f348267_11655864',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '2f89e483d4a91d2afd3c37e72656ccce46d5dc3a' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Import\\ImportError.tpl',
-      1 => 1758006149,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68f8908a6367b3_02815602 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69085b9f348267_11655864 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div class='fc-overlay-modal modal-content'>
     <div class="overlayHeader">
         <?php ob_start();

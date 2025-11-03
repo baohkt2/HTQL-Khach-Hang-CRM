@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 08:10:02
+/* Smarty version 4.5.5, created on 2025-10-31 05:21:48
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\IndexViewPreProcess.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de335a313ee3_97022575',
+  'unifunc' => 'content_6904476c6f1bc7_45706563',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'cddb231437fb50ab1b998b44a54c151ebc1b55dd' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\IndexViewPreProcess.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -21,7 +21,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
     'file:modules/Vtiger/partials/Topbar.tpl' => 1,
   ),
 ),false)) {
-function content_68de335a313ee3_97022575 (Smarty_Internal_Template $_smarty_tpl) {
+function content_6904476c6f1bc7_45706563 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_subTemplateRender("file:modules/Vtiger/partials/Topbar.tpl", $_smarty_tpl->cache_id, $_smarty_tpl->compile_id, 0, $_smarty_tpl->cache_lifetime, array(), 0, false);
 ?>
 

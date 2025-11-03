@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-19 15:13:09
+/* Smarty version 4.5.5, created on 2025-11-02 16:53:08
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Contacts\uitypes\Text.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68f5000511d439_47664672',
+  'unifunc' => 'content_69078c748171d0_52371945',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'f7dc2d37913841d334c8d925fc6fcec86020de8f' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Contacts\\uitypes\\Text.tpl',
-      1 => 1752039682,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68f5000511d439_47664672 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69078c748171d0_52371945 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('FIELD_INFO', Zend_Json::encode($_smarty_tpl->tpl_vars['FIELD_MODEL']->value->getFieldInfo()));
 $_smarty_tpl->_assignInScope('SPECIAL_VALIDATOR', $_smarty_tpl->tpl_vars['FIELD_MODEL']->value->getValidator());
 $_smarty_tpl->_assignInScope('FIELD_NAME', $_smarty_tpl->tpl_vars['FIELD_MODEL']->value->getFieldName());

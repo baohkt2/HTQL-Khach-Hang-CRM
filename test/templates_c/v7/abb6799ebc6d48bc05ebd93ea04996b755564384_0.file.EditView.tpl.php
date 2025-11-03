@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 08:50:16
+/* Smarty version 4.5.5, created on 2025-11-02 16:27:31
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Workflows\EditView.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de3cc8de9717_24411019',
+  'unifunc' => 'content_69078673c68c86_52787253',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'abb6799ebc6d48bc05ebd93ea04996b755564384' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\Workflows\\EditView.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de3cc8de9717_24411019 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69078673c68c86_52787253 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div class="editViewPageDiv"><div class="col-sm-12 col-xs-12" id="EditView"><form name="EditWorkflow" action="index.php" method="post" id="workflow_edit" class="form-horizontal"><?php $_smarty_tpl->_assignInScope('WORKFLOW_MODEL_OBJ', $_smarty_tpl->tpl_vars['WORKFLOW_MODEL']->value->getWorkflowObject());?><input type="hidden" name="record" value="<?php echo $_smarty_tpl->tpl_vars['RECORDID']->value;?>
 " id="record" /><input type="hidden" name="module" value="Workflows" /><input type="hidden" name="action" value="SaveWorkflow" /><input type="hidden" name="parent" value="Settings" /><input type="hidden" name="returnsourcemodule" value="<?php echo $_smarty_tpl->tpl_vars['RETURN_SOURCE_MODULE']->value;?>
 " /><input type="hidden" name="returnpage" value="<?php echo $_smarty_tpl->tpl_vars['RETURN_PAGE']->value;?>

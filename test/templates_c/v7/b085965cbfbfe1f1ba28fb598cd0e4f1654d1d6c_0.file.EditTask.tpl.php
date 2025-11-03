@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 08:51:27
+/* Smarty version 4.5.5, created on 2025-11-02 16:48:57
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Workflows\EditTask.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de3d0f58fa05_84894277',
+  'unifunc' => 'content_69078b79efca29_41378474',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'b085965cbfbfe1f1ba28fb598cd0e4f1654d1d6c' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\Workflows\\EditTask.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de3d0f58fa05_84894277 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69078b79efca29_41378474 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div class="fc-overlay-modal modal-content"><div class="modal-content"><?php ob_start();
 echo vtranslate('LBL_ADD_TASKS_FOR_WORKFLOW',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);
 $_prefixVariable1 = ob_get_clean();

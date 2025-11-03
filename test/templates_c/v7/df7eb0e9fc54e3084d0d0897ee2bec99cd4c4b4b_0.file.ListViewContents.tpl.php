@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 09:02:24
+/* Smarty version 4.5.5, created on 2025-11-02 07:42:43
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Users\ListViewContents.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9ca0529541_55595688',
+  'unifunc' => 'content_69070b730e6593_40790157',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'df7eb0e9fc54e3084d0d0897ee2bec99cd4c4b4b' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Users\\ListViewContents.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9ca0529541_55595688 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69070b730e6593_40790157 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <input type="hidden" id="listViewEntriesCount" value="<?php echo $_smarty_tpl->tpl_vars['LISTVIEW_ENTRIES_COUNT']->value;?>
 " /><input type="hidden" id="pageStartRange" value="<?php echo $_smarty_tpl->tpl_vars['PAGING_MODEL']->value->getRecordStartRange();?>

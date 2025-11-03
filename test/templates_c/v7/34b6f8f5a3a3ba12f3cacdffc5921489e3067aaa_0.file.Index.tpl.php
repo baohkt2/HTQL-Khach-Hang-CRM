@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:40:51
+/* Smarty version 4.5.5, created on 2025-10-30 06:12:41
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\LayoutEditor\Index.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db89837d2277_87719193',
+  'unifunc' => 'content_690301d9b510a3_46127961',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '34b6f8f5a3a3ba12f3cacdffc5921489e3067aaa' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\LayoutEditor\\Index.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db89837d2277_87719193 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690301d9b510a3_46127961 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class="container-fluid main-scroll paddingTop15" id="layoutEditorContainer"><input id="selectedModuleName" type="hidden" value="<?php echo $_smarty_tpl->tpl_vars['SELECTED_MODULE_NAME']->value;?>
 " /><input class="selectedTab" type="hidden" value="<?php echo $_smarty_tpl->tpl_vars['SELECTED_TAB']->value;?>

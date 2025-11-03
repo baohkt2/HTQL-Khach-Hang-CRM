@@ -1345,19 +1345,32 @@ class CRMEntity {
 	function trash($module, $id) {
 		global $log, $current_user, $adb;
 
+		error_log("CRMEntity.trash: START for module=$module, id=$id");
+
 		if(!self::isBulkSaveMode()) {
+			error_log("CRMEntity.trash: Not in bulk save mode");
 			require_once("include/events/include.inc");
 			$em = new VTEventsManager($adb);
 
 			// Initialize Event trigger cache
+			error_log("CRMEntity.trash: Initializing trigger cache");
 			$em->initTriggerCache();
 
+			error_log("CRMEntity.trash: Creating entity data");
 			$entityData = VTEntityData::fromEntityId($adb, $id);
 
+			error_log("CRMEntity.trash: Triggering beforedelete event");
 			$em->triggerEvent("vtiger.entity.beforedelete", $entityData);
+			error_log("CRMEntity.trash: beforedelete event completed");
 		}
+		
+		error_log("CRMEntity.trash: Calling mark_deleted");
 		$this->mark_deleted($id);
+		error_log("CRMEntity.trash: mark_deleted completed");
+		
+		error_log("CRMEntity.trash: Calling unlinkDependencies");
 		$this->unlinkDependencies($module, $id);
+		error_log("CRMEntity.trash: unlinkDependencies completed");
 
 		require_once('libraries/freetag/freetag.class.php');
 		$freetag = new freetag();
@@ -1367,42 +1380,72 @@ class CRMEntity {
 		$this->db->pquery($sql_recentviewed, array($current_user->id, $id));
 
 		if($em){
+			error_log("CRMEntity.trash: Triggering afterdelete event");
 			$em->triggerEvent("vtiger.entity.afterdelete", $entityData);
+			error_log("CRMEntity.trash: afterdelete event completed");
 		}
+		
+		error_log("CRMEntity.trash: END for id=$id");
 	}
 
 	/** Function to unlink all the dependent entities of the given Entity by Id */
 	function unlinkDependencies($module, $id) {
 		global $log;
 
+		error_log("unlinkDependencies: START for module=$module, id=$id");
+		
 		$fieldRes = $this->db->pquery('SELECT tabid, tablename, columnname FROM vtiger_field WHERE fieldid IN (
 			SELECT fieldid FROM vtiger_fieldmodulerel WHERE relmodule=?)', array($module));
 		$numOfFields = $this->db->num_rows($fieldRes);
+		
+		error_log("unlinkDependencies: Found $numOfFields fields to process");
+		
 		for ($i = 0; $i < $numOfFields; $i++) {
+			error_log("unlinkDependencies: Processing field $i/$numOfFields");
+			
 			$tabId = $this->db->query_result($fieldRes, $i, 'tabid');
 			$tableName = $this->db->query_result($fieldRes, $i, 'tablename');
 			$columnName = $this->db->query_result($fieldRes, $i, 'columnname');
+			
+			error_log("unlinkDependencies: tabId=$tabId, tableName=$tableName, columnName=$columnName");
 
 			$relatedModule = vtlib_getModuleNameById($tabId);
+			error_log("unlinkDependencies: relatedModule=$relatedModule");
+			
+			// Skip if module not found
+			if (empty($relatedModule)) {
+				error_log("unlinkDependencies: Module not found for tabId=$tabId, skipping");
+				continue;
+			}
+			
 			$focusObj = CRMEntity::getInstance($relatedModule);
+			error_log("unlinkDependencies: Got CRMEntity instance for $relatedModule");
 
 			//Backup Field Relations for the deleted entity
 			$targetTableColumn = $focusObj->tab_name_index[$tableName];
+			error_log("unlinkDependencies: targetTableColumn=$targetTableColumn");
 
 			$relQuery = "SELECT $targetTableColumn FROM $tableName WHERE $columnName=?";
+			error_log("unlinkDependencies: Executing query: $relQuery");
 			$relResult = $this->db->pquery($relQuery, array($id));
 			$numOfRelRecords = $this->db->num_rows($relResult);
+			error_log("unlinkDependencies: Found $numOfRelRecords related records");
+			
 			if ($numOfRelRecords > 0) {
 				$recordIdsList = array();
 				for ($k = 0; $k < $numOfRelRecords; $k++) {
 					$recordIdsList[] = $this->db->query_result($relResult, $k, $focusObj->table_index);
 				}
 				if(php7_count($recordIdsList) > 0) {
+					error_log("unlinkDependencies: Backing up " . php7_count($recordIdsList) . " records");
 					$params = array($id, RB_RECORD_UPDATED, $tableName, $columnName, $focusObj->table_index, implode(",", $recordIdsList));
 					$this->db->pquery('INSERT INTO vtiger_relatedlists_rb VALUES (?,?,?,?,?,?)', $params);
+					error_log("unlinkDependencies: Backup completed");
 				}
 			}
 		}
+		
+		error_log("unlinkDependencies: END for id=$id");
 	}
 
 	/** Function to unlink an entity with given Id from another entity */

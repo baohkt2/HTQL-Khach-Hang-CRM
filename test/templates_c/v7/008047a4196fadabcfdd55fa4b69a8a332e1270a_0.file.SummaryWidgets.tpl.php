@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 08:48:58
+/* Smarty version 4.5.5, created on 2025-11-02 08:35:51
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\SummaryWidgets.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db997a35d776_40844246',
+  'unifunc' => 'content_690717e7c090b7_53287874',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '008047a4196fadabcfdd55fa4b69a8a332e1270a' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\SummaryWidgets.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db997a35d776_40844246 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690717e7c090b7_53287874 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <input type="hidden" name="page" value="<?php echo $_smarty_tpl->tpl_vars['PAGING_MODEL']->value->get('page');?>
 " /><input type="hidden" name="pageLimit" value="<?php echo $_smarty_tpl->tpl_vars['PAGING_MODEL']->value->get('limit');?>

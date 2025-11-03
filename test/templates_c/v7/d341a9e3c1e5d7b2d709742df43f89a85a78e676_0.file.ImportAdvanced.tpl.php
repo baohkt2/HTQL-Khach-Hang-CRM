@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-08 08:18:13
+/* Smarty version 4.5.5, created on 2025-11-03 07:52:39
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Import\ImportAdvanced.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68e61e45bfb8a9_92773293',
+  'unifunc' => 'content_69085f470cc7e2_47642304',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'd341a9e3c1e5d7b2d709742df43f89a85a78e676' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Import\\ImportAdvanced.tpl',
-      1 => 1758006149,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68e61e45bfb8a9_92773293 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69085f470cc7e2_47642304 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 
 <div class='fc-overlay-modal modal-content'>

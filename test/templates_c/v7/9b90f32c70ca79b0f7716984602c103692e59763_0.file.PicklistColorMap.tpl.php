@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:41:10
+/* Smarty version 4.5.5, created on 2025-10-30 05:59:55
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\PicklistColorMap.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db8996c22bd9_69047436',
+  'unifunc' => 'content_6902fedbc4e995_82330479',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '9b90f32c70ca79b0f7716984602c103692e59763' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\PicklistColorMap.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db8996c22bd9_69047436 (Smarty_Internal_Template $_smarty_tpl) {
+function content_6902fedbc4e995_82330479 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <style type="text/css">
     <?php

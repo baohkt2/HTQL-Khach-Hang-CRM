@@ -93,6 +93,12 @@ class VTWorkflowEventHandler extends VTEventHandler {
 						$doEvaluate = !($isNew);
 						break;
 					}
+				case VTWorkflowManager::$ON_DELETE: {
+						// ON_DELETE workflows are triggered separately via vtiger.entity.beforedelete event
+						// This case is here for completeness but won't be evaluated in aftersave event
+						$doEvaluate = false;
+						break;
+					}
                 case VTWorkflowManager::$MANUAL: {
 						$doEvaluate = false;
 						break;

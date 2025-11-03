@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 08:50:19
+/* Smarty version 4.5.5, created on 2025-11-02 16:27:35
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Workflows\WorkFlowConditions.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de3ccb8eaed2_72328439',
+  'unifunc' => 'content_690786775957e3_24946081',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'aafe4a2d65c3a565623176b22985cd6cede53ed5' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\Workflows\\WorkFlowConditions.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de3ccb8eaed2_72328439 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690786775957e3_24946081 (Smarty_Internal_Template $_smarty_tpl) {
 ?><input type="hidden" name="conditions" id="advanced_filter" value='' /><input type="hidden" id="olderConditions" value='<?php echo Vtiger_Util_Helper::toSafeHTML(ZEND_JSON::encode($_smarty_tpl->tpl_vars['WORKFLOW_MODEL']->value->get('conditions')));?>
 ' /><input type="hidden" name="filtersavedinnew" value="<?php echo $_smarty_tpl->tpl_vars['WORKFLOW_MODEL']->value->get('filtersavedinnew');?>
 " /><div class="editViewHeader"><div class='row'><div class="col-lg-12 col-md-12 col-lg-pull-0"><h4><?php echo vtranslate('LBL_WORKFLOW_CONDITION',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>

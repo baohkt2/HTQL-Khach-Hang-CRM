@@ -38,8 +38,8 @@ class Settings_Workflows_Module_Model extends Settings_Vtiger_Module_Model {
 		2 => 'ONCE',
 		3 => 'ON_EVERY_SAVE',
 		4 => 'ON_MODIFY',
-		// Reserving 5 & 6 for ON_DELETE and ON_SCHEDULED types.
-		6=>	 'ON_SCHEDULE'
+		5 => 'ON_DELETE',
+		6 => 'ON_SCHEDULE'
 	);
 
 	/**

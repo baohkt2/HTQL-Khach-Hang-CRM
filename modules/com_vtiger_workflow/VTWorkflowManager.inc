@@ -19,8 +19,8 @@ class VTWorkflowManager{
 	static $ONCE = 2;
 	static $ON_EVERY_SAVE = 3;
 	static $ON_MODIFY = 4;
-	// Reserving 5 & 6 for ON_DELETE and ON_SCHEDULED types.
-	static $ON_SCHEDULE=6;
+	static $ON_DELETE = 5;
+	static $ON_SCHEDULE = 6;
 	static $MANUAL = 7;
 
 	function __construct($adb){

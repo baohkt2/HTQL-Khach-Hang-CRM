@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 09:06:59
+/* Smarty version 4.5.5, created on 2025-11-03 07:10:36
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\LayoutEditor\DuplicateHandling.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9db39a1222_28979118',
+  'unifunc' => 'content_6908556c5d2338_36111075',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '90cc4b39040dcdf2b4e0052e5d2ddb093e805183' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\LayoutEditor\\DuplicateHandling.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9db39a1222_28979118 (Smarty_Internal_Template $_smarty_tpl) {
+function content_6908556c5d2338_36111075 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class="duplicateHandlingDiv padding20"><form class="duplicateHandlingForm"><input type="hidden" name="_source" value="<?php echo (isset($_smarty_tpl->tpl_vars['SOURCE']->value)) ? $_smarty_tpl->tpl_vars['SOURCE']->value : '';?>
 " /><input type="hidden" name="sourceModule" value="<?php echo $_smarty_tpl->tpl_vars['SOURCE_MODULE']->value;?>

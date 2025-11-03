@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 09:03:47
+/* Smarty version 4.5.5, created on 2025-11-02 07:42:24
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Profiles\EditView.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9cf3332949_65073121',
+  'unifunc' => 'content_69070b60e50549_22718342',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'f2d244a335fa66e8db49959dcedd8b84bae5d95c' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\Profiles\\EditView.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9cf3332949_65073121 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69070b60e50549_22718342 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class="editViewPageDiv">
 	<div class="col-sm-12 col-xs-12 main-scroll">

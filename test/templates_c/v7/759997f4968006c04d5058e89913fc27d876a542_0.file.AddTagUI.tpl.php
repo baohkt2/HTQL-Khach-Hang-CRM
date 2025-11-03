@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:41:09
+/* Smarty version 4.5.5, created on 2025-10-30 05:59:53
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\AddTagUI.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db8995848750_85982561',
+  'unifunc' => 'content_6902fed94e8dc4_14791977',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '759997f4968006c04d5058e89913fc27d876a542' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\AddTagUI.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db8995848750_85982561 (Smarty_Internal_Template $_smarty_tpl) {
+function content_6902fed94e8dc4_14791977 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div class="showAllTagContainer hide"><div class="modal-dialog modal-lg"><div class="modal-content"><form class="detailShowAllModal"><?php ob_start();
 echo vtranslate('LBL_ADD_OR_SELECT_TAG',$_smarty_tpl->tpl_vars['MODULE']->value,$_smarty_tpl->tpl_vars['RECORD_NAME']->value);
 $_prefixVariable2=ob_get_clean();

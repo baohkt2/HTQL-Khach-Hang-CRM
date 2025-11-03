@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-07 09:13:18
+/* Smarty version 4.5.5, created on 2025-11-02 16:53:21
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Contacts\SummaryViewWidgets.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68e4d9aedd25e8_99339015',
+  'unifunc' => 'content_69078c817a5f18_18948421',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '5388b988466c4f0af1efdf9a6a330d26b890e71f' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Contacts\\SummaryViewWidgets.tpl',
-      1 => 1752039682,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68e4d9aedd25e8_99339015 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69078c817a5f18_18948421 (Smarty_Internal_Template $_smarty_tpl) {
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['DETAILVIEW_LINKS']->value['DETAILVIEWWIDGET'], 'DETAIL_VIEW_WIDGET');
 $_smarty_tpl->tpl_vars['DETAIL_VIEW_WIDGET']->do_else = true;
 if ($_from !== null) foreach ($_from as $_smarty_tpl->tpl_vars['DETAIL_VIEW_WIDGET']->value) {

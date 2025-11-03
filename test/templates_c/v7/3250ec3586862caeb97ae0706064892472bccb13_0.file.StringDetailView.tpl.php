@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 08:48:56
+/* Smarty version 4.5.5, created on 2025-11-02 07:40:45
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\uitypes\StringDetailView.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9978b3aeb2_38812093',
+  'unifunc' => 'content_69070afde310b1_48666630',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '3250ec3586862caeb97ae0706064892472bccb13' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\uitypes\\StringDetailView.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9978b3aeb2_38812093 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69070afde310b1_48666630 (Smarty_Internal_Template $_smarty_tpl) {
 if ($_smarty_tpl->tpl_vars['FIELD_MODEL']->value->getFieldDataType() == 'picklist' && $_smarty_tpl->tpl_vars['MODULE']->value != 'Users') {?>
     <?php $_smarty_tpl->_assignInScope('PICKLIST_COLOR', Settings_Picklist_Module_Model::getPicklistColorByValue($_smarty_tpl->tpl_vars['FIELD_MODEL']->value->getName(),$_smarty_tpl->tpl_vars['FIELD_MODEL']->value->get('fieldvalue')));?>  
     <span <?php if (!empty($_smarty_tpl->tpl_vars['PICKLIST_COLOR']->value)) {?> class="picklist-color" style="background-color: <?php echo $_smarty_tpl->tpl_vars['PICKLIST_COLOR']->value;?>

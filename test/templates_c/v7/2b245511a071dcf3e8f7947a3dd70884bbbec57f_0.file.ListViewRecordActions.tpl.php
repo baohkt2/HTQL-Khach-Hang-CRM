@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 08:59:19
+/* Smarty version 4.5.5, created on 2025-11-02 07:42:17
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Profiles\ListViewRecordActions.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9be7240d12_68172442',
+  'unifunc' => 'content_69070b59d24b95_65266828',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '2b245511a071dcf3e8f7947a3dd70884bbbec57f' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\Profiles\\ListViewRecordActions.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9be7240d12_68172442 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69070b59d24b95_65266828 (Smarty_Internal_Template $_smarty_tpl) {
 ?><!--LIST VIEW RECORD ACTIONS--><div class="table-actions"><?php $_smarty_tpl->_assignInScope('RECORD_LINKS', $_smarty_tpl->tpl_vars['LISTVIEW_ENTRY']->value->getRecordLinks());
 $_smarty_tpl->_assignInScope('RECORD_LINK_URL', array());
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['LISTVIEW_ENTRY']->value->getRecordLinks(), 'RECORD_LINK', false, 'key');

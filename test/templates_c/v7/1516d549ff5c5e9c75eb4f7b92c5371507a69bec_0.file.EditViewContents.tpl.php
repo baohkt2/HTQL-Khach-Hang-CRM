@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 09:03:47
+/* Smarty version 4.5.5, created on 2025-11-02 07:42:25
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Profiles\EditViewContents.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9cf3860255_09791737',
+  'unifunc' => 'content_69070b613d6929_49021651',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '1516d549ff5c5e9c75eb4f7b92c5371507a69bec' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\Profiles\\EditViewContents.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9cf3860255_09791737 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69070b613d6929_49021651 (Smarty_Internal_Template $_smarty_tpl) {
 if ((isset($_smarty_tpl->tpl_vars['SHOW_EXISTING_PROFILES']->value)) && $_smarty_tpl->tpl_vars['SHOW_EXISTING_PROFILES']->value) {?>
 	<?php
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['SCRIPTS']->value, 'jsModel', false, 'index');

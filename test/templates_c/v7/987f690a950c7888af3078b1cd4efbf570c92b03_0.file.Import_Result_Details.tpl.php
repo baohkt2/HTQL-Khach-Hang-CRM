@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-08 08:20:10
+/* Smarty version 4.5.5, created on 2025-11-03 07:36:52
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Import\Import_Result_Details.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68e61eba8a5682_28239205',
+  'unifunc' => 'content_69085b942eb073_11041322',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '987f690a950c7888af3078b1cd4efbf570c92b03' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Import\\Import_Result_Details.tpl',
-      1 => 1758006149,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68e61eba8a5682_28239205 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69085b942eb073_11041322 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <table width="100%" class="table table-borderless">
 	<tr>

@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 09:02:25
+/* Smarty version 4.5.5, created on 2025-11-02 07:42:44
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Users\ListViewRecordActions.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9ca1429705_78183422',
+  'unifunc' => 'content_69070b74e77438_15503600',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'e81c7813550ad9c05c22604aff160dc2e493c2e7' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Users\\ListViewRecordActions.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9ca1429705_78183422 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69070b74e77438_15503600 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class="table-actions"><span class="more dropdown action"><span href="javascript:;" class="dropdown-toggle" data-toggle="dropdown"><i title="<?php echo vtranslate("LBL_MORE_OPTIONS",$_smarty_tpl->tpl_vars['MODULE']->value);?>
 " class="fa fa-ellipsis-v icon"></i></span><ul class="dropdown-menu"><?php if ($_smarty_tpl->tpl_vars['LISTVIEW_ENTRY']->value->get('status') == 'Active') {

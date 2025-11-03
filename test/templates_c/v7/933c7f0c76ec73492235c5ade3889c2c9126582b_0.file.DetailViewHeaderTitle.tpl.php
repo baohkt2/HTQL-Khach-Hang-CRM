@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 08:48:52
+/* Smarty version 4.5.5, created on 2025-11-02 08:35:45
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Accounts\DetailViewHeaderTitle.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9974b422d8_70561086',
+  'unifunc' => 'content_690717e1eeb767_21991960',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '933c7f0c76ec73492235c5ade3889c2c9126582b' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Accounts\\DetailViewHeaderTitle.tpl',
-      1 => 1752039682,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9974b422d8_70561086 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690717e1eeb767_21991960 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div class="col-sm-6"><div class="clearfix record-header "><div class="recordImage bgAccounts app-<?php echo $_smarty_tpl->tpl_vars['SELECTED_MENU_CATEGORY']->value;?>
 "><?php $_smarty_tpl->_assignInScope('IMAGE_DETAILS', $_smarty_tpl->tpl_vars['RECORD']->value->getImageDetails());
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['IMAGE_DETAILS']->value, 'IMAGE_INFO', false, 'ITER');

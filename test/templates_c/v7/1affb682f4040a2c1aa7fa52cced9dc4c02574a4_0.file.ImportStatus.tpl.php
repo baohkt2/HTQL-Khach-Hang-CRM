@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-22 08:05:51
+/* Smarty version 4.5.5, created on 2025-11-03 07:36:49
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Import\ImportStatus.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68f8905fb7e311_01025172',
+  'unifunc' => 'content_69085b91786ab4_06074729',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '1affb682f4040a2c1aa7fa52cced9dc4c02574a4' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Import\\ImportStatus.tpl',
-      1 => 1758006149,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68f8905fb7e311_01025172 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69085b91786ab4_06074729 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class='fc-overlay-modal' id="scheduleImportStatus">
     <div class = "modal-content">

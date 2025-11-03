@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 08:10:04
+/* Smarty version 4.5.5, created on 2025-11-02 16:53:08
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\uitypes\Currency.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de335c5223c2_76900161',
+  'unifunc' => 'content_69078c74c63026_86053293',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'b62fabfacc9404fe518a734cf8e89c44fe71e392' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\uitypes\\Currency.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de335c5223c2_76900161 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69078c74c63026_86053293 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('FIELD_INFO', $_smarty_tpl->tpl_vars['FIELD_MODEL']->value->getFieldInfo());
 $_smarty_tpl->_assignInScope('SPECIAL_VALIDATOR', $_smarty_tpl->tpl_vars['FIELD_MODEL']->value->getValidator());
 if (!(isset($_smarty_tpl->tpl_vars['FIELD_NAME']->value)) || empty($_smarty_tpl->tpl_vars['FIELD_NAME']->value)) {

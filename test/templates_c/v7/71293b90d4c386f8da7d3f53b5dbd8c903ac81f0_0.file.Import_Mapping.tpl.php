@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-08 08:18:14
+/* Smarty version 4.5.5, created on 2025-11-03 07:52:39
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Import\Import_Mapping.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68e61e469c74b3_54077440',
+  'unifunc' => 'content_69085f47a7bf48_61166778',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '71293b90d4c386f8da7d3f53b5dbd8c903ac81f0' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Import\\Import_Mapping.tpl',
-      1 => 1758006149,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68e61e469c74b3_54077440 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69085f47a7bf48_61166778 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <input type="hidden" name="merge_type" value='<?php echo $_smarty_tpl->tpl_vars['USER_INPUT']->value->get('merge_type');?>
 ' /><input type="hidden" name="merge_fields" value='<?php if ((isset($_smarty_tpl->tpl_vars['MERGE_FIELDS']->value))) {

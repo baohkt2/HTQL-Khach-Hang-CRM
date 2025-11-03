@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 08:52:21
+/* Smarty version 4.5.5, created on 2025-11-02 16:53:12
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\PopupNavigation.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de3d453e39b6_34140781',
+  'unifunc' => 'content_69078c78c02d98_90898051',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'db1d71f1cdaa71f1c4072634e22c8897722432f2' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\PopupNavigation.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de3d453e39b6_34140781 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69078c78c02d98_90898051 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class="col-md-2"><?php if ((isset($_smarty_tpl->tpl_vars['MULTI_SELECT']->value)) && $_smarty_tpl->tpl_vars['MULTI_SELECT']->value) {
 if (!empty($_smarty_tpl->tpl_vars['LISTVIEW_ENTRIES']->value)) {?><button class="select btn btn-default" disabled="disabled"><strong><?php echo vtranslate('LBL_ADD',$_smarty_tpl->tpl_vars['MODULE']->value);?>

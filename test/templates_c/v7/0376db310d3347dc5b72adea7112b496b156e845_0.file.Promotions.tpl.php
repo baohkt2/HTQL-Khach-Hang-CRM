@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:39:54
+/* Smarty version 4.5.5, created on 2025-10-30 05:35:16
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\ExtensionStore\Promotions.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db894a227c28_48339199',
+  'unifunc' => 'content_6902f91495ad63_65818777',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '0376db310d3347dc5b72adea7112b496b156e845' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\ExtensionStore\\Promotions.tpl',
-      1 => 1752039682,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db894a227c28_48339199 (Smarty_Internal_Template $_smarty_tpl) {
+function content_6902f91495ad63_65818777 (Smarty_Internal_Template $_smarty_tpl) {
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['HEADER_SCRIPTS']->value, 'SCRIPT');
 $_smarty_tpl->tpl_vars['SCRIPT']->do_else = true;
 if ($_from !== null) foreach ($_from as $_smarty_tpl->tpl_vars['SCRIPT']->value) {

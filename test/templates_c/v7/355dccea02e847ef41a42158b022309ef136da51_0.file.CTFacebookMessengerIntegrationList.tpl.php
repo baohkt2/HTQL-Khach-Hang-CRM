@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-19 18:47:01
+/* Smarty version 4.5.5, created on 2025-10-30 07:12:41
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\CTFacebookMessengerIntegration\CTFacebookMessengerIntegrationList.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68f53225604ae0_46718608',
+  'unifunc' => 'content_69030fe99e0854_04199465',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '355dccea02e847ef41a42158b022309ef136da51' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\CTFacebookMessengerIntegration\\CTFacebookMessengerIntegrationList.tpl',
-      1 => 1760898905,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68f53225604ae0_46718608 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69030fe99e0854_04199465 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div class="main" id="facebookIntegrationListPageDiv">
     <div class="main">
         <div class="header">

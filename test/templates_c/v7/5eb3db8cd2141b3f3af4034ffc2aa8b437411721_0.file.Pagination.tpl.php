@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:41:12
+/* Smarty version 4.5.5, created on 2025-11-03 01:59:53
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\Pagination.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db8998217382_59541981',
+  'unifunc' => 'content_69080c99c52bc5_63404505',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '5eb3db8cd2141b3f3af4034ffc2aa8b437411721' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\Pagination.tpl',
-      1 => 1752039682,
+      1 => 1762135171,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db8998217382_59541981 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69080c99c52bc5_63404505 (Smarty_Internal_Template $_smarty_tpl) {
 if (!$_smarty_tpl->tpl_vars['CLASS_VIEW_ACTION']->value) {?>
     <?php $_smarty_tpl->_assignInScope('CLASS_VIEW_ACTION', 'listViewActions');?>
     <?php $_smarty_tpl->_assignInScope('CLASS_VIEW_PAGING_INPUT', 'listViewPagingInput');?>
@@ -69,10 +69,11 @@ echo $_smarty_tpl->tpl_vars['PAGING_MODEL']->value->getRecordStartRange();?>
  <?php echo $_smarty_tpl->tpl_vars['PAGING_MODEL']->value->getRecordEndRange();
 } else { ?>
             <?php }?>
-        </span>
-        &nbsp;<span class="totalNumberOfRecords cursorPointer<?php if (!$_smarty_tpl->tpl_vars['RECORD_COUNT']->value) {?> hide<?php }?>" title="<?php echo vtranslate('LBL_SHOW_TOTAL_NUMBER_OF_RECORDS',$_smarty_tpl->tpl_vars['MODULE']->value);?>
-"><?php echo vtranslate('LBL_OF',$_smarty_tpl->tpl_vars['MODULE']->value);?>
- <i class="fa fa-question showTotalCountIcon"></i></span>&nbsp;&nbsp;
+        </span><span class="totalNumberOfRecordsDisplay<?php if (!$_smarty_tpl->tpl_vars['RECORD_COUNT']->value) {?> hide<?php }?>"><?php echo vtranslate('LBL_OF',$_smarty_tpl->tpl_vars['MODULE']->value);?>
+ <span id="totalCountDisplay">...</span>&nbsp;
+        <button type="button" id="reloadTotalCount" class="btn btn-xs btn-default" title="Reload total count" style="padding: 1px 5px; margin-left: 5px;">
+            <i class="fa fa-refresh"></i>
+        </button>&nbsp;</span>
     </span>
 </div><?php }
 }

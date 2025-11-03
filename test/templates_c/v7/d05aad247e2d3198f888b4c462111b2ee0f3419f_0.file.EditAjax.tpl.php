@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 08:58:51
+/* Smarty version 4.5.5, created on 2025-11-02 07:41:24
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\CronTasks\EditAjax.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9bcbb3f572_32390737',
+  'unifunc' => 'content_69070b24dfa259_47212045',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'd05aad247e2d3198f888b4c462111b2ee0f3419f' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\CronTasks\\EditAjax.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9bcbb3f572_32390737 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69070b24dfa259_47212045 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div class="modal-dialog modelContainer"><?php ob_start();
 echo vtranslate($_smarty_tpl->tpl_vars['RECORD_MODEL']->value->get('name'),$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);
 $_prefixVariable1 = ob_get_clean();

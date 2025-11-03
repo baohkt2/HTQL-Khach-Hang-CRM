@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:41:08
+/* Smarty version 4.5.5, created on 2025-10-30 05:59:52
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\partials\SidebarEssentials.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db89943a4992_46802767',
+  'unifunc' => 'content_6902fed82f2b96_92009481',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'cf6f6193975e78124bf89eba515fc1169f746a6c' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\partials\\SidebarEssentials.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db89943a4992_46802767 (Smarty_Internal_Template $_smarty_tpl) {
+function content_6902fed82f2b96_92009481 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_checkPlugins(array(0=>array('file'=>'C:\\xampp\\htdocs\\vtigercrm\\vendor\\smarty\\smarty\\libs\\plugins\\modifier.count.php','function'=>'smarty_modifier_count',),));
 ?>
 <div class="sidebar-menu">

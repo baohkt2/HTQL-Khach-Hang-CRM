@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:52:20
+/* Smarty version 4.5.5, created on 2025-11-03 07:37:05
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\BreadCrumbs.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db8c34eca826_60833951',
+  'unifunc' => 'content_69085ba195b263_34776837',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '7f12533d50c3579152f8e7e06e9c27678beeefad' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\BreadCrumbs.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db8c34eca826_60833951 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69085ba195b263_34776837 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div id="<?php echo (isset($_smarty_tpl->tpl_vars['BREADCRUMB_ID']->value)) ? $_smarty_tpl->tpl_vars['BREADCRUMB_ID']->value : '';?>
 " class="breadcrumb">

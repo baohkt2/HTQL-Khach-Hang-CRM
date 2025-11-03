@@ -23,6 +23,7 @@ $languageStrings = array(
 	'ONCE' => 'Until the first time the condition is true',
 	'ON_EVERY_SAVE' => 'Every time the record is saved',
 	'ON_MODIFY' => 'Every time a record is modified',
+	'ON_DELETE' => 'When a record is deleted',
 	'ON_SCHEDULE' => 'Schedule',
 	'MANUAL' => 'System',
 	'SCHEDULE_WORKFLOW' => 'Schedule Workflow',

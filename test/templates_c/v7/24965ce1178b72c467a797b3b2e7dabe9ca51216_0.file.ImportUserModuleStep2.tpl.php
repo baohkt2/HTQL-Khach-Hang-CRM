@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-10 09:44:21
+/* Smarty version 4.5.5, created on 2025-10-30 06:58:31
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\ModuleManager\ImportUserModuleStep2.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68e8d575a29411_99119400',
+  'unifunc' => 'content_69030c97590fd9_55364965',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '24965ce1178b72c467a797b3b2e7dabe9ca51216' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Settings\\ModuleManager\\ImportUserModuleStep2.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68e8d575a29411_99119400 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69030c97590fd9_55364965 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class="container-fluid" id="importModules"><div><div class="row"><div id="vtlib_modulemanager_import_div"><?php if ((isset($_smarty_tpl->tpl_vars['MODULEIMPORT_FAILED']->value)) && $_smarty_tpl->tpl_vars['MODULEIMPORT_FAILED']->value != '') {?><div class="col-lg-2"></div><div class="col-lg-10"><b><?php echo vtranslate('LBL_FAILED',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </b></div><div class="col-lg-2"></div><div class="col-lg-10"><?php if ($_smarty_tpl->tpl_vars['VERSION_NOT_SUPPORTED']->value == 'true') {?><font color=red><b><?php echo vtranslate('LBL_VERSION_NOT_SUPPORTED',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>

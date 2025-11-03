@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-08 08:17:56
+/* Smarty version 4.5.5, created on 2025-11-03 07:37:06
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Import\ImportStepTwo.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68e61e34d531a0_78039687',
+  'unifunc' => 'content_69085ba266e189_82838146',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '5ff04668a08c349ba22f7a2d7a052a3334f61cd0' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Import\\ImportStepTwo.tpl',
-      1 => 1758006149,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68e61e34d531a0_78039687 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69085ba266e189_82838146 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class = "importBlockContainer hide" id="importStep2Conatiner">
     <span>

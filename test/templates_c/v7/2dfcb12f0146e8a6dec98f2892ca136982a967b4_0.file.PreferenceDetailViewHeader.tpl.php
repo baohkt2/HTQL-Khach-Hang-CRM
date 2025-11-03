@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 07:20:39
+/* Smarty version 4.5.5, created on 2025-11-02 07:40:43
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Users\PreferenceDetailViewHeader.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de27c7ec1729_34293766',
+  'unifunc' => 'content_69070afbdb1b44_69503894',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '2dfcb12f0146e8a6dec98f2892ca136982a967b4' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Users\\PreferenceDetailViewHeader.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de27c7ec1729_34293766 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69070afbdb1b44_69503894 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_checkPlugins(array(0=>array('file'=>'C:\\xampp\\htdocs\\vtigercrm\\vendor\\smarty\\smarty\\libs\\plugins\\modifier.count.php','function'=>'smarty_modifier_count',),));
 $_smarty_tpl->_assignInScope('MODULE_NAME', $_smarty_tpl->tpl_vars['MODULE_MODEL']->value->get('name'));?><input id="recordId" type="hidden" value="<?php echo $_smarty_tpl->tpl_vars['RECORD']->value->getId();?>
 " /><div class="detailViewContainer"><div class="detailViewTitle" id="prefPageHeader"><div class="col-lg-12 col-sm-12 col-xs-12"><div class="col-xs-8"><?php $_smarty_tpl->_assignInScope('IMAGE_DETAILS', $_smarty_tpl->tpl_vars['RECORD']->value->getImageDetails());

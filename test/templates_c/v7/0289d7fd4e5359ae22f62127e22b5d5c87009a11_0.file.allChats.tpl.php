@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-19 19:07:48
+/* Smarty version 4.5.5, created on 2025-10-31 05:21:50
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\CTChatLog\allChats.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68f53704bff7f8_96407267',
+  'unifunc' => 'content_6904476ead6c62_43202270',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '0289d7fd4e5359ae22f62127e22b5d5c87009a11' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\CTChatLog\\allChats.tpl',
-      1 => 1760898901,
+      1 => 1761807767,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68f53704bff7f8_96407267 (Smarty_Internal_Template $_smarty_tpl) {
+function content_6904476ead6c62_43202270 (Smarty_Internal_Template $_smarty_tpl) {
 ?><!DOCTYPE html>
 <html lang="en">
 <head>

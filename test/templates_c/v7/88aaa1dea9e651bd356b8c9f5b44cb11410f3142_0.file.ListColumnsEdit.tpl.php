@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-10 08:32:57
+/* Smarty version 4.5.5, created on 2025-11-02 16:50:35
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\ListColumnsEdit.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68e8c4b9acd407_26983841',
+  'unifunc' => 'content_69078bdbb28a93_23842496',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '88aaa1dea9e651bd356b8c9f5b44cb11410f3142' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\ListColumnsEdit.tpl',
-      1 => 1752039682,
+      1 => 1761802269,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68e8c4b9acd407_26983841 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69078bdbb28a93_23842496 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class="modal-dialog modal-lg configColumnsContainer"><div class="modal-content"><?php ob_start();
 echo vtranslate('LBL_CONFIG_COLUMNS',$_smarty_tpl->tpl_vars['MODULE']->value);

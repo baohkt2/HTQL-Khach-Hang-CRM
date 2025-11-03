@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-08 08:17:56
+/* Smarty version 4.5.5, created on 2025-11-03 07:37:05
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Import\ImportStepOne.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68e61e343b9490_19739339',
+  'unifunc' => 'content_69085ba1d52843_84429045',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '39d56c8397e7fdf31e8566925bec9dccc30915f7' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Import\\ImportStepOne.tpl',
-      1 => 1758006149,
+      1 => 1761802268,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68e61e343b9490_19739339 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69085ba1d52843_84429045 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class ="importBlockContainer show" id = "uploadFileContainer">
     <table class = "table table-borderless" cellpadding = "30" >
