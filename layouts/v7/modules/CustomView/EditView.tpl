@@ -54,11 +54,11 @@
 							<label>
 								{vtranslate('LBL_CHOOSE_COLUMNS',$MODULE)} ({vtranslate('LBL_MAX_NUMBER_FILTER_COLUMNS')})
 							</label>
-							<div class="columnsSelectDiv clearfix">
-								{assign var=MANDATORY_FIELDS value=array()}
-								{assign var=NUMBER_OF_COLUMNS_SELECTED value=0}
-								{assign var=MAX_ALLOWED_COLUMNS value=15}
-								<select name="selectColumns" data-rule-required="true" data-msg-required="{vtranslate('LBL_PLEASE_SELECT_ATLEAST_ONE_OPTION',$SOURCE_MODULE)}" data-placeholder="{vtranslate('LBL_ADD_MORE_COLUMNS',$MODULE)}" multiple class="select2 columnsSelect col-lg-10" id="viewColumnsSelect" >
+						<div class="columnsSelectDiv clearfix">
+							{assign var=MANDATORY_FIELDS value=array()}
+							{assign var=NUMBER_OF_COLUMNS_SELECTED value=0}
+							{assign var=MAX_ALLOWED_COLUMNS value=100}
+							<select name="selectColumns" data-rule-required="true" data-msg-required="{vtranslate('LBL_PLEASE_SELECT_ATLEAST_ONE_OPTION',$SOURCE_MODULE)}" data-placeholder="{vtranslate('LBL_ADD_MORE_COLUMNS',$MODULE)}" multiple class="select2 columnsSelect col-lg-10" id="viewColumnsSelect" >
 									{foreach key=BLOCK_LABEL item=BLOCK_FIELDS from=$RECORD_STRUCTURE}
 										<optgroup label='{vtranslate($BLOCK_LABEL, $SOURCE_MODULE)}'>
 											{foreach key=FIELD_NAME item=FIELD_MODEL from=$BLOCK_FIELDS}

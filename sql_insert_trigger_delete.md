@@ -1,0 +1,1 @@
+mysql -u root -h localhost vtiger -e "INSERT INTO vtiger_eventhandlers (event_name, handler_path, handler_class, cond, is_active) VALUES ('vtiger.entity.beforedelete', 'modules/com_vtiger_workflow/VTDeleteEventHandler.inc', 'VTDeleteEventHandler', '', 1);"

@@ -177,7 +177,7 @@ if(isset($default_timezone) && function_exists('date_default_timezone_set')) {
 $default_layout = 'v7';
 
 //Maximum Listview Fields Selection Size
-$maxListFieldsSelectionSize = 15;
+$maxListFieldsSelectionSize = '40';
 
 $GMAIL_IMAP_PROXY = [
   'host' => 'localhost',
