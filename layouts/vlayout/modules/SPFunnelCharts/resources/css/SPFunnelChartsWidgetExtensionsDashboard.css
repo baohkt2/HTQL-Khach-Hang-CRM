@@ -1,0 +1,42 @@
+/*+**********************************************************************************
+ * Advanced Funnel Charts by SalesPlatform
+ * Copyright (C) 2011-2016 SalesPlatform Ltd
+ * All Rights Reserved.
+ * This extension is licensed to be used within one instance of Vtiger CRM.
+ * Source code or binaries may not be redistributed unless expressly permitted by SalesPlatform Ltd.
+ * If you have any questions or comments, please email: extensions@salesplatform.ru
+ ************************************************************************************/
+
+.spReportWidgetRefresh {
+    position: absolute; 
+    margin-top: 100px; 
+    z-index: 1; 
+    text-align: center; 
+    width: 100%;
+}
+.spWidgetDetailFullContainer {
+    height: 750px;
+    margin: 0 10px;
+}
+.spWidgetHomeFullContainer {
+    height: 250px;
+    margin: 0 10px;
+}
+.spIndicatorRow {
+    width: 100%;
+    margin: 0 3px;
+    float: left;
+}
+.spIndicatorLabel {
+    width: 75%;
+    float: left;
+    text-align: left;
+}
+.spIndicatorValue {
+    width: 25%;
+    float: left;
+    text-align: right;
+}
+.spFunnelWidget {
+    padding: 0 !important;
+}

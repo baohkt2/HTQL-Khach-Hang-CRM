@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:51:47
+/* Smarty version 4.5.5, created on 2025-11-05 07:47:29
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\AdvanceFilter.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db8c13100ed7_91851996',
+  'unifunc' => 'content_690b0111c83e18_58913468',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db8c13100ed7_91851996 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690b0111c83e18_58913468 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('ALL_CONDITION_CRITERIA', (isset($_smarty_tpl->tpl_vars['ADVANCE_CRITERIA']->value[1])) ? $_smarty_tpl->tpl_vars['ADVANCE_CRITERIA']->value[1] : array());
 $_smarty_tpl->_assignInScope('ANY_CONDITION_CRITERIA', (isset($_smarty_tpl->tpl_vars['ADVANCE_CRITERIA']->value[2])) ? $_smarty_tpl->tpl_vars['ADVANCE_CRITERIA']->value[2] : array());
 if (empty($_smarty_tpl->tpl_vars['ALL_CONDITION_CRITERIA']->value)) {

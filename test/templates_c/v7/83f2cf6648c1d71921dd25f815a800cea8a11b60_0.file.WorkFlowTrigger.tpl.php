@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 08:50:17
+/* Smarty version 4.5.5, created on 2025-11-05 05:28:36
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Workflows\WorkFlowTrigger.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de3cc96f8d82_87691959',
+  'unifunc' => 'content_690ae084af11e0_03099373',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de3cc96f8d82_87691959 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690ae084af11e0_03099373 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('EXECUTION_CONDITION', $_smarty_tpl->tpl_vars['WORKFLOW_MODEL_OBJ']->value->executionCondition);?><input type="hidden" name="workflow_trigger" value="<?php echo $_smarty_tpl->tpl_vars['EXECUTION_CONDITION']->value;?>
 " /><div class="form-group"><label for="name" class="col-sm-3 control-label"><?php echo vtranslate('LBL_TRIGGER_WORKFLOW_ON',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </label><div class="col-sm-6 controls"><?php $_smarty_tpl->_assignInScope('SINGLE_SELECTED_MODULE', "SINGLE_".((string)$_smarty_tpl->tpl_vars['SELECTED_MODULE']->value));?><span><input type="radio" name="workflow_trigger" value="1" <?php if ($_smarty_tpl->tpl_vars['EXECUTION_CONDITION']->value == '1') {?> checked="" <?php }?>> <span id="workflowTriggerCreate"><?php echo vtranslate($_smarty_tpl->tpl_vars['SINGLE_SELECTED_MODULE']->value,$_smarty_tpl->tpl_vars['SELECTED_MODULE']->value);?>

@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 09:04:41
+/* Smarty version 4.5.5, created on 2025-11-05 12:54:12
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Picklist\Index.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9d297cc8b2_48820014',
+  'unifunc' => 'content_690b48f4f268c8_77473397',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9d297cc8b2_48820014 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690b48f4f268c8_77473397 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <div class="listViewPageDiv detailViewContainer " id="listViewContent">
     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 form-horizontal" >

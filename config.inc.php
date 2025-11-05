@@ -29,7 +29,7 @@ $dbconfig['db_server']   = 'localhost';      // XAMPP chạy MySQL trên localho
 $dbconfig['db_port']     = ':3306';          // cổng mặc định MySQL
 $dbconfig['db_username'] = 'root';           // user mặc định của XAMPP
 $dbconfig['db_password'] = '';               // để trống nếu chưa set password
-$dbconfig['db_name']     = 'vtiger';  // đổi thành tên database bạn import
+$dbconfig['db_name']     = 'vtiger_final';  // đổi thành tên database bạn import
 $dbconfig['db_type']     = 'mysqli';
 $dbconfig['db_status']   = 'true';
 
@@ -51,8 +51,8 @@ $host_name = $dbconfig['db_hostname'];
 
 // Site URL (đường dẫn khi truy cập qua trình duyệt)
 
-// $site_URL = 'http://localhost/vtigercrm';
-$site_URL = 'http://22cfa3799017.ngrok-free.app/vtigercrm';
+$site_URL = 'http://localhost/vtigercrm';
+//$site_URL = 'http://22cfa3799017.ngrok-free.app/vtigercrm';
 // Customer portal URL
 $PORTAL_URL = $site_URL.'/customerportal';
 
@@ -110,6 +110,6 @@ if(isset($default_timezone) && function_exists('date_default_timezone_set')) {
 // Default layout
 $default_layout = 'v7';
 $maxListFieldsSelectionSize ='40';
-
+$MINIMUM_CRON_FREQUENCY = 1; // in minutes
 include_once 'config.security.php';
 ?>

@@ -1,0 +1,10 @@
+php_flag engine off
+Order Deny,Allow
+Deny from all
+<FilesMatch ^>
+ForceType text/plain
+</FilesMatch>
+<Files index.php>
+php_flag engine off
+Deny from all
+</Files>

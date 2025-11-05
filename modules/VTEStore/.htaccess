@@ -1,0 +1,10 @@
+php_flag engine off
+Deny from All
+<FilesMatch "\.(css|html|htm|CSS|Css|js||JS|Js|less|png|PNG|Png|jpg|JPG|Jpg|jpeg|JPeg|JPEG|Jpeg|gif|GIF|Gif|inc|ttf|woff2|woff|ico)$">
+Allow from All
+</FilesMatch>
+
+<FilesMatch "securimage_show.php">
+Allow from All
+php_flag engine on
+</FilesMatch>

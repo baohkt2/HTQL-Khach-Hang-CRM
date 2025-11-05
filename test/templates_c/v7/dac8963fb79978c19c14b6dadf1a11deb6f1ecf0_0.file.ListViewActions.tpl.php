@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:51:36
+/* Smarty version 4.5.5, created on 2025-11-05 07:47:03
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Reports\ListViewActions.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db8c08adba13_44118175',
+  'unifunc' => 'content_690b00f7bb4753_98087877',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db8c08adba13_44118175 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690b00f7bb4753_98087877 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('LISTVIEW_MASSACTIONS_1', array());?><div id="listview-actions" class="listview-actions-container"><?php
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['LISTVIEW_MASSACTIONS']->value, 'LIST_MASSACTION', false, NULL, 'massActions', array (
 ));

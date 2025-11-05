@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:40:22
+/* Smarty version 4.5.5, created on 2025-11-05 03:58:18
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Vtiger\SettingsShortCut.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db896679d540_44768725',
+  'unifunc' => 'content_690acb5ab45812_62323719',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db896679d540_44768725 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690acb5ab45812_62323719 (Smarty_Internal_Template $_smarty_tpl) {
 ?><span id="shortcut_<?php echo $_smarty_tpl->tpl_vars['SETTINGS_SHORTCUT']->value->getId();?>
 " data-actionurl="<?php echo $_smarty_tpl->tpl_vars['SETTINGS_SHORTCUT']->value->getPinUnpinActionUrl();?>
 " class="col-lg-3 contentsBackground well cursorPointer moduleBlock" data-url="<?php echo $_smarty_tpl->tpl_vars['SETTINGS_SHORTCUT']->value->getUrl();?>

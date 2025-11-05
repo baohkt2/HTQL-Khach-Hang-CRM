@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:52:21
+/* Smarty version 4.5.5, created on 2025-11-05 07:47:18
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Reports\ScheduleReport.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db8c3551ed05_30963713',
+  'unifunc' => 'content_690b01060858c3_99665778',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db8c3551ed05_30963713 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690b01060858c3_99665778 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('show_report_scheduled', true);?><div class="row"><div><label><input type="checkbox" <?php if ($_smarty_tpl->tpl_vars['show_report_scheduled']->value == false) {?> disabled="disabled" <?php }?> <?php if ($_smarty_tpl->tpl_vars['show_report_scheduled']->value == true && $_smarty_tpl->tpl_vars['SCHEDULEDREPORTS']->value->get('scheduleid') != '') {?> checked="checked" <?php }?> value="<?php if ($_smarty_tpl->tpl_vars['SCHEDULEDREPORTS']->value->get('scheduleid') != '') {?>true<?php }?>" name='enable_schedule' style="margin-top: 0px !important;"> &nbsp;<strong><?php echo vtranslate('LBL_SCHEDULE_REPORTS',$_smarty_tpl->tpl_vars['MODULE']->value);?>
 </strong></label></div></div><?php if ($_smarty_tpl->tpl_vars['show_report_scheduled']->value == true) {?><div id="scheduleBox" class='row well contentsBackground <?php if ($_smarty_tpl->tpl_vars['SCHEDULEDREPORTS']->value->get('scheduleid') == '') {?> hide <?php }?>'><div class='col-lg-12' style="padding:5px 0px;"><div class='col-lg-3' style='position:relative;top:5px;'><?php echo vtranslate('LBL_RUN_REPORT',$_smarty_tpl->tpl_vars['MODULE']->value);?>
 </div><div class='col-lg-4'><?php $_smarty_tpl->_assignInScope('scheduleid', $_smarty_tpl->tpl_vars['SCHEDULEDREPORTS']->value->get('scheduleid'));?><select class='select2 inputElement col-lg-3' id='schtypeid' name='schtypeid' style="width: 280px;"><option value="1" <?php if ($_smarty_tpl->tpl_vars['scheduleid']->value == 1) {?>selected<?php }?>><?php echo vtranslate('LBL_DAILY',$_smarty_tpl->tpl_vars['MODULE']->value);?>

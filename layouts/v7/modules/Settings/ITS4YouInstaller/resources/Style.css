@@ -1,0 +1,104 @@
+/* * *******************************************************************************
+ * The content of this file is subject to the ITS4YouInstaller license.
+ * ("License"); You may not use this file except in compliance with the License
+ * The Initial Developer of the Original Code is IT-Solutions4You s.r.o.
+ * Portions created by IT-Solutions4You s.r.o. are Copyright(C) IT-Solutions4You s.r.o.
+ * All Rights Reserved.
+ * ****************************************************************************** */
+
+.blog-header {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.m0550 {
+    margin: 0 5px 5px 0;
+}
+.notUninstallReady {
+    background: #ffeeee;
+}
+.notLicenseReady {
+    background: #eeffee;
+}
+#installedModules table tbody td {
+    border-left:none;
+    border-right:none;
+}
+.grid-container-block {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: sans-serif;
+}
+.grid-container {
+    width: 100%;
+    columns: 4 200px;
+    column-gap: 15px;
+    margin: 0 auto;
+}
+.grid-container-div {
+    width: 100%;
+    display: inline-block;
+}
+.grid-container-block-3 {
+    display: block;
+}
+.grid-container-3 {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-auto-flow: column;
+    -webkit-column-gap: 15px;
+    -moz-column-gap: 15px;
+    column-gap: 15px;
+}
+.grid-container-div-3 {
+    width: 100%;
+    display: inline-block;
+}
+.extensionsTable thead td span {
+    vertical-align: center;
+}
+.searchModuleContainer {
+    width: 30%;
+}
+.searchModuleContainer i {
+    position: absolute;
+    margin: 7px;
+    font-size: 16px;
+    color: #ddd;
+}
+.searchModuleContainer input {
+    border: 1px solid #ddd;
+    padding-left: 30px !important;
+}
+.packageIncluded {
+}
+.packageNotIncluded {
+}
+
+.extensionsTable tbody > tr > td:nth-child(1),
+.extensionsTable tbody > tr > td:nth-child(2),
+.extensionsTable tbody > tr > td:nth-child(3) {
+    border-right: 0 !important;
+}
+.extensionsTable tbody > tr > td:nth-child(2),
+.extensionsTable tbody > tr > td:nth-child(3),
+.extensionsTable tbody > tr > td:nth-child(4) {
+    border-left: 0 !important;
+}
+.row .navbar-right .nav > li > a, .row .navbar-right .nav > li > a:hover {
+    vertical-align: top;
+    margin: 5px 0 0 5px;
+    padding: 0;
+}
+.hostingTable th:first-child,
+.licenseTable th:first-child
+{
+    width: 20%;
+}
+#changeLog, #installationLog {
+    max-height: 70vh;
+    overflow: auto;
+}

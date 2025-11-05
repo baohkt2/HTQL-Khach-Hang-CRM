@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 07:20:40
+/* Smarty version 4.5.5, created on 2025-11-05 05:23:08
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Users\DetailViewFullContents.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de27c8938e99_20201427',
+  'unifunc' => 'content_690adf3c0ab470_99291035',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de27c8938e99_20201427 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690adf3c0ab470_99291035 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('NAME_FIELDS', array('first_name','last_name'));
 if ($_smarty_tpl->tpl_vars['MODULE_MODEL']->value) {
 $_smarty_tpl->_assignInScope('NAME_FIELDS', $_smarty_tpl->tpl_vars['MODULE_MODEL']->value->getNameFields());

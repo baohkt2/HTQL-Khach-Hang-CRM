@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 09:06:56
+/* Smarty version 4.5.5, created on 2025-11-05 06:24:24
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\LayoutEditor\RelatedList.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9db04df0c0_37026047',
+  'unifunc' => 'content_690aed981f13f8_82581327',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9db04df0c0_37026047 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690aed981f13f8_82581327 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_assignInScope('ModulesList', array());
 $_smarty_tpl->_assignInScope('removedModuleIds', array());?><div class="relatedTabModulesList" style="padding:1% 0"><div><?php if (empty($_smarty_tpl->tpl_vars['RELATED_MODULES']->value) && empty($_smarty_tpl->tpl_vars['RELATION_FIELDS']->value)) {?><div class="emptyRelatedTabs" style="margin-top:100px;"><div class="recordDetails"><div class="textAlignCenter" style="font-size:20px;opacity:0.7"><?php echo vtranslate('LBL_NO_RELATED_INFO',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 .</div></div></div><?php } else { ?><div class="relatedListContainer" style="margin-top:20px;"><div class="row"><div class="col-sm-5" id="ONE_ONE_AND_MANY_ONE_RELATIONSHIP"><div style="padding-bottom:15px;"><h6><?php echo vtranslate('ONE_ONE_AND_MANY_ONE_RELATIONSHIP',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>

@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:51:47
+/* Smarty version 4.5.5, created on 2025-11-05 07:47:30
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\AdvanceFilterCondition.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db8c13617979_24586597',
+  'unifunc' => 'content_690b011225cbf3_07474281',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db8c13617979_24586597 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690b011225cbf3_07474281 (Smarty_Internal_Template $_smarty_tpl) {
 ?>	<div class="row conditionRow"><div class="col-lg-4 col-md-4 col-sm-4"><select class="<?php if (empty($_smarty_tpl->tpl_vars['NOCHOSEN']->value)) {?>select2<?php }?> col-lg-12" name="columnname"><option value="none"><?php echo vtranslate('LBL_SELECT_FIELD',$_smarty_tpl->tpl_vars['MODULE']->value);?>
 </option><?php
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['RECORD_STRUCTURE']->value, 'BLOCK_FIELDS', false, 'BLOCK_LABEL');

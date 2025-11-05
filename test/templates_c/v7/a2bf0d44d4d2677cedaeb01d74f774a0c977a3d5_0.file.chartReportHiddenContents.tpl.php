@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 08:55:02
+/* Smarty version 4.5.5, created on 2025-11-05 07:47:36
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Reports\chartReportHiddenContents.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db9ae607aa16_10455686',
+  'unifunc' => 'content_690b011816d276_08375429',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db9ae607aa16_10455686 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690b011816d276_08375429 (Smarty_Internal_Template $_smarty_tpl) {
 ?><select id="groupbyfield_element">
     <option value=""><?php echo vtranslate('LBL_NONE',$_smarty_tpl->tpl_vars['MODULE']->value);?>
 </option>

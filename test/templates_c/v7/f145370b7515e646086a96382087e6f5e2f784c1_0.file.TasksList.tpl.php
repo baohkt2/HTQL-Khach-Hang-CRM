@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-02 08:50:21
+/* Smarty version 4.5.5, created on 2025-11-05 05:28:42
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Workflows\TasksList.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68de3ccd8bb942_90179238',
+  'unifunc' => 'content_690ae08a197282_93406462',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68de3ccd8bb942_90179238 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690ae08a197282_93406462 (Smarty_Internal_Template $_smarty_tpl) {
 ?><div style="padding-left: 15px;"><div id="table-content" class="table-container"><table id="listview-table" class="table <?php if ($_smarty_tpl->tpl_vars['TASK_LIST']->value == '0') {?>listview-table-norecords <?php } else { ?> listview-table<?php }?> "><thead><tr class="listViewContentHeader"><th width="20%"><?php echo vtranslate('LBL_ACTIVE',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </th><th width="30%"><?php echo vtranslate('LBL_TASK_TYPE',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </th><th><?php echo vtranslate('LBL_TASK_TITLE',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>

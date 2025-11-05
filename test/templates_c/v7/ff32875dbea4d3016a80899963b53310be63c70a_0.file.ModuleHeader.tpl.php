@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:40:21
+/* Smarty version 4.5.5, created on 2025-11-05 03:49:39
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\Vtiger\ModuleHeader.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db896585ef92_35419955',
+  'unifunc' => 'content_690ac95352d1a0_33882189',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db896585ef92_35419955 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690ac95352d1a0_33882189 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_checkPlugins(array(0=>array('file'=>'C:\\xampp\\htdocs\\vtigercrm\\vendor\\smarty\\smarty\\libs\\plugins\\modifier.count.php','function'=>'smarty_modifier_count',),));
 ?>
 
@@ -46,19 +46,19 @@ $_smarty_tpl->_assignInScope('URL', (($_smarty_tpl->tpl_vars['URL']->value).('&p
 if ($_smarty_tpl->tpl_vars['REQ']->value->get('view') == 'Edit') {?><a href="<?php echo ((((("index.php?module=").($_smarty_tpl->tpl_vars['REQ']->value->get('module'))).('&parent=')).($_smarty_tpl->tpl_vars['REQ']->value->get('parent'))).('&view=')).($_smarty_tpl->tpl_vars['REQ']->value->get('view'));?>
 "><?php ob_start();
 echo $_smarty_tpl->tpl_vars['PAGETITLE']->value;
-$_prefixVariable1 = ob_get_clean();
-echo vtranslate($_prefixVariable1,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
+$_prefixVariable5 = ob_get_clean();
+echo vtranslate($_prefixVariable5,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </a>&nbsp;<a href=""><span class="fa fa-angle-right" aria-hidden="true"></span>&nbsp;<?php echo vtranslate('LBL_EDITING',$_smarty_tpl->tpl_vars['MODULE']->value);?>
  :&nbsp;<?php ob_start();
 echo $_smarty_tpl->tpl_vars['PAGETITLE']->value;
-$_prefixVariable2 = ob_get_clean();
-echo vtranslate($_prefixVariable2,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
+$_prefixVariable6 = ob_get_clean();
+echo vtranslate($_prefixVariable6,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 &nbsp;<?php echo vtranslate('LBL_OF',$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 &nbsp;<?php echo $_smarty_tpl->tpl_vars['USER_MODEL']->value->getName();?>
 </a><?php } else { ?><a href=""><?php ob_start();
 echo $_smarty_tpl->tpl_vars['PAGETITLE']->value;
-$_prefixVariable3 = ob_get_clean();
-echo vtranslate($_prefixVariable3,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
+$_prefixVariable7 = ob_get_clean();
+echo vtranslate($_prefixVariable7,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 &nbsp;<span class="fa fa-angle-right" aria-hidden="true"></span>&nbsp;<?php echo $_smarty_tpl->tpl_vars['USER_MODEL']->value->getName();?>
 </a><?php }
 } elseif ($_smarty_tpl->tpl_vars['REQ']->value->get('view') != 'List' && $_smarty_tpl->tpl_vars['REQ']->value->get('module') == 'Users') {
@@ -72,8 +72,8 @@ echo $_smarty_tpl->tpl_vars['REQ']->value->get('extensionModule');
 } else {
 ob_start();
 echo $_smarty_tpl->tpl_vars['PAGETITLE']->value;
-$_prefixVariable4 = ob_get_clean();
-echo vtranslate($_prefixVariable4,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);
+$_prefixVariable8 = ob_get_clean();
+echo vtranslate($_prefixVariable8,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);
 }?>&nbsp;</a><a href=""><span class="fa fa-angle-right" aria-hidden="true"></span>&nbsp;<?php if ($_smarty_tpl->tpl_vars['REQ']->value->get('view') == 'Edit') {
 if ((isset($_smarty_tpl->tpl_vars['RECORD']->value)) && $_smarty_tpl->tpl_vars['RECORD']->value) {
 echo vtranslate('LBL_EDITING',$_smarty_tpl->tpl_vars['MODULE']->value);?>
@@ -91,8 +91,8 @@ echo $_smarty_tpl->tpl_vars['REQ']->value->get('extensionModule');
 } else {
 ob_start();
 echo $_smarty_tpl->tpl_vars['PAGETITLE']->value;
-$_prefixVariable5 = ob_get_clean();
-echo vtranslate($_prefixVariable5,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);
+$_prefixVariable9 = ob_get_clean();
+echo vtranslate($_prefixVariable9,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);
 }?></a>&nbsp;<a href=""><span class="fa fa-angle-right" aria-hidden="true"></span>&nbsp;<?php if ($_smarty_tpl->tpl_vars['RECORD']->value) {
 if ($_smarty_tpl->tpl_vars['REQ']->value->get('view') == 'Edit') {
 echo vtranslate('LBL_EDITING',$_smarty_tpl->tpl_vars['MODULE']->value);?>
@@ -103,8 +103,8 @@ echo $_smarty_tpl->tpl_vars['REQ']->value->get('extensionModule');
 } else {
 ob_start();
 echo $_smarty_tpl->tpl_vars['PAGETITLE']->value;
-$_prefixVariable6 = ob_get_clean();
-echo vtranslate($_prefixVariable6,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);
+$_prefixVariable10 = ob_get_clean();
+echo vtranslate($_prefixVariable10,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);
 }
 }?></span><?php } else {
 if ($_smarty_tpl->tpl_vars['REQ']->value->get('view') == 'TaxIndex') {
@@ -115,8 +115,8 @@ $_smarty_tpl->_assignInScope('SELECTED_MODULE', 'LBL_TERMS_AND_CONDITIONS');
 $_smarty_tpl->_assignInScope('SELECTED_MODULE', $_smarty_tpl->tpl_vars['ACTIVE_BLOCK']->value['menu']);
 }?><span class="current-filter-name filter-name pull-left" style='width:50%;'><span class="display-inline-block"><?php ob_start();
 echo $_smarty_tpl->tpl_vars['PAGETITLE']->value;
-$_prefixVariable7 = ob_get_clean();
-echo vtranslate($_prefixVariable7,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
+$_prefixVariable11 = ob_get_clean();
+echo vtranslate($_prefixVariable11,$_smarty_tpl->tpl_vars['QUALIFIED_MODULE']->value);?>
 </span></span><?php }
 }?></div><div class="col-lg-5 col-md-5 pull-right"><div id="appnav" class="navbar-right"><ul class="nav navbar-nav"><?php
 $_from = $_smarty_tpl->smarty->ext->_foreach->init($_smarty_tpl, $_smarty_tpl->tpl_vars['MODULE_BASIC_ACTIONS']->value, 'BASIC_ACTION');
