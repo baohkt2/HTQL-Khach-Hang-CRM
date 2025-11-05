@@ -1008,6 +1008,7 @@ Pozostałe wpisy zostaną usunięte, a odpowiednia informacja zostanie złączon
   'LBL_MERGE_RECORDS_IN' => 'Scalanie Wpisów W',
   'LBL_FIELDS' => 'Pola',
   'LBL_RECORD' => 'Wpis',
+  'LBL_RECORDS' => 'Wpisy',
   'LBL_NO_DUPLICATED_FOUND' => 'Nie znalazłeś duplikaty',
   'LBL_MERGE_SELECT' => 'Połączyć Wybrać',
   'LBL_BACK_TO_PRODUCTS' => 'Z powrotem produkty',

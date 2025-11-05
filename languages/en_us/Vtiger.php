@@ -816,6 +816,7 @@ $languageStrings = array(
 	'LBL_MERGE_RECORDS_IN' => 'Merge Records In',
 	'LBL_FIELDS' => 'Fields',
 	'LBL_RECORD' => 'Record',
+	'LBL_RECORDS' => 'Records',
 	'LBL_NO_DUPLICATED_FOUND' => 'No duplicates found',
 	'LBL_MERGE_SELECT' => 'Merge Select',
 

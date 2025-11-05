@@ -896,6 +896,7 @@ Die anderen Datensatz gelöscht werden, aber die zugehörigen Informationen werd
   'LBL_MERGE_RECORDS_IN' => 'Zusammenführen Von Datensätzen In',
   'LBL_FIELDS' => 'Felder',
   'LBL_RECORD' => 'Rekord',
+  'LBL_RECORDS' => 'Datensätze',
   'LBL_NO_DUPLICATED_FOUND' => 'Keine Duplikate gefunden',
   'LBL_MERGE_SELECT' => 'Wählen Sie Zusammenführen',
   'LBL_BACK_TO_PRODUCTS' => 'Zurück zu Produkte',

@@ -905,6 +905,7 @@ $languageStrings = array(
   'LBL_MERGE_RECORDS_IN' => 'Слияние Записей В',
   'LBL_FIELDS' => 'Поля',
   'LBL_RECORD' => 'Запись',
+  'LBL_RECORDS' => 'Записи',
   'LBL_NO_DUPLICATED_FOUND' => 'Не нашли дубликаты',
   'LBL_MERGE_SELECT' => 'Объединить Выбрать',
   'LBL_BACK_TO_PRODUCTS' => 'Обратно продукты',

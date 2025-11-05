@@ -25,7 +25,7 @@
             {/if}
         {/foreach}
         <div class = "row">
-            <div class=" col-md-3">
+            <div class="col-md-4" style="display: flex; align-items: center; gap: 10px;">
             <div class="btn-group listViewActionsContainer" role="group" aria-label="...">
                 {if isset($editAction) && $editAction}
                     <button type="button" class="btn btn-default" id={$MODULE}_listView_massAction_{$editAction->getLabel()} 
@@ -119,8 +119,19 @@
                     </div>
                 {/if}
             </div>
+            
+            {* Total Count Display - Positioned next to More button *}
+            <div class="totalNumberOfRecordsDisplay{if !$RECORD_COUNT} hide{/if}" style="color: #333; display: flex; align-items: center; gap: 4px;">
+                <div>{vtranslate('LBL_RECORDS', $MODULE)}:</div>
+                <div id="totalCountDisplay" style="font-size: 14px; font-weight: bold; color: #000;">...</div>
+                <button type="button" id="reloadTotalCount" class="btn btn-xs btn-default" title="Reload total count" style="padding: 1px 3px; margin-bottom: -2px;">
+                    <i class="fa fa-refresh"></i>
+                </button>
             </div>
-            <div class='col-md-6'>
+            </div>
+            
+            <div class='col-md-5'>
+            
                 {if $LISTVIEW_ENTRIES_COUNT eq '0' and $REQUEST_INSTANCE and $REQUEST_INSTANCE->isAjax()}
                     {if $smarty.session.lvs.$MODULE.viewname}
                         {assign var=VIEWID value=$smarty.session.lvs.$MODULE.viewname}

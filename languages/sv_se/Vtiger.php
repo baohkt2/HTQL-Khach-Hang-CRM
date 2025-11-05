@@ -757,6 +757,7 @@ $languageStrings = array(
 	'LBL_MERGE_RECORDS_IN' => 'Sammanfoga Poster i',
 	'LBL_FIELDS' => 'Fält',
 	'LBL_RECORD' => 'Post',
+	'LBL_RECORDS' => 'Poster',
 	'LBL_NO_DUPLICATED_FOUND' => 'Inga dubbletter funna',
 	'LBL_MERGE_SELECT' => 'Välj Sammanfogning',
 

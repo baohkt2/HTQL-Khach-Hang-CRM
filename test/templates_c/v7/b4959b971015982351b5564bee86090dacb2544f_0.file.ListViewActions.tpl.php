@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-30 05:59:56
+/* Smarty version 4.5.5, created on 2025-11-05 05:33:58
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\ListViewActions.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_6902fedc36d800_12644492',
+  'unifunc' => 'content_690ae1c6276ba6_79507156',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     'b4959b971015982351b5564bee86090dacb2544f' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\ListViewActions.tpl',
-      1 => 1761802269,
+      1 => 1762320834,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_6902fedc36d800_12644492 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690ae1c6276ba6_79507156 (Smarty_Internal_Template $_smarty_tpl) {
 $_smarty_tpl->_checkPlugins(array(0=>array('file'=>'C:\\xampp\\htdocs\\vtigercrm\\vendor\\smarty\\smarty\\libs\\plugins\\modifier.count.php','function'=>'smarty_modifier_count',),));
 ?>
 
@@ -40,7 +40,7 @@ $_smarty_tpl->_assignInScope('commentAction', $_smarty_tpl->tpl_vars['LIST_MASSA
 $_smarty_tpl->_assignInScope('a', array_push($_smarty_tpl->tpl_vars['LISTVIEW_MASSACTIONS_1']->value,$_smarty_tpl->tpl_vars['LIST_MASSACTION']->value));
 }
 }
-$_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?><div class = "row"><div class=" col-md-3"><div class="btn-group listViewActionsContainer" role="group" aria-label="..."><?php if ((isset($_smarty_tpl->tpl_vars['editAction']->value)) && $_smarty_tpl->tpl_vars['editAction']->value) {?><button type="button" class="btn btn-default" id=<?php echo $_smarty_tpl->tpl_vars['MODULE']->value;?>
+$_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?><div class = "row"><div class="col-md-4" style="display: flex; align-items: center; gap: 10px;"><div class="btn-group listViewActionsContainer" role="group" aria-label="..."><?php if ((isset($_smarty_tpl->tpl_vars['editAction']->value)) && $_smarty_tpl->tpl_vars['editAction']->value) {?><button type="button" class="btn btn-default" id=<?php echo $_smarty_tpl->tpl_vars['MODULE']->value;?>
 _listView_massAction_<?php echo $_smarty_tpl->tpl_vars['editAction']->value->getLabel();
 if (stripos($_smarty_tpl->tpl_vars['editAction']->value->getUrl(),'javascript:') === 0) {?> href="javascript:void(0);" onclick='<?php echo call_user_func_array($_smarty_tpl->registered_plugins[ 'modifier' ][ 'substr' ][ 0 ], array( $_smarty_tpl->tpl_vars['editAction']->value->getUrl(),strlen("javascript:") ));?>
 '<?php } else { ?> href='<?php echo $_smarty_tpl->tpl_vars['editAction']->value->getUrl();?>
@@ -124,7 +124,8 @@ _listView_advancedAction_<?php echo Vtiger_Util_Helper::replaceSpaceWithUnderSco
 </a></li><?php }
 }
 }
-$_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?></ul></div><?php }?></div></div><div class='col-md-6'><?php if ($_smarty_tpl->tpl_vars['LISTVIEW_ENTRIES_COUNT']->value == '0' && $_smarty_tpl->tpl_vars['REQUEST_INSTANCE']->value && $_smarty_tpl->tpl_vars['REQUEST_INSTANCE']->value->isAjax()) {
+$_smarty_tpl->smarty->ext->_foreach->restore($_smarty_tpl, 1);?></ul></div><?php }?></div><div class="totalNumberOfRecordsDisplay<?php if (!$_smarty_tpl->tpl_vars['RECORD_COUNT']->value) {?> hide<?php }?>" style="color: #333; display: flex; align-items: center; gap: 4px;"><div><?php echo vtranslate('LBL_RECORDS',$_smarty_tpl->tpl_vars['MODULE']->value);?>
+:</div><div id="totalCountDisplay" style="font-size: 14px; font-weight: bold; color: #000;">...</div><button type="button" id="reloadTotalCount" class="btn btn-xs btn-default" title="Reload total count" style="padding: 1px 3px; margin-bottom: -2px;"><i class="fa fa-refresh"></i></button></div></div><div class='col-md-5'><?php if ($_smarty_tpl->tpl_vars['LISTVIEW_ENTRIES_COUNT']->value == '0' && $_smarty_tpl->tpl_vars['REQUEST_INSTANCE']->value && $_smarty_tpl->tpl_vars['REQUEST_INSTANCE']->value->isAjax()) {
 if ($_SESSION['lvs'][$_smarty_tpl->tpl_vars['MODULE']->value]['viewname']) {
 $_smarty_tpl->_assignInScope('VIEWID', $_SESSION['lvs'][$_smarty_tpl->tpl_vars['MODULE']->value]['viewname']);
 }

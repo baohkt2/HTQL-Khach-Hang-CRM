@@ -16,6 +16,7 @@
     {assign var=CLASS_VIEW_BASIC_ACTION value='listViewBasicAction'}
 {/if}
 <div class = "{$CLASS_VIEW_ACTION}">
+    <!-- Total Records Display - Moved to ListViewActions.tpl next to More button -->
     <div class="btn-group pull-right">
         <button type="button" id="PreviousPageButton" class="btn btn-default" {if !$PAGING_MODEL->isPrevPageExists()} disabled {/if}><i class="fa fa-caret-left"></i></button>
         {if $SHOWPAGEJUMP}
@@ -43,9 +44,7 @@
         <span class="pageNumbersText">
             {if $RECORD_COUNT}{$PAGING_MODEL->getRecordStartRange()} {vtranslate('LBL_to', $MODULE)} {$PAGING_MODEL->getRecordEndRange()}{else}
             {/if}
-        </span><span class="totalNumberOfRecordsDisplay{if !$RECORD_COUNT} hide{/if}">{vtranslate('LBL_OF', $MODULE)} <span id="totalCountDisplay">...</span>&nbsp;
-        <button type="button" id="reloadTotalCount" class="btn btn-xs btn-default" title="Reload total count" style="padding: 1px 5px; margin-left: 5px;">
-            <i class="fa fa-refresh"></i>
-        </button>&nbsp;</span>
+        </span>
+        &nbsp;<span class="totalNumberOfRecords cursorPointer{if !$RECORD_COUNT} hide{/if}" title="{vtranslate('LBL_SHOW_TOTAL_NUMBER_OF_RECORDS', $MODULE)}">{vtranslate('LBL_OF', $MODULE)} <i class="fa fa-question showTotalCountIcon"></i></span>&nbsp;&nbsp;
     </span>
 </div>

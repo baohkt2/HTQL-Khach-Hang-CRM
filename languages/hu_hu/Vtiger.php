@@ -908,6 +908,7 @@ A másik rekord törlésre kerül, de az ehhez kapcsolódó információk kerül
   'LBL_MERGE_RECORDS_IN' => 'Merge Rekordok',
   'LBL_FIELDS' => 'Mezők',
   'LBL_RECORD' => 'Rekord',
+  'LBL_RECORDS' => 'Rekordok',
   'LBL_NO_DUPLICATED_FOUND' => 'Nem ismétli megtaláltam',
   'LBL_MERGE_SELECT' => 'Válassza Az Egyesítés',
   'LBL_BACK_TO_PRODUCTS' => 'Vissza a termékekhez',

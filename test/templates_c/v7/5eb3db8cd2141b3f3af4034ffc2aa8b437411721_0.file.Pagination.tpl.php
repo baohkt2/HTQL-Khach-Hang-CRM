@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-11-03 01:59:53
+/* Smarty version 4.5.5, created on 2025-11-05 04:53:49
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\Pagination.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_69080c99c52bc5_63404505',
+  'unifunc' => 'content_690ad85d452a06_49312735',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '5eb3db8cd2141b3f3af4034ffc2aa8b437411721' => 
     array (
       0 => 'C:\\xampp\\htdocs\\vtigercrm\\layouts\\v7\\modules\\Vtiger\\Pagination.tpl',
-      1 => 1762135171,
+      1 => 1762318404,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_69080c99c52bc5_63404505 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690ad85d452a06_49312735 (Smarty_Internal_Template $_smarty_tpl) {
 if (!$_smarty_tpl->tpl_vars['CLASS_VIEW_ACTION']->value) {?>
     <?php $_smarty_tpl->_assignInScope('CLASS_VIEW_ACTION', 'listViewActions');?>
     <?php $_smarty_tpl->_assignInScope('CLASS_VIEW_PAGING_INPUT', 'listViewPagingInput');?>
@@ -29,6 +29,7 @@ if (!$_smarty_tpl->tpl_vars['CLASS_VIEW_ACTION']->value) {?>
 }?>
 <div class = "<?php echo $_smarty_tpl->tpl_vars['CLASS_VIEW_ACTION']->value;?>
 ">
+    <!-- Total Records Display - Moved to ListViewActions.tpl next to More button -->
     <div class="btn-group pull-right">
         <button type="button" id="PreviousPageButton" class="btn btn-default" <?php if (!$_smarty_tpl->tpl_vars['PAGING_MODEL']->value->isPrevPageExists()) {?> disabled <?php }?>><i class="fa fa-caret-left"></i></button>
         <?php if ($_smarty_tpl->tpl_vars['SHOWPAGEJUMP']->value) {?>
@@ -69,11 +70,10 @@ echo $_smarty_tpl->tpl_vars['PAGING_MODEL']->value->getRecordStartRange();?>
  <?php echo $_smarty_tpl->tpl_vars['PAGING_MODEL']->value->getRecordEndRange();
 } else { ?>
             <?php }?>
-        </span><span class="totalNumberOfRecordsDisplay<?php if (!$_smarty_tpl->tpl_vars['RECORD_COUNT']->value) {?> hide<?php }?>"><?php echo vtranslate('LBL_OF',$_smarty_tpl->tpl_vars['MODULE']->value);?>
- <span id="totalCountDisplay">...</span>&nbsp;
-        <button type="button" id="reloadTotalCount" class="btn btn-xs btn-default" title="Reload total count" style="padding: 1px 5px; margin-left: 5px;">
-            <i class="fa fa-refresh"></i>
-        </button>&nbsp;</span>
+        </span>
+        &nbsp;<span class="totalNumberOfRecords cursorPointer<?php if (!$_smarty_tpl->tpl_vars['RECORD_COUNT']->value) {?> hide<?php }?>" title="<?php echo vtranslate('LBL_SHOW_TOTAL_NUMBER_OF_RECORDS',$_smarty_tpl->tpl_vars['MODULE']->value);?>
+"><?php echo vtranslate('LBL_OF',$_smarty_tpl->tpl_vars['MODULE']->value);?>
+ <i class="fa fa-question showTotalCountIcon"></i></span>&nbsp;&nbsp;
     </span>
 </div><?php }
 }

@@ -906,6 +906,7 @@ Celelalte înregistrări vor fi șterse, iar informația respectivă va fi înco
   'LBL_MERGE_RECORDS_IN' => 'Fuziunea Înregistrări În',
   'LBL_FIELDS' => 'Câmp',
   'LBL_RECORD' => 'Înregistrarea',
+  'LBL_RECORDS' => 'Înregistrări',
   'LBL_NO_DUPLICATED_FOUND' => 'Nu a fost găsit duplicate',
   'LBL_MERGE_SELECT' => 'Combina Alege',
   'LBL_BACK_TO_PRODUCTS' => 'Înapoi produsele',

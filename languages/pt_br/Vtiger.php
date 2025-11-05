@@ -810,6 +810,7 @@ $languageStrings = array(
 	'LBL_MERGE_RECORDS_IN' => 'Mesclar Registros em',
 	'LBL_FIELDS' => 'Campos',
 	'LBL_RECORD' => 'Registro',
+	'LBL_RECORDS' => 'Registros',
 	'LBL_NO_DUPLICATED_FOUND' => 'Nenhuma registro duplicado foi encontrado',
 	'LBL_MERGE_SELECT' => 'Selecionar Mesclagem',
 

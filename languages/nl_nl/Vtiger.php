@@ -904,6 +904,7 @@ Het andere record wordt verwijderd, maar de gerelateerde informatie zal worden s
   'LBL_MERGE_RECORDS_IN' => 'Het Samenvoegen Van Records In',
   'LBL_FIELDS' => 'Velden',
   'LBL_RECORD' => 'Record',
+  'LBL_RECORDS' => 'Records',
   'LBL_NO_DUPLICATED_FOUND' => 'Geen duplicaten gevonden',
   'LBL_MERGE_SELECT' => 'Samenvoegen Selecteren',
   'LBL_BACK_TO_PRODUCTS' => 'Terug naar producten',

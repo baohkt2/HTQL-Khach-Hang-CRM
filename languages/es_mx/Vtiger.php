@@ -904,6 +904,7 @@ El otro registro será eliminado, pero la información relacionada se fusionará
   'LBL_MERGE_RECORDS_IN' => 'Combinar registros en',
   'LBL_FIELDS' => 'Campos',
   'LBL_RECORD' => 'Registro',
+  'LBL_RECORDS' => 'Registros',
   'LBL_NO_DUPLICATED_FOUND' => 'No se encontraron duplicados',
   'LBL_MERGE_SELECT' => 'Fusión de selección',
   'LBL_BACK_TO_PRODUCTS' => 'Volver a los productos',

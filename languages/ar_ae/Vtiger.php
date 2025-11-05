@@ -757,6 +757,7 @@ $languageStrings = array(
 	'LBL_MERGE_RECORDS_IN' => 'دمج السجلات في',
 	'LBL_FIELDS' => 'حقول',
 	'LBL_RECORD' => 'سجل',
+	'LBL_RECORDS' => 'سجلات',
 	'LBL_NO_DUPLICATED_FOUND' => 'لم يتم العثور على تكرار',
 	'LBL_MERGE_SELECT' => 'دمج الاختيارات',
 	

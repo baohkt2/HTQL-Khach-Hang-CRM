@@ -901,6 +901,7 @@ $languageStrings = array(
     'LBL_MERGE_RECORDS_IN' => 'Fusionner Les Enregistrements Dans',
     'LBL_FIELDS' => 'Champs',
     'LBL_RECORD' => 'Enregistrement',
+    'LBL_RECORDS' => 'Enregistrements',
     'LBL_NO_DUPLICATED_FOUND' => 'Pas de doublons trouvés',
     'LBL_MERGE_SELECT' => 'De Fusion, Sélectionnez',
     'LBL_BACK_TO_PRODUCTS' => 'Retour aux produits',

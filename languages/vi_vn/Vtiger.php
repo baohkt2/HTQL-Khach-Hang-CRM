@@ -442,6 +442,7 @@ $languageStrings = array(
 	'LBL_REASON_FOR_CHANGING_COMMENT' => 'Lý do cho việc thay đổi bình luận',
 	'LBL_RECENTLY_MODIFIED' => 'Sửa đổi gần đây',
 	'LBL_RECORD' => 'Bản ghi',
+	'LBL_RECORDS' => 'Số bản ghi',
 	'LBL_RECORDS_LIST' => 'Danh sách bản ghi',
 	'LBL_RECORD_DELETE' => 'Bạn ghi bạn đang cố gắng xem đã bị xóa',
 	'LBL_RECORD_NOT_FOUND' => 'Bạn ghi bạn đang cố gắng xem không tìm thấy',
