@@ -1,12 +1,4 @@
 <?php
-/*+***********************************************************************************
- * The contents of this file are subject to the vtiger CRM Public License Version 1.0
- * ("License"); You may not use this file except in compliance with the License
- * The Original Code is:  vtiger CRM Open Source
- * The Initial Developer of the Original Code is vtiger.
- * Portions created by vtiger are Copyright (C) vtiger.
- * All Rights Reserved.
- *************************************************************************************/
 $languageStrings = array(
 	'Assistant' => 'Trợ lý',
 	'Assistant Phone' => 'Số điện thoại trợ lý',
@@ -44,18 +36,15 @@ $languageStrings = array(
 	'Reports To' => 'Báo cáo cho',
 	'Secondary Email' => 'Email thứ 2',
 	'SINGLE_Contacts' => 'Danh bạ',
-    'Support End Date'   => 'Ngày kết thúc hỗ trợ',
-    'Support Start Date' => 'Ngày bắt đầu hỗ trợ',
+	'Support End Date' => 'Ngày kết thúc hỗ trợ',
+	'Support Start Date' => 'Ngày bắt đầu hỗ trợ',
 	'Title' => 'Chức danh',
-	'User List'=>'Danh sách người dùng',
-	
-	//Added for Picklist Values
-	'Dr.'=>'Dr.',
-	'Mr.'=>'Mr.',
-	'Mrs.'=>'Mrs.',
-	'Ms.'=>'Ms.',
-	'Prof.'=>'Prof.',
+	'User List' => 'Danh sách người dùng',
+	'Dr.' => 'Dr.',
+	'Mr.' => 'Mr.',
+	'Mrs.' => 'Mrs.',
+	'Ms.' => 'Ms.',
+	'Prof.' => 'Prof.',
+	'Mother\'s Phone' => 'Số điện thoại mẹ',
+	'Father\'s Phone' => 'Số điện thoại cha',
 );
-
-$jsLanguageStrings = array(
- );

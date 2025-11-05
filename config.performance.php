@@ -10,7 +10,7 @@
 /* Performance paramters can be configured to fine tune vtiger CRM runtime */
 $PERFORMANCE_CONFIG = Array(
 	// Enable Vtiger Log Level for debugging only if requried 
-	'LOGLEVEL_DEBUG' => false,
+	'LOGLEVEL_DEBUG' => true,
 
 	// Should the caller information be captured in SQL Logging?
 	// It adds little overhead for performance but will be useful to debug

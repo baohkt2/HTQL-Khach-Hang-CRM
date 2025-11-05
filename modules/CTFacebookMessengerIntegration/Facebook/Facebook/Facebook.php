@@ -58,7 +58,7 @@ class Facebook
     /**
      * @const string Default Graph API version for requests.
      */
-    const DEFAULT_GRAPH_VERSION = 'v2.10';
+    const DEFAULT_GRAPH_VERSION = 'FACEBOOK_DEFAULT_GRAPH_VERSION';
 
     /**
      * @const string The name of the environment variable that contains the app ID.
@@ -127,7 +127,7 @@ class Facebook
         $config = array_merge([
             'app_id' => getenv(static::APP_ID_ENV_NAME),
             'app_secret' => getenv(static::APP_SECRET_ENV_NAME),
-            'default_graph_version' => static::DEFAULT_GRAPH_VERSION,
+            'default_graph_version' => getenv(static::DEFAULT_GRAPH_VERSION),
             'enable_beta_mode' => false,
             'http_client_handler' => null,
             'persistent_data_handler' => null,

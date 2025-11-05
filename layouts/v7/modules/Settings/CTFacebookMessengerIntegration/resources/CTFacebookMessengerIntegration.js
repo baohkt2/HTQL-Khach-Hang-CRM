@@ -680,10 +680,10 @@ jQuery(document).ready(function(){
     instance.registerEvents();
     jQuery.getScript('https://connect.facebook.net/en_US/sdk.js', function(){
         FB.init({
-            appId            : '907638254476979',
+            appId            : '606041165929304',
             autoLogAppEvents : true,
             xfbml            : true,
-            version          : 'v19.0'
+            version          : 'v24.0'
         });
     });
 

@@ -255,41 +255,58 @@ if(isset($jsonDecodeData['object']) && $jsonDecodeData['object'] == 'page'){
 		       	
 		       	if(isset($pageAccessTokenData['access_token'])){
 		       		$pageAccessToken = $pageAccessTokenData['access_token'];
-		       		$senderDetailsURL = $graphAPIEndPoint.$senderId.'?access_token='.$pageAccessToken;
-			       	$getSenderDetails = Settings_CTFacebookMessengerIntegration_Record_Model::callFacebookMessengerAPI($senderDetailsURL,'GET');
-			       	$senderName = $getSenderDetails['first_name'].' '.$getSenderDetails['last_name'];
-
-		       		$pageId = $pageAccessTokenData['id'];
-		       		$getSenderData = $graphAPIEndPoint.$pageId.'/conversations?fields=senders&access_token='.$pageAccessToken;
-		       		$getSenderDetailsData = Settings_CTFacebookMessengerIntegration_Record_Model::callFacebookMessengerAPI($getSenderData,'GET');
-
-		       		$senderConversationData = array();
-		       		if(!empty($getSenderDetailsData) && isset($getSenderDetailsData['data'])){
-		       			$senderData = $getSenderDetailsData['data'];
-		       			if(!empty($senderData)){
-		       				foreach ($senderData as $index => $data) {
-		       					if(isset($data['senders']['data']) && !empty($data['senders']['data'])){
-		       						$senderPageData = $data['senders']['data'];
-	       							$senderConversationData[$senderPageData[0]['id']] = $senderPageData[0]['name'];
-		       					}//end of if
-		       				}//end of foreach
-		       			}//end of if
-		       		}//end of if
-
-		       		if(!empty($senderConversationData)){
-	       				if(array_key_exists($senderId, $senderConversationData)){
-	       					$currentSenderName = $senderConversationData[$senderId];
-	       				}//end of if
-		       		}//end of if
-
-	       			if($senderName == " "){
-		       			$senderName = $currentSenderName;
-		       		}//end of if
+		       		$senderName = '';
+		       		$currentSenderName = '';
 		       		
-			       	$profilePicURL = '';
-			       	if(isset($getSenderDetails['profile_pic'])){
-			       		$profilePicURL = $getSenderDetails['profile_pic'];
-			       	}//end of if
+		            // Thử lấy thông tin người gửi trực tiếp từ sender ID
+		            $senderDetailsURL = $graphAPIEndPoint.$senderId.'?fields=first_name,last_name,name&access_token='.$pageAccessToken;
+		            $getSenderDetails = Settings_CTFacebookMessengerIntegration_Record_Model::callFacebookMessengerAPI($senderDetailsURL,'GET');
+		            
+		            // Ưu tiên lấy từ field 'name', nếu không có thì ghép first_name + last_name
+		            if(isset($getSenderDetails['name']) && !empty($getSenderDetails['name'])){
+		                $senderName = $getSenderDetails['name'];
+		            } elseif(isset($getSenderDetails['first_name']) && isset($getSenderDetails['last_name'])){
+		                $senderName = trim($getSenderDetails['first_name'].' '.$getSenderDetails['last_name']);
+		            }
+
+		            // Nếu vẫn không lấy được, thử lấy từ conversations API
+		            if(empty($senderName) || $senderName == ' '){
+		                $pageId = $pageAccessTokenData['id'];
+		                $getSenderData = $graphAPIEndPoint.$pageId.'/conversations?fields=senders&access_token='.$pageAccessToken;
+		                $getSenderDetailsData = Settings_CTFacebookMessengerIntegration_Record_Model::callFacebookMessengerAPI($getSenderData,'GET');
+
+		                $senderConversationData = array();
+		                if(!empty($getSenderDetailsData) && isset($getSenderDetailsData['data'])){
+		                    $senderData = $getSenderDetailsData['data'];
+		                    if(!empty($senderData)){
+		                        foreach ($senderData as $index => $data) {
+		                            if(isset($data['senders']['data']) && !empty($data['senders']['data'])){
+		                                $senderPageData = $data['senders']['data'];
+		                                foreach($senderPageData as $sender){
+		                                    if(isset($sender['id']) && isset($sender['name'])){
+		                                        $senderConversationData[$sender['id']] = $sender['name'];
+		                                    }
+		                                }
+		                            }
+		                        }
+		                    }
+		                }
+
+		                if(!empty($senderConversationData) && array_key_exists($senderId, $senderConversationData)){
+		                    $currentSenderName = $senderConversationData[$senderId];
+		                    $senderName = $currentSenderName;
+		                }
+		            }
+		            
+		            // Fallback: nếu vẫn không có tên, dùng sender ID
+		            if(empty($senderName) || trim($senderName) == ''){
+		                $senderName = 'User '.$senderId;
+		            }
+		            
+		            $profilePicURL = '';
+		            if(isset($getSenderDetails['profile_pic'])){
+		                $profilePicURL = $getSenderDetails['profile_pic'];
+		            }
 			       	
 			       	foreach($messageText as $mkey => $mValue){
 			       		$chatLogRecordModel = Vtiger_Record_Model::getCleanInstance('CTChatLog');

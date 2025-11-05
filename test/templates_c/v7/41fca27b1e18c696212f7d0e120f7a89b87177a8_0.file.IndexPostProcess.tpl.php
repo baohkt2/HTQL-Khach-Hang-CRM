@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-09-30 07:39:52
+/* Smarty version 4.5.5, created on 2025-11-05 03:49:57
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Vtiger\IndexPostProcess.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68db8948736847_65275055',
+  'unifunc' => 'content_690ac9659c3c22_95772234',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68db8948736847_65275055 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690ac9659c3c22_95772234 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 	</div>
 </div>

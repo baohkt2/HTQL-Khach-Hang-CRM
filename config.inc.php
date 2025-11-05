@@ -52,7 +52,7 @@ $host_name = $dbconfig['db_hostname'];
 // Site URL (đường dẫn khi truy cập qua trình duyệt)
 
 // $site_URL = 'http://localhost/vtigercrm';
-$site_URL = 'http://4285e8ced464.ngrok-free.app/vtigercrm';
+$site_URL = 'http://22cfa3799017.ngrok-free.app/vtigercrm';
 // Customer portal URL
 $PORTAL_URL = $site_URL.'/customerportal';
 
@@ -99,7 +99,7 @@ $application_unique_key = '40709172e88b8f6c672bc88408891a3b';
 
 // Misc
 $listview_max_textlength = '40';
-$php_max_execution_time = 0;
+$php_max_execution_time = 600;
 $default_timezone = 'UTC';
 
 // Set default timezone
@@ -109,7 +109,7 @@ if(isset($default_timezone) && function_exists('date_default_timezone_set')) {
 
 // Default layout
 $default_layout = 'v7';
-$maxListFieldsSelectionSize = 15;
+$maxListFieldsSelectionSize ='40';
 
 include_once 'config.security.php';
 ?>

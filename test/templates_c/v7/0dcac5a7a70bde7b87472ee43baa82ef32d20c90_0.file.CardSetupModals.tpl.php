@@ -1,11 +1,11 @@
 <?php
-/* Smarty version 4.5.5, created on 2025-10-19 18:06:24
+/* Smarty version 4.5.5, created on 2025-11-05 04:16:26
   from 'C:\xampp\htdocs\vtigercrm\layouts\v7\modules\Settings\ExtensionStore\CardSetupModals.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.5.5',
-  'unifunc' => 'content_68f528a08259f4_18535412',
+  'unifunc' => 'content_690acf9ae7b529_97522317',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68f528a08259f4_18535412 (Smarty_Internal_Template $_smarty_tpl) {
+function content_690acf9ae7b529_97522317 (Smarty_Internal_Template $_smarty_tpl) {
 ?>
 <!-- Setup card detals form start--> 
 <div class="modal-dialog setUpCardModal hide">
