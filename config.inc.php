@@ -29,7 +29,7 @@ $dbconfig['db_server']   = 'localhost';      // XAMPP chạy MySQL trên localho
 $dbconfig['db_port']     = ':3306';          // cổng mặc định MySQL
 $dbconfig['db_username'] = 'root';           // user mặc định của XAMPP
 $dbconfig['db_password'] = '';               // để trống nếu chưa set password
-$dbconfig['db_name']     = 'vtiger_final';  // đổi thành tên database bạn import
+$dbconfig['db_name']     = 'vtiger_final_1';  // đổi thành tên database bạn import
 $dbconfig['db_type']     = 'mysqli';
 $dbconfig['db_status']   = 'true';
 
@@ -51,13 +51,14 @@ $host_name = $dbconfig['db_hostname'];
 
 // Site URL (đường dẫn khi truy cập qua trình duyệt)
 
-$site_URL = 'http://localhost/vtigercrm';
+$site_URL = 'http://localhost/cusc';
 //$site_URL = 'http://22cfa3799017.ngrok-free.app/vtigercrm';
+
 // Customer portal URL
 $PORTAL_URL = $site_URL.'/customerportal';
 
 // Root directory trên Windows (chú ý dùng / thay vì \)
-$root_directory = 'C:/xampp/htdocs/vtigercrm/';
+$root_directory = 'C:/xampp/htdocs/cusc/';
 
 // Cache / tmp / upload dirs
 $cache_dir = 'cache/';
