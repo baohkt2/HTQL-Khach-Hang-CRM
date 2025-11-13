@@ -1,0 +1,62 @@
+<?php
+/*+***********************************************************************************
+ * The contents of this file are subject to the vtiger CRM Public License Version 1.0
+ * ("License"); You may not use this file except in compliance with the License
+ * The Original Code is:  vtiger CRM Open Source
+ * The Initial Developer of the Original Code is vtiger.
+ * Portions created by vtiger are Copyright (C) vtiger.
+ * All Rights Reserved.
+ *************************************************************************************/
+$languageStrings = array(
+	'Project' => 'Dự án',
+	'Actual End Date' => 'Ngày kết thúc thực tế',
+	'LBL_ADD_RECORD' => 'Thêm dự án',
+	'LBL_CHARTS' => 'Biểu đồ',
+	'LBL_DOWNLOAD_FILE' => 'Tải dữ liệu',
+	'LBL_MILESTONES_LIST'          => 'Danh sách Mốc dự án'             , 
+	'LBL_MILESTONES' => 'Sự kiện',
+	'LBL_MORE' => 'Công cụ',
+	'LBL_PEOPLE' => 'Người dùng',
+	'LBL_PROJECT_INFORMATION' => 'Chi tiết dự án',
+	'LBL_RECORDS_LIST' => 'Danh sách dự án',
+	'LBL_SELECT_PROGRESS'          => 'Chọn tiến trình'             , 
+	'LBL_STATUS_IS' => 'Trạng thái là',
+	'LBL_STATUS' => 'Trạng thái',
+	'LBL_TASKS_COMPLETED' => 'Nhiệm vụ đã hoàn thành',
+	'LBL_TASKS_DUE' => 'Nhiệm vụ đến hạn',
+	'LBL_TASKS_HIGH'               => 'Nhiệm vụ ưu tiên Cao'               , 
+	'LBL_TASKS_LIST' => 'Danh sách Nhiệm vụ',
+	'LBL_TASKS_LOW'                => 'Nhiệm vụ ưu tiên Thấp'                , 
+	'LBL_TASKS_NORMAL'             => 'Nhiệm vụ ưu tiên Trung bình'             , 
+	'LBL_TASKS_OPEN' => 'Nhiệm vụ đang mở',
+	'LBL_TASKS_OTHER'              => 'Nhiệm vụ ưu tiên khác'            , 
+	'LBL_TASKS' => 'Nhiệm vụ',
+	'LBL_TICKET_PRIORITY' => 'Ưu tiên',
+	'Progress' => 'Mức độ hoàn thành',
+	'Project Name' => 'Tên dự án',
+	'Project No' => 'Mã bản ghi',
+	'Project Url' => 'Url dự án',
+	'SINGLE_Project' => 'Dự án',
+	'Start Date' => 'Ngày bắt đầu',
+	'Target Budget' => 'Ngân sách',
+	'Target End Date' => 'Ngày kết thúc dự kiến',
+	'Related to' => 'Liên quan tới',
+	'description' => 'Mô tả',
+	'Project Task Name' => 'Tên nhiệm vụ',
+	'Type' => 'Loại dự án',
+	'administrative' => 'Hành chính',
+	'operative' => 'Tối ưu hoạt động',
+	'Promotion' => 'Truyền thông - Quảng cáo',
+	'other' => 'Khác',
+	'prospecting' => 'Dự kiến',
+	'initiated' => 'Đã Kickoff',
+	'in progress' => 'Đang thực hiện',
+	'on hold' => 'Tạm dừng',
+	'waiting for feedback' => 'Chờ khách hàng phản hồi',
+	'completed' => 'Đã hoàn thành & chưa bàn giao',
+	'delivered' => 'Đã bàn giao',
+	'archived' => 'Đã archived',
+	'low' => 'Thấp',
+	'normal' => 'Trung bình',
+	'high' => 'Cao',
+);

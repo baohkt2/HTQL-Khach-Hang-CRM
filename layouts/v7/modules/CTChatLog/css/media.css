@@ -1,0 +1,62 @@
+/* IPAD AND MOBILE */
+@media screen and (max-width: 1000px)
+{
+	#waQRScan h4.greenHead{font-size: 18px; line-height: 22px;}
+	#waQRScan i.fa.fa-check-circle{font-size: 22px;}
+	.divForm{padding: 0;}
+
+	.btnDiv .divForm input, button.tablinks h3.tabHead{font-size: 14px;}
+
+	.btnDiv a.myBtn{font-size: 14px; margin: 0 5px 0 0; padding: 10px 10px}
+	.chatDiv .col-xs-2 {padding: 0;}	
+	.chatDiv span.chatTime, button.tablinks h3.tabHead span.counterMsg{font-size: 10px; text-align: center;}
+
+	.fbTabs, .tabcontent{margin:15px 0 0; min-height:auto;}
+
+	#waConversation, #fbListing{padding: 25px 0;}
+
+	.resHead{
+		display: block;
+	}
+	.resHead h2.textHead {
+		font-size: 18px; margin: 0 0 10px;
+	}
+	.resHead .divForm i.fa.fa-search{
+	    bottom: 15px;
+	}
+	.resHead .divForm input.searchBox{
+		padding-left: 30px;
+		font-size: 14px;
+	}
+	.tabcontent h2.textHead, .tabcontent .divForm, .listingHead h3{display: none;}
+	.listingRow .pic{margin-left: 0;}
+
+	#fbListing .padRight0{padding-right: 15px;}
+	#fbListing .padLeft0 {padding-left: 15px;}
+	
+	.listingDiv .col-xs-1.col-sm-1.col-md-2.col-lg-3 {padding-left: 0;}
+	.listingDiv .col-xs-1.col-sm-1.col-md-1.col-lg-1, .listingDiv .col-xs-10.col-sm-10.col-md-4.col-lg-4, .listingDiv .col-xs-1.col-sm-1.col-md-2.col-lg-3{padding-left: 0; padding-right: 0;}
+	
+	.listingRow h4{text-align: right;}
+	.listingRow a.myBtn{float: right;}	
+	.listingRow{padding: 10px 10px;}
+	.tabcontent{padding: 15px 15px;}
+}
+
+/* MOBILE */
+@media screen and (max-width: 767px) and (min-width: 320px)
+{
+	.btnDiv a.myBtn {
+    	font-size: 14px;
+    	margin: 15px 5px 0 0;
+	}
+	.btnDiv .col-xs-12.col-sm-4.col-md-4.col-lg-4 {
+    	padding-left: 15px;
+	}
+	#waConversation .replyChat .pic{
+		float: none;
+	}
+	#waConversation .chatDiv span.chatTime{
+		text-align: center;
+	}
+}	

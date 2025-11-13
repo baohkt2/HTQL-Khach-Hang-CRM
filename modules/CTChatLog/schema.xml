@@ -1,0 +1,146 @@
+<?xml version='1.0'?>
+<schema>
+	<tables>
+		<table>
+			<name>vtiger_ctchatlog</name>
+			<sql><![CDATA[CREATE TABLE `vtiger_ctchatlog` (
+          `ctchatlogid` int(11) NOT NULL,
+          `chat_log_no` varchar(100) DEFAULT NULL,
+          `chat_type_id` int(11) DEFAULT NULL,
+          `platform_unique_id` varchar(100) DEFAULT NULL,
+          `sender_name` varchar(100) DEFAULT NULL,
+          `conversation_id` longtext,
+          `message_type` varchar(100) DEFAULT NULL,
+          `message_body` longtext,
+          `type` varchar(30) DEFAULT NULL,
+          `api_request` longtext,
+          `api_response` longtext,
+          `module_record_id` varchar(100) DEFAULT NULL,
+          `message_datetime` varchar(100) DEFAULT NULL,
+          `message_important` varchar(10) DEFAULT NULL,
+          `tags` varchar(1) DEFAULT NULL,
+          `sender_id` varchar(100) DEFAULT NULL,
+          `sender_profile_pic_url` longtext,
+          `chat_task_id` varchar(100) DEFAULT NULL,
+          `message_read_unread` varchar(100) DEFAULT NULL,
+          `fb_quoted_message` longtext,
+          PRIMARY KEY (`ctchatlogid`)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+      ]]></sql>
+		</table>
+		<table>
+			<name>vtiger_ctchatlogcf</name>
+			<sql><![CDATA[CREATE TABLE `vtiger_ctchatlogcf` (
+            `ctchatlogid` int(11) NOT NULL,
+            PRIMARY KEY (`ctchatlogid`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+          ]]></sql>
+		</table>
+		<table>
+			<name>ct_chat_license_settings</name>
+			<sql><![CDATA[CREATE TABLE `ct_chat_license_settings` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `license_key` varchar(255) DEFAULT NULL,
+            `status` tinyint(1) DEFAULT NULL,
+            `domain` varchar(255) DEFAULT NULL,
+            `apikey` varchar(255) DEFAULT NULL,
+            `user_type` enum('free','premium') NOT NULL DEFAULT 'free',
+            PRIMARY KEY (id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+          ]]></sql>
+		</table>
+		<table>
+			<name>ct_chat_chattype</name>
+			<sql><![CDATA[CREATE TABLE `ct_chat_chattype` (
+          `chat_type_id` int(11) NOT NULL AUTO_INCREMENT,
+          `platform` varchar(50) NOT NULL,
+          `created_by` int(11) NOT NULL,
+          `modified_by` int(11) NOT NULL,
+          `date_created` datetime NOT NULL,
+          `date_modified` datetime NOT NULL,
+          `active` tinyint(1) NOT NULL,
+          PRIMARY KEY (chat_type_id)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        ]]></sql>
+		</table>
+		<table>
+			<name>ct_chat_facebook_messenger_page_configuration</name>
+			<sql><![CDATA[CREATE TABLE `ct_chat_facebook_messenger_page_configuration` (
+        `facebook_messenger_config_id` int(11) NOT NULL AUTO_INCREMENT,
+        `chat_type_id` int(11) NOT NULL,
+        `facebook_page_id` varchar(255) NOT NULL,
+        `allow_users_groups` longtext NOT NULL,
+        `created_by` int(11) NOT NULL,
+        `modified_by` int(11) NOT NULL,
+        `date_created` datetime NOT NULL,
+        `date_modified` datetime NOT NULL,
+        `active` tinyint(1) NOT NULL,
+        PRIMARY KEY (facebook_messenger_config_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+      ]]></sql>
+		</table>
+		<table>
+			<name>ct_chat_field_mapping</name>
+			<sql><![CDATA[CREATE TABLE `ct_chat_field_mapping` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `chat_type_id` int(11) NOT NULL,
+        `module` varchar(30) NOT NULL,
+        `field` varchar(100) NOT NULL,
+        `created_by` int(11) NOT NULL,
+        `modified_by` int(11) NOT NULL,
+        `date_created` datetime NOT NULL,
+        `date_modified` datetime NOT NULL,
+        `active` tinyint(1) NOT NULL,
+        PRIMARY KEY (id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+      ]]></sql>
+		</table>
+		<table>
+			<name>ct_chat_general_settings</name>
+			<sql><![CDATA[CREATE TABLE `ct_chat_general_settings` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `chat_type_id` int(11) NOT NULL,
+        `fieldname_value` longtext NOT NULL,
+        `created_by` int(11) NOT NULL,
+        `modified_by` int(11) NOT NULL,
+        `date_created` datetime NOT NULL,
+        `date_modified` datetime NOT NULL,
+        `active` tinyint(1) NOT NULL,
+        PRIMARY KEY (id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+      ]]></sql>
+		</table>
+		<table>
+			<name>ct_chat_sync_facebook_pages</name>
+			<sql><![CDATA[CREATE TABLE `ct_chat_sync_facebook_pages` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `chat_type_id` int(11) NOT NULL,
+          `facebook_pages` longtext NOT NULL,
+          `created_by` int(11) NOT NULL,
+          `modified_by` int(11) NOT NULL,
+          `date_created` datetime NOT NULL,
+          `date_modified` datetime NOT NULL,
+          `active` tinyint(1) NOT NULL,
+          PRIMARY KEY (id)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+        ]]></sql>
+		</table>
+		<table>
+			<name>ct_chat_token</name>
+			<sql><![CDATA[CREATE TABLE `ct_chat_token` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `chat_type_id` int(11) NOT NULL,
+        `access_token` longtext NOT NULL,
+        `username` varchar(100) NOT NULL,
+        `created_by` int(11) NOT NULL,
+        `modified_by` int(11) NOT NULL,
+        `date_created` datetime NOT NULL,
+        `date_modified` datetime NOT NULL,
+        `active` tinyint(1) NOT NULL,
+        `expires_in` varchar(255) NOT NULL,
+        PRIMARY KEY (id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+      ]]></sql>
+		</table>
+	</tables>
+</schema>

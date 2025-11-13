@@ -1,0 +1,48 @@
+<?xml version='1.0'?>
+<module>
+<name>CTFacebookMessengerIntegration</name>
+<label>CTFacebookMessengerIntegration</label>
+<parent>Marketing</parent>
+<version>2.0</version>
+<dependencies>
+<vtiger_version>8.3</vtiger_version>
+<vtiger_max_version>8.*</vtiger_max_version>
+</dependencies>
+<license>
+        <inline>
+            *************************************************************************************************************
+            *  Module              : CTFacebookMessengerIntegration
+            *  Version             : 2.0
+            *  Vtiger              : 8.3
+            *  Author              : CRMTiger.
+            *  Supported browsers  : Internet Explorer 7 or higher, Mozilla Firefox 3.0 or higher, Google Chrome, Safari
+            *************************************************************************************************************
+
+            Terms and Conditions:
+
+            No Warranty. The Software is provided "as is" without warranty of any kind, either express 
+            or implied, including without limitation any implied warranties of condition, uninterrupted 
+            use, merchantability, fitness for a particular purpose, or non-infringement.
+        </inline>
+</license>
+<modulebundle>true</modulebundle>
+<modulelist>
+<dependent_module>
+<name>CTChatLog</name>
+<install_sequence>1</install_sequence>
+<filepath>CTChatLog.zip</filepath>
+</dependent_module>
+<dependent_module>
+<name>CTChatLogDetails</name>
+<install_sequence>2</install_sequence>
+<filepath>CTChatLogDetails.zip</filepath>
+</dependent_module>
+<dependent_module>
+<name>CTFacebookMessengerIntegration</name>
+<install_sequence>3</install_sequence>
+<filepath>CTFacebookMessengerIntegration.zip</filepath>
+</dependent_module>
+</modulelist>
+</module>
+
+

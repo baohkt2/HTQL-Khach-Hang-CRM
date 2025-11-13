@@ -1,0 +1,40 @@
+<?xml version='1.0'?>
+<schema>
+	<tables>
+		<table>
+			<name>vtiger_ctchatlogdetails</name>
+			<sql><![CDATA[CREATE TABLE `vtiger_ctchatlogdetails` (
+        `ctchatlogdetailsid` int(11) NOT NULL,
+        `chat_log_details_no` varchar(100) DEFAULT NULL,
+        `chat_type_id` int(11) DEFAULT NULL,
+        `platform_unique_id` varchar(100) DEFAULT NULL,
+        `sender_name` varchar(100) DEFAULT NULL,
+        `conversation_id` longtext,
+        `message_type` varchar(100) DEFAULT NULL,
+        `message_body` longtext,
+        `type` varchar(30) DEFAULT NULL,
+        `api_request` longtext,
+        `api_response` longtext,
+        `module_record_id` varchar(100) DEFAULT NULL,
+        `message_datetime` varchar(100) DEFAULT NULL,
+        `message_important` varchar(10) DEFAULT NULL,
+        `chat_log_id` varchar(100) DEFAULT NULL,
+        `tags` varchar(1) DEFAULT NULL,
+        `sender_id` varchar(100) NOT NULL,
+        `sender_profile_pic_url` longtext,
+        `chat_task_id` varchar(100) DEFAULT NULL,
+        `message_read_unread` varchar(100) DEFAULT NULL,
+        `notification_tone` varchar(100) DEFAULT NULL,
+        `fb_quoted_message` longtext,
+        PRIMARY KEY (`ctchatlogdetailsid`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8]]></sql>
+		</table>
+		<table>
+			<name>vtiger_ctchatlogdetailscf</name>
+			<sql><![CDATA[CREATE TABLE `vtiger_ctchatlogdetailscf` (
+        `ctchatlogdetailsid` int(11) NOT NULL,
+        PRIMARY KEY (`ctchatlogdetailsid`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8]]></sql>
+		</table>
+	</tables>
+</schema>

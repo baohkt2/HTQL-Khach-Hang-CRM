@@ -1,0 +1,85 @@
+/* * *******************************************************************************
+* The content of this file is subject to the CRMTiger Pro license.
+* ("License"); You may not use this file except in compliance with the License
+* The Initial Developer of the Original Code is https://crmtiger.com/
+* Portions created by CRMTiger.com are Copyright(C) CRMTiger.com
+* All Rights Reserved.
+* ****************************************************************************** */
+.addNewFBField, #submitbutton {
+	background-image: linear-gradient(to bottom,#1877f2 0,#1877f2 100%);	
+}
+
+#plusIcon {
+	color: white;
+}
+
+.addNewFBField {
+	background-color: #1877f2 !important;
+}
+
+.addNewFBField:hover {
+	background-image: linear-gradient(to bottom,#1877f2 0,#1877f2 100%);	
+}
+
+#generalSettingsIcon {
+	font-size: 32px;
+  	margin-right: 30px;
+  	color: #1877f2;
+}
+
+span.deleteFacebookPageConfig {
+	cursor: pointer;
+}
+
+#facebookIntegrationGeneralConfigurationDiv{
+	margin-left: 15px;
+	margin-top: 15px;
+}
+
+#facebookIntegrationListPageDiv{
+	margin-left: 10px;
+}
+
+#logoutLink{
+	color: blue;
+}
+
+#loginWithFacebook {
+	margin-bottom: 10px;
+	background-color:#1877f2;
+	color:#fff;
+}
+
+#addRecords, #logout {
+	background-image: linear-gradient(to bottom,#1877f2 0,#1877f2 100%);
+}
+
+#addRecords {
+	float: right;
+}
+
+.bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-success, .bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-success {
+	background: #1877f2 !important;
+}
+
+#enableConfigStatusSync {
+	opacity: 0;
+}
+
+#saveFacebookPageConfig, #saveFacebookGeneralSetting {
+	background-image: linear-gradient(to bottom,#1877f2 0,#1877f2 100%);
+}
+
+/*for general setting page*/
+#autoResponderText {
+    width: 100%;
+    height: 100px;
+}
+
+#facebookGeneralSettingsDiv{
+	padding-top:10px;
+}
+
+.optionsWidth > .select2-container {
+    max-width: 280px;
+}
