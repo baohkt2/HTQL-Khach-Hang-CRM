@@ -655,6 +655,7 @@ class Vtiger_Field_Model extends Vtiger_Field {
 		$this->fieldInfo['type'] = $fieldDataType;
 		$this->fieldInfo['name'] = $this->get('name');
 		$this->fieldInfo['label'] = vtranslate($this->get('label'), $this->getModuleName());
+		$this->fieldInfo['typeofdata'] = $this->get('typeofdata');
 
 		if($fieldDataType == 'picklist' || $fieldDataType == 'multipicklist' || $fieldDataType == 'multiowner') {
 			$pickListValues = $this->getPicklistValues();

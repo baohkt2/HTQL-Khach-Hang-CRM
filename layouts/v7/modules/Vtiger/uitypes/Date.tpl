@@ -13,6 +13,15 @@
 {assign var="FIELD_INFO" value=$FIELD_MODEL->getFieldInfo()}
 {assign var="SPECIAL_VALIDATOR" value=$FIELD_MODEL->getValidator()}
 {assign var="dateFormat" value=$USER_MODEL->get('date_format')}
+{* Parse age limit from typeofdata: D~O~AGE~18 *}
+{assign var="ageLimit" value=""}
+{assign var="typeofdata" value=$FIELD_MODEL->get('typeofdata')}
+{if $typeofdata}
+  {assign var="TOD_PARTS" value="~"|explode:$typeofdata}
+  {if count($TOD_PARTS) >= 4 && $TOD_PARTS[2] == 'AGE'}
+    {assign var="ageLimit" value=$TOD_PARTS[3]}
+  {/if}
+{/if}
 {if (!isset($FIELD_NAME) || !$FIELD_NAME)}
   {assign var="FIELD_NAME" value=$FIELD_MODEL->getFieldName()}
 {/if}
@@ -23,7 +32,7 @@
     {if $FIELD_INFO["mandatory"] eq true} data-rule-required="true" {/if}
     {if isset($FIELD_INFO['validator']) && php7_count($FIELD_INFO['validator'])}
         data-specific-rules='{ZEND_JSON::encode($FIELD_INFO["validator"])}'
-    {/if}  data-rule-date="true" />
+    {/if}  data-rule-date="true" {if $ageLimit}data-age-limit="{$ageLimit}"{/if} />
 <span class="input-group-addon"><i class="fa fa-calendar "></i></span>
 </div>
 {/strip}

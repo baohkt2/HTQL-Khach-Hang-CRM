@@ -10,8 +10,8 @@
 $languageStrings = array(
 
 	// Footer
-	'APPTITLE' => 'Vtiger CRM',
-	'POWEREDBY'=> 'Powered by vtiger CRM',
+	'APPTITLE' => 'CUSC CRM',
+	'POWEREDBY'=> 'Powered by CUSC CRM',
 	'LBL_READ_LICENSE' => 'Läs Licensavatlet',
 	'LBL_PRIVACY_POLICY' => 'Sekretesspolicy',
 

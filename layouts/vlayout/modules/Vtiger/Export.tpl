@@ -32,6 +32,24 @@
                 <div class="span8">
                     <h4>{vtranslate('LBL_EXPORT_RECORDS',$MODULE)}</h4>
                     <div class="well exportContents marginLeftZero">
+                        <div class="row-fluid" style="height:30px">
+                            <div class="span6 textAlignRight row-fluid">
+                                <div class="span8"><strong>{vtranslate('LBL_EXPORT_FIELDS', 'Vtiger')}</strong>&nbsp;</div>
+                            </div>
+                        </div>
+                        <div class="row-fluid" style="height:30px">
+                            <div class="span6 textAlignRight row-fluid">
+                                <div class="span8">{vtranslate('LBL_EXPORT_FIELDS_BASED_ON_LIST', 'Vtiger')}&nbsp;</div>
+                                <div class="span3"><input type="radio" name="export_fields_mode" value="list" checked="checked" /></div>
+                            </div>
+                        </div>
+                        <div class="row-fluid" style="height:30px">
+                            <div class="span6 textAlignRight row-fluid">
+                                <div class="span8">{vtranslate('LBL_EXPORT_FIELDS_ALL_COLUMNS', 'Vtiger')}&nbsp;</div>
+                                <div class="span3"><input type="radio" name="export_fields_mode" value="all" /></div>
+                            </div>
+                        </div>
+                        <br>
                         <div class="row-fluid">
                             <div class="row-fluid" style="height:30px">
                                 <div class="span6 textAlignRight row-fluid">

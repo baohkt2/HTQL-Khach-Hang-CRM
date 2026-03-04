@@ -35,7 +35,7 @@
 				{include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$TITLE}
 			</div>
 
-			<div class="modal-body" style="margin-bottom:250px">
+			<div class="modal-body" style="max-height:calc(100vh - 220px);overflow-y:auto;overflow-x:hidden;">
 				<div class="datacontent row">
 					<div class="col-lg-3"></div>
 					<div class="col-lg-6">
@@ -52,6 +52,32 @@
 										<label style="font-weight:normal" for="ics">&nbsp;&nbsp;{vtranslate('ics', $MODULE)}</label>
 									</div>
 								</div>
+							{else}
+								<br><div><b>{vtranslate('LBL_EXPORT_FORMAT',$MODULE)}</b></div><br>
+								<div style="margin-left: 50px;">
+									<div>
+										<input type="radio" name="export_format" value="csv" id="format_csv" checked="checked" />
+										<label style="font-weight:normal" for="format_csv">&nbsp;&nbsp;CSV (.csv)</label>
+									</div>
+									<br>
+									<div>
+										<input type="radio" name="export_format" value="xls" id="format_xls" />
+										<label style="font-weight:normal" for="format_xls">&nbsp;&nbsp;Excel (.xls)</label>
+									</div>
+								</div>
+
+									<br><div><b>{vtranslate('LBL_EXPORT_FIELDS', 'Vtiger')}</b></div><br>
+									<div style="margin-left: 50px;">
+										<div>
+											<input type="radio" name="export_fields_mode" value="list" id="fields_list" checked="checked" />
+											<label style="font-weight:normal" for="fields_list">&nbsp;&nbsp;{vtranslate('LBL_EXPORT_FIELDS_BASED_ON_LIST', 'Vtiger')}</label>
+										</div>
+										<br>
+										<div>
+											<input type="radio" name="export_fields_mode" value="all" id="fields_all" />
+											<label style="font-weight:normal" for="fields_all">&nbsp;&nbsp;{vtranslate('LBL_EXPORT_FIELDS_ALL_COLUMNS', 'Vtiger')}</label>
+										</div>
+									</div>
 							{/if}
 
 							<br><div><b>{vtranslate('LBL_EXPORT_DATA',$MODULE)}</b></div><br>

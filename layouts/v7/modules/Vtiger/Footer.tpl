@@ -9,7 +9,7 @@
 
 <footer class="app-footer">
 	<p>
-		Nền tảng xây dựng dành riêng cho CUSC
+		Powered by CUSC CRM
 	</p>
 </footer>
 </div>

@@ -412,13 +412,14 @@ $languageStrings = array(
 	'LBL_SHOW' => 'Show',
 	'LBL_MY' => 'My',
 	'LBL_SELECT_DATE_RANGE' => 'Select Date Range',
+	'LBL_SESSION_DURATION' => 'Session Duration',
 
 	// Basic Strings- custom view
 	'LBL_VIEW_NAME' => 'List Name',
 	'LBL_CREATE_VIEW' => 'Creating new view',
 	'LBL_BASIC_DETAILS' => 'Basic details',
 	'LBL_CHOOSE_COLUMNS' => 'Choose columns and order',
-	'LBL_MAX_NUMBER_FILTER_COLUMNS' => 'Max 15',
+	'LBL_MAX_NUMBER_FILTER_COLUMNS' => 'Max 50',
 	'LBL_FILTER_ON_DATE' => 'List on date',
 	'LBL_CHOOSE_FILTER_CONDITIONS' => 'Choose List conditions',
 	'LBL_ADD_CONDITION' => 'Add Condition',
@@ -429,6 +430,11 @@ $languageStrings = array(
 	'LBL_OR' => 'or',
 	'LBL_ADD_MORE_COLUMNS' => 'Click to select fields',
 	'LBL_ADD_GROUP' => 'Add Group',
+	'LBL_LIST_HISTORY' => 'List History',
+	'LBL_CREATED_LIST' => 'created the list',
+	'LBL_UPDATED_LIST' => 'updated the list',
+	'LBL_COLUMNS' => 'Columns',
+	'LBL_SHARE_TASK_ASSIGNMENT' => 'Task Assignment:',
 
 	//DateFilter Conditions
 	'LBL_CUSTOM' => 'Custom',
@@ -537,6 +543,9 @@ $languageStrings = array(
 		'LBL_EXPORT_USER_CURRENCY' =>'My preferred Currency',
 		'LBL_EXPORT_RECORD_CURRENCY'=>'Currency specified in Record',
 	'LBL_EXPORT_FORMAT' => 'Export format',
+	'LBL_EXPORT_FIELDS' => 'Export Field',
+	'LBL_EXPORT_FIELDS_BASED_ON_LIST' => 'Based on list',
+	'LBL_EXPORT_FIELDS_ALL_COLUMNS' => 'All columns',
 	'LBL_EXPORT_DATA' => 'Export Data',
 
 	'LBL_CUSTOMIZE' => 'Customize',

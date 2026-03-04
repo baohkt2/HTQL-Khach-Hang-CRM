@@ -84,6 +84,38 @@
 									data-rule-positive="true" data-rule-WholeNumber='true' data-rule-illegal='true' style='width: 75%'/>
 							</div>
 						</div>
+						{* === Phone Limit Length ===
+						   - Nhap 10 thi limit = 10 so
+						   - Nhap 8-11 thi cho phep 8, 9, 10 hoac 11 so
+						   - De trong = khong gioi han
+						*}
+						<div class="form-group supportedType phoneLimitSupported hide">
+							<label class="control-label fieldLabel col-sm-5">
+								{vtranslate('LBL_PHONE_LIMIT_LENGTH', $QUALIFIED_MODULE)}
+							</label>
+							<div class="controls col-sm-7">
+								<input type="text" name="phoneLimitLength" class="inputElement" value=""
+									placeholder="VD: 10 hoac 8-11" style='width: 75%'/>
+								<p class="help-block" style="font-size:11px; color:#888; margin-top:3px;">
+									Nhap so cu the hoac khoang min-max. De trong = khong gioi han.
+								</p>
+							</div>
+						</div>
+						{* === Age Limit for Date Field === *}
+						<div class="form-group supportedType ageLimitSupported hide">
+							<label class="control-label fieldLabel col-sm-5">
+								{vtranslate('LBL_IS_AGE_FIELD', $QUALIFIED_MODULE)}
+							</label>
+							<div class="controls col-sm-7" style="display: flex; align-items: center; gap: 10px;">
+								<input type="checkbox" name="isAgeField" class="ageLimitCheckbox" />
+								<select name="ageLimitValue" class="ageLimitSelect hide" style="width: 100px;">
+									<option value="">{vtranslate('LBL_SELECT_AGE', $QUALIFIED_MODULE)}</option>
+									{for $age=10 to 25}
+										<option value="{$age}">{$age}</option>
+									{/for}
+								</select>
+							</div>
+						</div>
 						<div class="form-group supportedType decimalsupported hide">
 							<label class="control-label fieldLabel col-sm-5">
 								{vtranslate('LBL_DECIMALS', $QUALIFIED_MODULE)}

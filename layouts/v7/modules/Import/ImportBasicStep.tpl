@@ -27,6 +27,8 @@
 						{$LABELS["step1"] = 'LBL_UPLOAD_VCF'}
 					{else if $FORMAT eq 'ics'}
 						{$LABELS["step1"] = 'LBL_UPLOAD_ICS'}
+					{else if $FORMAT eq 'xls'}
+						{$LABELS["step1"] = 'LBL_UPLOAD_XLS'}
 					{else}
 						{$LABELS["step1"] = 'LBL_UPLOAD_CSV'}
 					{/if}

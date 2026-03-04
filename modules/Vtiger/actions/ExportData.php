@@ -30,6 +30,7 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 
 	private $moduleInstance;
 	private $focus;
+	private $exportFieldModels = array();
 
 	/**
 	 * Function exports the data based on the mode
@@ -56,7 +57,8 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 		$translatedHeaders = $this->getHeaders();
 		$entries = array();
 		for ($j = 0; $j < $db->num_rows($result); $j++) {
-			$entries[] = $this->sanitizeValues($db->fetchByAssoc($result, $j));
+			$sanitizedRow = $this->sanitizeValues($db->fetchByAssoc($result, $j));
+			$entries[] = $this->getRowValuesInHeaderOrder($sanitizedRow);
 		}
 
 		$this->output($request, $translatedHeaders, $entries);
@@ -64,20 +66,26 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 
 	public function getHeaders() {
 		$headers = array();
+		$this->exportFieldModels = array();
 		//Query generator set this when generating the query
 		if(!empty($this->accessibleFields)) {
 			$accessiblePresenceValue = array(0,2);
 			foreach($this->accessibleFields as $fieldName) {
+				if (!isset($this->moduleFieldInstances[$fieldName])) {
+					continue;
+				}
 				$fieldModel = $this->moduleFieldInstances[$fieldName];
 				// Check added as querygenerator is not checking this for admin users
 				$presence = $fieldModel->get('presence');
 				if(in_array($presence, $accessiblePresenceValue) && $fieldModel->get('displaytype') != '6') {
 					$headers[] = $fieldModel->get('label');
+					$this->exportFieldModels[] = $fieldModel;
 				}
 			}
 		} else {
 			foreach($this->moduleFieldInstances as $field) {
 				$headers[] = $field->get('label');
+				$this->exportFieldModels[] = $field;
 			}
 		}
 
@@ -104,6 +112,7 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 		$mode = $request->getMode();
 		$cvId = $request->get('viewname');
 		$moduleName = $request->get('source_module');
+		$exportFieldsMode = $request->get('export_fields_mode');
 
 		$queryGenerator = new EnhancedQueryGenerator($moduleName, $currentUser);
 		$queryGenerator->initForCustomViewById($cvId);
@@ -158,15 +167,13 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 			}
 		}
 
-		$accessiblePresenceValue = array(0,2);
-		foreach($fieldInstances as $field) {
-			// Check added as querygenerator is not checking this for admin users
-			$presence = $field->get('presence');
-			if(in_array($presence, $accessiblePresenceValue) && $field->get('displaytype') != '6') {
-				$fields[] = $field->getName();
+		if ($exportFieldsMode === 'all') {
+			$allExportableFieldNames = $this->getAllExportableFieldNames();
+			if (!empty($allExportableFieldNames)) {
+				$queryGenerator->setFields($allExportableFieldNames);
 			}
 		}
-		$queryGenerator->setFields($fields);
+
 		$query = $queryGenerator->getQuery();
 
 		$additionalModules = $this->getAdditionalQueryModules();
@@ -243,20 +250,65 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 		$fileName = str_replace(' ','_',decode_html(vtranslate($moduleName, $moduleName)));
 		// for content disposition header comma should not be there in filename 
 		$fileName = str_replace(',', '_', $fileName);
-		$exportType = $this->getExportContentType($request);
+		
+		$exportFormat = $request->get('export_format');
 
-		header("Content-Disposition:attachment;filename=$fileName.csv");
-		header("Content-Type:$exportType;charset=UTF-8");
-		header("Expires: Mon, 31 Dec 2000 00:00:00 GMT" );
-		header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT" );
-		header("Cache-Control: post-check=0, pre-check=0", false );
-
-		ob_clean();
-		$fp = fopen("php://output", "a+");
-		fputcsv($fp, Vtiger_Functions::sanitizeForCSVExport($headers));	
-
-		foreach($entries as $row) {
-			fputcsv($fp, Vtiger_Functions::sanitizeForCSVExport($row));
+		if ($exportFormat === 'xls') {
+			require_once("libraries/PHPExcel/PHPExcel.php");
+	
+			$workbook = new PHPExcel();
+			$worksheet = $workbook->setActiveSheetIndex(0);
+			
+			$header_styles = array(
+				'fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID, 'color' => array('rgb' => 'E1E0F7')),
+				'font' => array('bold' => true)
+			);
+	
+			// Print Headers
+			$colCount = 0;
+			foreach($headers as $header) {
+				$worksheet->setCellValueExplicitByColumnAndRow($colCount, 1, decode_html($header), PHPExcel_Cell_DataType::TYPE_STRING);
+				$worksheet->getStyleByColumnAndRow($colCount, 1)->applyFromArray($header_styles);
+				$colCount++;
+			}
+	
+			// Print Entries
+			$rowCount = 2;
+			foreach($entries as $row) {
+				$colCount = 0;
+				foreach($row as $value) {
+					$worksheet->setCellValueExplicitByColumnAndRow($colCount, $rowCount, decode_html($value), PHPExcel_Cell_DataType::TYPE_STRING);
+					$colCount++;
+				}
+				$rowCount++;
+			}
+	
+			header("Content-Disposition:attachment;filename=$fileName.xls");
+			header("Content-Type:application/vnd.ms-excel;charset=UTF-8");
+			header("Expires: Mon, 31 Dec 2000 00:00:00 GMT" );
+			header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT" );
+			header("Cache-Control: post-check=0, pre-check=0", false );
+	
+			ob_clean();
+			
+			$workbookWriter = PHPExcel_IOFactory::createWriter($workbook, 'Excel5');
+			$workbookWriter->save('php://output');
+		} else {
+			$exportType = $this->getExportContentType($request);
+	
+			header("Content-Disposition:attachment;filename=$fileName.csv");
+			header("Content-Type:$exportType;charset=UTF-8");
+			header("Expires: Mon, 31 Dec 2000 00:00:00 GMT" );
+			header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT" );
+			header("Cache-Control: post-check=0, pre-check=0", false );
+	
+			ob_clean();
+			$fp = fopen("php://output", "a+");
+			fputcsv($fp, Vtiger_Functions::sanitizeForCSVExport($headers));	
+	
+			foreach($entries as $row) {
+				fputcsv($fp, Vtiger_Functions::sanitizeForCSVExport($row));
+			}
 		}
 	}
 
@@ -375,6 +427,46 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 			}
 		}
 		return $arr;
+	}
+
+	private function getAllExportableFieldNames() {
+		$allExportableFieldNames = array();
+		$accessiblePresenceValue = array(0,2);
+
+		foreach($this->moduleFieldInstances as $field) {
+			$presence = $field->get('presence');
+			if(in_array($presence, $accessiblePresenceValue) && $field->get('displaytype') != '6') {
+				$allExportableFieldNames[] = $field->getName();
+			}
+		}
+
+		return $allExportableFieldNames;
+	}
+
+	private function getRowValuesInHeaderOrder($row) {
+		if (empty($this->exportFieldModels)) {
+			return array_values($row);
+		}
+
+		$orderedRow = array();
+		foreach ($this->exportFieldModels as $fieldModel) {
+			$fieldName = $fieldModel->getName();
+			$columnName = $fieldModel->get('column');
+
+			if($fieldModel->get('table') == 'vtiger_inventoryproductrel' && ($fieldName == 'discount_amount' || $fieldName == 'discount_percent')) {
+				$columnName = 'item_'.$fieldName;
+			}
+
+			if (array_key_exists($columnName, $row)) {
+				$orderedRow[] = $row[$columnName];
+			} elseif (array_key_exists($fieldName, $row)) {
+				$orderedRow[] = $row[$fieldName];
+			} else {
+				$orderedRow[] = '';
+			}
+		}
+
+		return $orderedRow;
 	}
 
 	public function moduleFieldInstances($moduleName) {

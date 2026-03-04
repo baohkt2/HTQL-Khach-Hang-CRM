@@ -1,68 +1,154 @@
-# Vtiger CRM
+# CUSC CRM
 
-Vtiger is a PHP based web application that enables businesses to increase sales wins, marketing ROI, and support satisfaction by providing tools for employees and management work more effectively, capture more data, and derive new actionable insights from across the customer lifecycle.
+<p align="center">
+  <strong>Hệ thống Quản lý Quan hệ Khách hàng - CUSC</strong><br>
+  <em>Customer Relationship Management System</em>
+</p>
 
-## Get involved
+<p align="center">
+  <a href="#tính-năng">Tính năng</a> •
+  <a href="#yêu-cầu-hệ-thống">Yêu cầu</a> •
+  <a href="#cài-đặt-nhanh">Cài đặt</a> •
+  <a href="#tài-liệu">Tài liệu</a> •
+  <a href="#đóng-góp">Đóng góp</a>
+</p>
 
-Development on vtiger is done at https://code.vtiger.com
+---
 
-**Note**: Any contributions submitted to Vtiger project should be made available under Vtiger Public License. 
-If contribution has any patented code, or commercial code, then please communicate with Vtiger team before making the contribution.
+## 📋 Giới Thiệu
 
-https://www.vtiger.com/vtiger-public-license/
+CUSC CRM là hệ thống quản lý quan hệ khách hàng được phát triển dựa trên nền tảng Vtiger CRM, tùy chỉnh và tối ưu cho nhu cầu của Trung tâm Công nghệ Phần mềm - Đại học Cần Thơ.
 
-To register for an account, please contact community @ vtiger.com, you will need this to file issues and/or fix the code
-Once you have an account, you can [browse the code](https://code.vtiger.com/vtiger/vtigercrm/tree/master),
-[see if your issue is already reported](https://code.vtiger.com/vtiger/vtigercrm/issues) and if you have a new problem
-to report you can [create an issue](https://code.vtiger.com/vtiger/vtigercrm/issues/new?issue)
+## ✨ Tính Năng
 
-If you then want to fix the issue (or another issue) you can create your own fork of vtiger to work on using the
-fork button on the vtiger project, this will create a new git repository for you at
-    
-    https://code.vtiger.com/yourname/vtigercrm.git
+- 📊 **Quản lý Leads & Contacts** - Theo dõi và quản lý thông tin khách hàng
+- 📧 **Email Integration** - Tích hợp email, tự động gửi/nhận
+- 📅 **Calendar & Tasks** - Lịch làm việc và quản lý công việc
+- 📈 **Reports & Analytics** - Báo cáo và phân tích dữ liệu
+- 🔔 **Notifications** - Thông báo và nhắc nhở tự động
+- 🔐 **Role-based Access** - Phân quyền theo vai trò
+- 🔄 **Workflows** - Tự động hóa quy trình làm việc
 
-on your computer you will need a git client installed and you need to tell git who you are:
+## 💻 Yêu Cầu Hệ Thống
 
-    git config --global user.name "YOUR NAME"
-    git config --global user.email "YOUR EMAIL ADDRESS"
+| Requirement | Minimum | Recommended |
+|------------|---------|-------------|
+| PHP | 8.1+ | 8.2+ |
+| MySQL | 5.7+ | 8.0+ |
+| Memory | 512MB | 1GB+ |
+| Disk Space | 500MB | 2GB+ |
 
-now clone your fork of vtiger
+### PHP Extensions Required
+- mysqli, imap, curl, gd, mbstring, xml, zip, openssl
 
-    git clone https://code.vtiger.com/yourname/vtigercrm.git
+## 🚀 Cài Đặt Nhanh
 
-this will pull down from the server your copy of the vtiger code and all the history.
+### 1. Clone Repository
+```bash
+git clone https://github.com/your-org/cusc.git
+cd cusc
+```
 
-You will make a new branch for your changes, you can give it a descriptive name, once the branch is created
-you will switch to that branch using the checkout command
+### 2. Cài đặt Dependencies
+```bash
+composer install
+```
 
-    git branch fix_projects_on_calendar
-    git checkout fix_projects_on_calendar
+### 3. Cấu hình Environment
+```bash
+# Copy file mẫu
+cp .env.example .env
+cp config.inc.template.php config.inc.php
+cp config.csrf-secret.template.php config.csrf-secret.php
 
-Before you install, you need to run ```composer update```
+# Chỉnh sửa file .env với thông tin của bạn
+```
 
-Now you can make your changes and commit all changed files with
+### 4. Tạo Database
+```sql
+CREATE DATABASE cusc_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
-    git commit -a
+### 5. Import Schema
+```bash
+mysql -u root -p cusc_db < database/cusc_db.sql
+```
 
-Do reference the issue number in your commit message, e.g. "fix #2 display projects on the calendar" the number will
-allow the system to link the commit to the issue.
+### 6. Truy cập
+Mở trình duyệt: `http://localhost/cusc`
 
-Now you can push your branch to the server, this creates the branch on the server end and populates it
+📖 **Xem hướng dẫn chi tiết:** [INSTALLATION.md](INSTALLATION.md)
 
-    git push --set-upstream origin fix_projects_on_calendar
+## 📁 Cấu Trúc Dự Án
 
-look at the branch on code.vtiger.com and create a merge request from your branch
-to the upstream master, this will be reviewed to see if it fixes the 
-issue and if all is good will be merged into the upstream code.
-You can then switch back to your master branch with
+```
+cusc/
+├── cache/              # Cache files (git ignored)
+├── cron/               # Cron job scripts
+├── database/           # Database schema
+├── docs/               # Documentation
+├── include/            # Core includes
+├── includes/           # Additional includes
+├── languages/          # Language files
+├── layouts/            # UI layouts
+├── libraries/          # Third-party libraries
+├── logs/               # Log files (git ignored)
+├── modules/            # CRM modules
+├── storage/            # File storage (git ignored)
+├── vendor/             # Composer packages (git ignored)
+├── .env.example        # Environment template
+├── config.inc.template.php  # Config template
+├── composer.json       # PHP dependencies
+└── README.md           # This file
+```
 
-    git checkout master
+## 📚 Tài Liệu
 
-And you can create additional feature branches from there to fix different things.
+| Tài liệu | Mô tả |
+|----------|-------|
+| [INSTALLATION.md](INSTALLATION.md) | Hướng dẫn cài đặt chi tiết |
+| [docs/SECURITY.md](docs/SECURITY.md) | Hướng dẫn bảo mật |
+| [cron/CRON_SETUP_GUIDE.md](cron/CRON_SETUP_GUIDE.md) | Thiết lập Cron Jobs |
 
-If there have been other changes to the central vtiger code that you want in your work area then you can add the central
-repository as an upstream remote (only need to do this bit once), then you can fetch changes and merge them
+## ⚙️ Cấu Hình
 
-    git remote add upstream https://code.vtiger.com/vtiger/vtigercrm.git
-    git fetch upstream
-    git merge upstream/master
+### Environment Variables
+
+Tất cả cấu hình nhạy cảm được lưu trong file `.env`:
+
+| Variable | Description |
+|----------|-------------|
+| `DB_*` | Database connection settings |
+| `SITE_URL` | Website URL |
+| `APPLICATION_UNIQUE_KEY` | Security key (32 chars) |
+| `CSRF_SECRET` | CSRF protection key (40 chars) |
+
+**⚠️ QUAN TRỌNG:** Không bao giờ commit file `.env` lên git!
+
+## 🔐 Bảo Mật
+
+- Tạo key mới cho production: `openssl rand -hex 16`
+- Xem [docs/SECURITY.md](docs/SECURITY.md) để biết thêm chi tiết
+
+## 🤝 Đóng Góp
+
+1. Fork repository
+2. Tạo branch mới: `git checkout -b feature/your-feature`
+3. Commit changes: `git commit -m 'Add some feature'`
+4. Push to branch: `git push origin feature/your-feature`
+5. Tạo Pull Request
+
+## 📧 Liên Hệ
+
+- **Email:** nbaocs13@gmail.com
+
+## 📄 License
+
+Dự án này được phát hành dưới [Vtiger Public License](LICENSE.txt).
+
+---
+
+<p align="center">
+  Made with ❤️ by CUSC Team
+</p>
+

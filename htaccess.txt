@@ -1,7 +1,1 @@
 Options -Indexes
-
-# UTF-8 encoding for Vietnamese content
-AddDefaultCharset UTF-8
-<IfModule mod_headers.c>
-    Header set Content-Type "text/html; charset=UTF-8"
-</IfModule>

@@ -78,6 +78,9 @@ Class CustomView_EditAjax_View extends Vtiger_IndexAjax_View {
 
 		$viewer->assign('CUSTOMVIEW_MODEL', $customViewModel);
 		$viewer->assign('RECORD_ID', $record);
+		$cvShareTasks = $customViewModel->getShareTasks();
+		$viewer->assign('CV_SHARE_TASKS', $cvShareTasks);
+		$viewer->assign('CV_HISTORY', $customViewModel->getHistory());
 		$viewer->assign('MODULE', $module);
 		$viewer->assign('SOURCE_MODULE',$moduleName);
 		$viewer->assign('USER_MODEL', $currentUserModel);
@@ -104,6 +107,11 @@ Class CustomView_EditAjax_View extends Vtiger_IndexAjax_View {
 				$listShared = true;
 				break;
 			}
+		}
+		// Also check share tasks
+		$cvShareTasks = $viewer->getTemplateVars('CV_SHARE_TASKS');
+		if (!empty($cvShareTasks)) {
+			$listShared = true;
 		}
 		$viewer->assign('LIST_SHARED',$listShared);
 		$viewer->assign('SELECTED_MEMBERS_GROUP', $customViewSharedMembers);

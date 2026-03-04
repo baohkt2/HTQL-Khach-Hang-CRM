@@ -41,6 +41,7 @@
 								{assign var=shown_count value=0}
 								{assign var=hidden_count value=0}
 								{assign var=LISTVIEW_URL value=$MODULE_MODEL->getListViewUrl()}
+                                {assign var="CV_SECTION" value=$GROUP_LABEL}
                                 {foreach item="CUSTOM_VIEW" from=$GROUP_CUSTOM_VIEWS name="customView"}
                                     {assign var="IS_DEFAULT" value=$CUSTOM_VIEW->isDefault()}
 									{assign var="CUSTOME_VIEW_RECORD_MODEL" value=CustomView_Record_Model::getInstanceById($CUSTOM_VIEW->getId())}
@@ -56,10 +57,10 @@
                                     {else} 
                                         {assign var=hidden_count value=$hidden_count+1} 
                                     {/if}
-									<li style="font-size:12px;" class='listViewFilter {if $VIEWID eq $CUSTOM_VIEW->getId() && (isset($CURRENT_TAG) && $CURRENT_TAG eq '')} active{else if $smarty.foreach.customView.iteration gt 10} filterHidden hide{/if}'> 
+									<li style="font-size:12px; {if $CV_SECTION eq 'Shared'}position:relative; padding-left:20px;{/if}" class='listViewFilter {if $VIEWID eq $CUSTOM_VIEW->getId() && (isset($CURRENT_TAG) && $CURRENT_TAG eq '')} active{else if $smarty.foreach.customView.iteration gt 10} filterHidden hide{/if}'> 
                                         {assign var=VIEWNAME value={vtranslate($CUSTOM_VIEW->get('viewname'), $MODULE)}}
 										{append var="CUSTOM_VIEW_NAMES" value=$VIEWNAME}
-                                         <a class="filterName listViewFilterElipsis" href="{$LISTVIEW_URL|cat:'&viewname='|cat:$CUSTOM_VIEW->getId()|cat:'&app='|cat:$SELECTED_MENU_CATEGORY}" oncontextmenu="return false;" data-filter-id="{$CUSTOM_VIEW->getId()}" title="{$VIEWNAME|@escape:'html'}">{$VIEWNAME|@escape:'html'}</a> 
+										 {if $CV_SECTION eq 'Shared'}<span class="shareTaskInfoBtn" data-cvid="{$CUSTOM_VIEW->getId()}" title="Xem phân công" style="cursor:pointer; color:#888; font-size:13px; position:absolute; left:4px; top:50%; transform:translateY(-55%); margin-top:-1px; z-index:5;"><i class="fa fa-info-circle"></i></span>{/if}<a class="filterName listViewFilterElipsis" href="{$LISTVIEW_URL|cat:'&viewname='|cat:$CUSTOM_VIEW->getId()|cat:'&app='|cat:$SELECTED_MENU_CATEGORY}" oncontextmenu="return false;" data-filter-id="{$CUSTOM_VIEW->getId()}" title="{$VIEWNAME|@escape:'html'}">{$VIEWNAME|@escape:'html'}</a> 
                                             <div class="pull-right">
                                                 <span class="js-popover-container" style="cursor:pointer;">
                                                     <span  class="fa fa-angle-down" rel="popover" data-toggle="popover" aria-expanded="true" 
@@ -217,3 +218,86 @@
         </div>
      </div>
 </div>
+
+{* Share Task Info Modal *}
+<div class="modal fade" id="shareTaskInfoModal" tabindex="-1" role="dialog" style="z-index: 99999;">
+	<div class="modal-dialog" role="document" style="width: 480px;">
+		<div class="modal-content" style="border-radius: 6px; overflow: hidden;">
+			<div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-bottom: none; padding: 14px 20px;">
+				<button type="button" class="close" data-dismiss="modal" style="color: #fff; opacity: 0.8; text-shadow: none;">&times;</button>
+				<h4 class="modal-title" style="font-size: 15px; font-weight: 600;">
+					<i class="fa fa-tasks" style="margin-right: 6px;"></i>
+					<span id="shareTaskInfoTitle">Thông tin phân công</span>
+				</h4>
+			</div>
+			<div class="modal-body" id="shareTaskInfoBody" style="padding: 18px 20px; max-height: 400px; overflow-y: auto;">
+				<div class="text-center" style="padding: 30px 0; color: #999;">
+					<i class="fa fa-spinner fa-spin fa-2x"></i>
+					<p style="margin-top: 10px;">Đang tải...</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+	// Bind directly to the element to stop propagation before it reaches Vtiger's list handler
+	jQuery('.shareTaskInfoBtn').on('click', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		e.stopImmediatePropagation();
+
+		var cvid = jQuery(this).data('cvid');
+		var modal = jQuery('#shareTaskInfoModal');
+		var body = jQuery('#shareTaskInfoBody');
+
+		// Di chuyển modal ra ngoài sidebar, đẩy thẳng vào body để tránh z-index conflict
+		if(modal.parent().get(0) !== document.body) {
+			modal.appendTo('body');
+		}
+
+		// Show loading
+		body.html('<div class="text-center" style="padding:30px 0;color:#999;"><i class="fa fa-spinner fa-spin fa-2x"></i><p style="margin-top:10px;">Đang tải...</p></div>');
+		modal.modal('show');
+
+		// AJAX call
+		var params = {
+			module: 'CustomView',
+			action: 'GetShareTaskInfo',
+			cvid: cvid
+		};
+		AppConnector.request(params).then(function(data) {
+			var result = data.result || data;
+			if (result && result.success) {
+				var html = '';
+				html += '<div style="margin-bottom:14px; padding:10px 14px; background:#f8f9fa; border-radius:5px; border-left:4px solid #667eea;">';
+				html += '<div style="font-size:12px; color:#888; margin-bottom:2px;">Người chia sẻ</div>';
+				html += '<div style="font-size:14px; font-weight:600; color:#333;"><i class="fa fa-user" style="margin-right:6px; color:#667eea;"></i>' + result.owner + '</div>';
+				html += '</div>';
+
+				if (result.tasks && result.tasks.length > 0) {
+					for (var i = 0; i < result.tasks.length; i++) {
+						var task = result.tasks[i];
+						html += '<div style="margin-bottom:10px; padding:10px 14px; background:#fff; border:1px solid #e8e8e8; border-radius:5px;">';
+						html += '<div style="font-size:12px; color:#888; margin-bottom:4px;"><i class="fa fa-users" style="margin-right:4px;"></i>Thành viên</div>';
+						html += '<div style="font-size:13px; font-weight:500; color:#333; margin-bottom:8px;">' + task.members + '</div>';
+						if (task.task_description) {
+							html += '<div style="font-size:12px; color:#888; margin-bottom:4px;"><i class="fa fa-file-text-o" style="margin-right:4px;"></i>Mô tả công việc</div>';
+							html += '<div style="font-size:13px; color:#555; white-space:pre-wrap; background:#fafafa; padding:8px 10px; border-radius:4px; border:1px solid #f0f0f0;">' + task.task_description + '</div>';
+						}
+						html += '</div>';
+					}
+				} else {
+					html += '<div style="text-align:center; color:#999; padding:20px 0;"><i class="fa fa-info-circle" style="margin-right:6px;"></i>Không có phân công cụ thể cho bạn</div>';
+				}
+				body.html(html);
+			} else {
+				body.html('<div style="text-align:center;color:#e74c3c;padding:20px 0;"><i class="fa fa-exclamation-circle" style="margin-right:6px;"></i>Không thể tải thông tin</div>');
+			}
+		});
+
+		return false;
+	});
+});
+</script>

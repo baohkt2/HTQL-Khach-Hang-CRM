@@ -110,13 +110,19 @@ class Import_FileReader_Reader {
 		$moduleFields = array_merge($moduleFields, $moduleImportableFields);
 
 		$columnsListQuery = 'id INT PRIMARY KEY AUTO_INCREMENT, status INT DEFAULT 0, recordid INT';
-		$fieldTypes = $this->getModuleFieldDBColumnType();
+		$columnsListQuery = 'id INT PRIMARY KEY AUTO_INCREMENT, status INT DEFAULT 0, recordid INT';
 		foreach($fieldMapping as $fieldName => $index) {
-			$fieldObject = $moduleFields[$fieldName];
-			$columnsListQuery .= $this->getDBColumnType($fieldObject, $fieldTypes);
+			$columnsListQuery .= ', ' . $fieldName . ' TEXT';
 		}
-		$createTableQuery = 'CREATE TABLE '. $tableName . ' ('.$columnsListQuery.') ENGINE=MyISAM ';
-		$db->pquery($createTableQuery, array());
+		
+		// Use InnoDB with DYNAMIC row format to bypass MyISAM's 65535 byte row size limit
+		$createTableQuery = 'CREATE TABLE ' . $tableName . ' (' . $columnsListQuery . ') ENGINE=InnoDB ROW_FORMAT=DYNAMIC';
+		$result = $db->pquery($createTableQuery, array());
+		if (!$result) {
+			$this->status = 'failed';
+			$this->errorMessage = 'ERR_CREATE_TABLE_FAILED';
+			return false;
+		}
 		return true;
 	}
 

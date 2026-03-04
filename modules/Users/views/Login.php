@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: text/html; charset=UTF-8');
 /*+**********************************************************************************
  * The contents of this file are subject to the vtiger CRM Public License Version 1.1
  * ("License"); You may not use this file except in compliance with the License
@@ -45,12 +46,6 @@ class Users_Login_View extends Vtiger_View_Controller {
 	}
 
 	function process (Vtiger_Request $request) {
-  // Ensure UTF-8 encoding for Vietnamese content
-		header('Content-Type: text/html; charset=utf-8');
-		if (function_exists('mb_internal_encoding')) {
-			mb_internal_encoding('UTF-8');
-		}
-		
 		$finalJsonData = array();
 
 		$modelInstance = Settings_ExtensionStore_Extension_Model::getInstance();
@@ -87,12 +82,12 @@ class Users_Login_View extends Vtiger_View_Controller {
 		$message = '';
 		if ($error) {
 			switch ($error) {
-				case 'login'		:	$message = 'Tên đăng nhập hoặc mật khẩu không đúng';			break;
-				case 'fpError'		:	$message = 'Tên đăng nhập hoặc địa chỉ email không hợp lệ';	break;
-				case 'statusError'	:	$message = 'Máy chủ gửi mail chưa được cấu hình';				break;
+				case 'login'		:	$message = 'Invalid credentials';						break;
+				case 'fpError'		:	$message = 'Invalid Username or Email address';			break;
+				case 'statusError'	:	$message = 'Outgoing mail server was not configured';	break;
 			}
 		} else if ($mailStatus) {
-			$message = 'Email đã được gửi đến hộp thư của bạn, vui lòng kiểm tra email';
+			$message = 'Mail has been sent to your inbox, please check your e-mail';
 		}
 
 		$viewer->assign('ERROR', $error);
@@ -105,20 +100,15 @@ class Users_Login_View extends Vtiger_View_Controller {
 		} else {
 			$branding = array(
 				'app_name' => 'CUSC CRM',
-				'app_tagline' => 'Hệ thống Quản lý Quan hệ Khách hàng',
+				'app_tagline' => 'Customer Relationship Management',
 				'app_logo' => 'layouts/v7/resources/Images/cusc-logo.png',
-				'login_background' => '',
+				'login_background' => 'layouts/v7/resources/Images/cusc-login-bg.jpg',
 				'app_copyright' => '© ' . date('Y') . ' CUSC CRM',
 				'app_website' => '',
 				'show_marketing_panel' => true,
-				'marketing_title' => 'Chào mừng',
-				'marketing_description' => 'Nền tảng quản lý quan hệ khách hàng toàn diện',
-				'marketing_features' => array(
-					'Quản lý liên hệ & khách hàng tiềm năng',
-					'Tích hợp Email',
-					'Phân tích & báo cáo nâng cao',
-					'Quy trình làm việc tự động',
-				),
+				'marketing_title' => 'Welcome',
+				'marketing_description' => '',
+				'marketing_features' => array(),
 			);
 		}
 		$viewer->assign('BRANDING', $branding);

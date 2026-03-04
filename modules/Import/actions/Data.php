@@ -534,6 +534,13 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		foreach ($fieldData as $fieldName => $fieldValue) {
 			$fieldInstance = $moduleFields[$fieldName];
 			$fieldDataType = $fieldInstance->getFieldDataType();
+			if ($fieldValue === '0') {
+				$zeroAsEmptyDataTypes = array('string', 'text', 'email', 'phone', 'url');
+				if (in_array($fieldDataType, $zeroAsEmptyDataTypes)) {
+					$fieldValue = '';
+					$fieldData[$fieldName] = '';
+				}
+			}
 			if ($fieldDataType == 'owner') {
 				$ownerId = getUserId_Ol(trim($fieldValue));
 				if (empty($ownerId)) {
@@ -765,6 +772,90 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 				}
 			}
 		}
+
+		// ===== IMPORT VALIDATION: Phone length + Vietnamese prefix =====
+		// Mirrors frontend validation in Edit.js registerPhoneValidation()
+		$vnPhonePrefixes = array(
+			// Viettel
+			'032','033','034','035','036','037','038','039','086','096','097','098',
+			// Vinaphone
+			'081','082','083','084','085','088','091','094',
+			// MobiFone
+			'070','076','077','078','079','089','090','093',
+			// Vietnamobile
+			'056','058','092',
+			// Gmobile
+			'059','099',
+			// Itelecom
+			'087',
+		);
+		foreach ($fieldData as $fieldName => $fieldValue) {
+			if (!isset($moduleFields[$fieldName])) continue;
+			$fieldInstance = $moduleFields[$fieldName];
+			$fieldDataType = $fieldInstance->getFieldDataType();
+
+			if ($fieldDataType == 'phone' && !empty($fieldValue)) {
+				// Strip non-digit characters (same as JS phoneField filter)
+				$digits = preg_replace('/[^0-9]/', '', $fieldValue);
+				$fieldData[$fieldName] = $digits;
+
+				// Read typeofdata to check for PHONE~{limit}
+				$typeOfData = $fieldInstance->getTypeOfData();
+				if ($typeOfData && strpos($typeOfData, 'PHONE~') !== false) {
+					$parts = explode('~', $typeOfData);
+					// Format: V~O~PHONE~10 or V~O~PHONE~8-11
+					$phoneIdx = array_search('PHONE', $parts);
+					if ($phoneIdx !== false && isset($parts[$phoneIdx + 1])) {
+						$limitStr = $parts[$phoneIdx + 1];
+						if (strpos($limitStr, '-') !== false) {
+							$rangeParts = explode('-', $limitStr);
+							$minLen = intval($rangeParts[0]);
+							$maxLen = intval($rangeParts[1]);
+						} else {
+							$minLen = $maxLen = intval($limitStr);
+						}
+						// Check length
+						if (strlen($digits) < $minLen || strlen($digits) > $maxLen) {
+							return null;
+						}
+						// Check Vietnamese prefix (first 3 digits)
+						if (strlen($digits) >= 3) {
+							$prefix = substr($digits, 0, 3);
+							if (!in_array($prefix, $vnPhonePrefixes)) {
+								return null;
+							}
+						}
+					}
+				}
+			}
+
+			// ===== IMPORT VALIDATION: Date/Age minimum constraint =====
+			// Mirrors frontend validation in Edit.js registerAgeValidation()
+			if ($fieldDataType == 'date' && !empty($fieldValue)) {
+				$typeOfData = $fieldInstance->getTypeOfData();
+				if ($typeOfData && strpos($typeOfData, 'AGE~') !== false) {
+					$parts = explode('~', $typeOfData);
+					$ageIdx = array_search('AGE', $parts);
+					if ($ageIdx !== false && isset($parts[$ageIdx + 1])) {
+						$minAge = intval($parts[$ageIdx + 1]);
+						if ($minAge > 0) {
+							// fieldValue at this point is DB format: YYYY-MM-DD
+							$dbDate = $fieldData[$fieldName];
+							if (!empty($dbDate) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dbDate)) {
+								$dob = new DateTime($dbDate);
+								$today = new DateTime('today');
+								$diff = $today->diff($dob);
+								$age = $diff->y;
+								if ($age < $minAge) {
+									return null;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
 		if ($fillDefault) {
 			foreach ($defaultFieldValues as $fieldName => $fieldValue) {
 				if (!isset($fieldData[$fieldName])) {
@@ -829,7 +920,13 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		}
 
 		$fieldData = DataTransform::sanitizeData($fieldData, $moduleMeta);
-		$entityIdInfo = vtws_create($moduleName, $fieldData, $this->user);
+		try {
+			$entityIdInfo = vtws_create($moduleName, $fieldData, $this->user);
+		} catch (Exception $e) {
+			error_log("IMPORT ERROR for row: " . print_r($fieldData, true) . " - Exception: " . $e->getMessage());
+			$this->importRecord->updateStatus(Import_Data_Action::$IMPORT_RECORD_FAILED);
+			return false;
+		}
 		$adb = PearDatabase::getInstance();
 		$entityIdComponents = vtws_getIdComponents($entityIdInfo['id']);
 		$recordId = $entityIdComponents[1];
@@ -1151,6 +1248,9 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			return $entityInfo;
 		}
 
+		$previousPreserveEmptyNumeric = array_key_exists('VTIGER_IMPORT_PRESERVE_EMPTY_NUMERIC', $GLOBALS)
+			? $GLOBALS['VTIGER_IMPORT_PRESERVE_EMPTY_NUMERIC'] : null;
+		$GLOBALS['VTIGER_IMPORT_PRESERVE_EMPTY_NUMERIC'] = true;
 		try {
 			if ($recordData) {
 				switch($operation) {
@@ -1168,9 +1268,15 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 				}
 			}
 		} catch (Exception $e) {
+			error_log("IMPORT ERROR in importSavedRecord operation=$operation: " . print_r($recordData, true) . " - Exception: " . $e->getMessage());
 			if ($operation != 'create') {
 				$entityInfo['status'] = self::$IMPORT_RECORD_SKIPPED;
 			}
+		}
+		if ($previousPreserveEmptyNumeric === null) {
+			unset($GLOBALS['VTIGER_IMPORT_PRESERVE_EMPTY_NUMERIC']);
+		} else {
+			$GLOBALS['VTIGER_IMPORT_PRESERVE_EMPTY_NUMERIC'] = $previousPreserveEmptyNumeric;
 		}
 
 		return $entityInfo;

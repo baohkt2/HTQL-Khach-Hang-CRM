@@ -126,6 +126,14 @@ class Settings_LayoutEditor_Module_Model extends Vtiger_Module_Model {
 				if($fieldType == 'Picklist')
 					$details['picklistoption'] = true;
 			}
+			// Phone: hỗ trợ giới hạn độ dài số điện thoại
+			if($fieldType == 'Phone') {
+				$details['phoneLimitSupported'] = true;
+			}
+			// Date: hỗ trợ ràng buộc tuổi
+			if($fieldType == 'Date') {
+				$details['ageLimitSupported'] = true;
+			}
 			$fieldTypesInfo[$fieldType] = $details;
 		}
 		return $fieldTypesInfo;
@@ -245,6 +253,14 @@ class Settings_LayoutEditor_Module_Model extends Vtiger_Module_Model {
 							   $uichekdata='D~O';
 							   $uitype = 5;
 							   $type = "DATE"; // adodb type
+							   // Lưu ràng buộc tuổi vào typeofdata
+							   // Ví dụ: ageLimitValue = "18" => D~O~AGE~18
+							   if (!empty($params['isAgeField']) && !empty($params['ageLimitValue'])) {
+							       $ageLimit = intval($params['ageLimitValue']);
+							       if ($ageLimit > 0) {
+							           $uichekdata = 'D~O~AGE~' . $ageLimit;
+							       }
+							   }
 							   break;
 			   Case 'Email' :
 							   $uitype = 13;
@@ -260,6 +276,17 @@ class Settings_LayoutEditor_Module_Model extends Vtiger_Module_Model {
 							   $uitype = 11;
 							   $type = "VARCHAR(30) default '' "; //adodb type
 							   $uichekdata='V~O';
+							   // Lưu giới hạn độ dài số điện thoại vào typeofdata
+							   // Ví dụ: phoneLimitLength = "10" => V~O~PHONE~10
+							   //         phoneLimitLength = "8-11" => V~O~PHONE~8-11
+							   if (!empty($params['phoneLimitLength'])) {
+							       $phoneLimitLength = trim($params['phoneLimitLength']);
+							       // Validate format: chỉ chấp nhận số hoặc số-số
+							       if (preg_match('/^\d+(\s*-\s*\d+)?$/', $phoneLimitLength)) {
+							           $phoneLimitLength = preg_replace('/\s+/', '', $phoneLimitLength);
+							           $uichekdata = 'V~O~PHONE~' . $phoneLimitLength;
+							       }
+							   }
 							   break;
 			   Case 'Picklist' :
 							   $uitype = 16;

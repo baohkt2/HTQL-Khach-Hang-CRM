@@ -1240,6 +1240,7 @@ class CRMEntity {
 	function get_column_value($columnname, $fldvalue, $fieldname, $uitype, $datatype = '') {
 		global $log;
 		$log->debug("Entering function get_column_value ($columnname, $fldvalue, $fieldname, $uitype, $datatype='')");
+		$preserveImportEmptyNumeric = !empty($GLOBALS['VTIGER_IMPORT_PRESERVE_EMPTY_NUMERIC']);
 
 		// Added for the fields of uitype '57' which has datatype mismatch in crmentity table and particular entity table
 		if ($uitype == 57 && $fldvalue == '') {
@@ -1249,6 +1250,9 @@ class CRMEntity {
 			return null;
 		}
 		if ($datatype == 'I' || $datatype == 'N' || $datatype == 'NN') {
+			if ($preserveImportEmptyNumeric && ($fldvalue === '' || $fldvalue === null)) {
+				return null;
+			}
 			return 0;
 		}
 		$log->debug("Exiting function get_column_value");

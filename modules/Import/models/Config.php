@@ -13,18 +13,20 @@ class Import_Config_Model extends Vtiger_Base_Model {
 	function __construct($values = array()) {
 		$ImportConfig = array(
 			'importTypes' => array(
-								'csv' => array('reader' => 'Import_CSVReader_Reader', 'classpath' => 'modules/Import/readers/CSVReader.php'),
-								'vcf' => array('reader' => 'Import_VCardReader_Reader', 'classpath' => 'modules/Import/readers/VCardReader.php'),
-								'ics' => array('reader' => 'Import_ICSReader_Reader', 'classpath' => 'modules/Import/readers/ICSReader.php'),
-								'default' => array('reader' => 'Import_FileReader_Reader', 'classpath' => 'modules/Import/readers/FileReader.php')
-							),
+							'csv'     => array('reader' => 'Import_CSVReader_Reader',   'classpath' => 'modules/Import/readers/CSVReader.php'),
+							'vcf'     => array('reader' => 'Import_VCardReader_Reader', 'classpath' => 'modules/Import/readers/VCardReader.php'),
+							'ics'     => array('reader' => 'Import_ICSReader_Reader',   'classpath' => 'modules/Import/readers/ICSReader.php'),
+							'xls'     => array('reader' => 'Import_XLSReader_Reader',   'classpath' => 'modules/Import/readers/XLSReader.php'),
+							'xlsx'    => array('reader' => 'Import_XLSReader_Reader',   'classpath' => 'modules/Import/readers/XLSReader.php'),
+							'default' => array('reader' => 'Import_FileReader_Reader',  'classpath' => 'modules/Import/readers/FileReader.php')
+						),
 
 			'userImportTablePrefix' => 'vtiger_import_',
 			// Individual batch limit - Specified number of records will be imported at one shot and the cycle will repeat till all records are imported
-			'importBatchLimit' => '10000',
+			'importBatchLimit' => '50000',
 			// Threshold record limit for immediate import. If record count is more than this, then the import is scheduled through cron job
 			'immediateImportLimit' => '50000',
-			'importPagingLimit' => '5000',
+			'importPagingLimit' => '10000',
 		);
 
 		$this->setData($ImportConfig);

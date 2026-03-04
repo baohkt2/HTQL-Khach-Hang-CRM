@@ -99,6 +99,10 @@ $languageStrings = array(
 	'LBL_UPLOAD_ICS'=>'Upload ICS File',
 	'LBL_IMPORT_FROM_ICS_FILE'=>'Import from ICS file',
 	'LBL_SELECT_ICS_FILE' => 'Select ICS file',
+	'LBL_XLS_FILE' => 'Excel File',
+	'LBL_UPLOAD_XLS' => 'Upload Excel File',
+	'LBL_IMPORT_FROM_XLS_FILE' => 'Import from Excel file',
+	'LBL_SELECT_XLS_FILE' => 'Select Excel file',
     
         //Scheduled Import translations
         'LBL_ENABLE_CRON' => '<b>Please do enable Scheduled Import cron job from settings scheduler</b>',

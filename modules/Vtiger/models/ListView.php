@@ -150,21 +150,19 @@ class Vtiger_ListView_Model extends Vtiger_Base_Model {
 			$cvId = $customView->getViewId($module->get('name'));
 		}
 		$customViewModel = CustomView_Record_Model::getInstanceById($cvId);
+		$selectedFields = $customViewModel->getSelectedFields();
 		$fixedColumns = array();
-		if($customViewModel) {
-			$selectedFields = $customViewModel->getSelectedFields();
-			foreach($selectedFields as $fieldData) {
-				if(isset($fieldData['is_fixed']) && $fieldData['is_fixed'] == '1') {
-					// Try multiple key formats to match field names
-					$columnName = $fieldData['columnname'];
-					$fixedColumns[$columnName] = true;
-					
-					// Also add simplified field name (last part after :)
-					$parts = explode(':', $columnName);
-					if(count($parts) >= 3) {
-						$fieldName = $parts[2]; // Get field name part
-						$fixedColumns[$fieldName] = true;
-					}
+		foreach($selectedFields as $fieldData) {
+			if(isset($fieldData['is_fixed']) && $fieldData['is_fixed'] == '1') {
+				// Try multiple key formats to match field names
+				$columnName = $fieldData['columnname'];
+				$fixedColumns[$columnName] = true;
+				
+				// Also add simplified field name (last part after :)
+				$parts = explode(':', $columnName);
+				if(count($parts) >= 3) {
+					$fieldName = $parts[2]; // Get field name part
+					$fixedColumns[$fieldName] = true;
 				}
 			}
 		}

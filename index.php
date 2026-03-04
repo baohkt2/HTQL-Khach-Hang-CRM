@@ -7,7 +7,8 @@
  * Portions created by vtiger are Copyright (C) vtiger.
  * All Rights Reserved.
  ************************************************************************************/
-
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 
 if (!file_exists("vendor/autoload.php")) {

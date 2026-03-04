@@ -13,36 +13,40 @@
 <div class ="importBlockContainer show" id = "uploadFileContainer">
     <table class = "table table-borderless" cellpadding = "30" >
         <span>
-			{if $FORMAT eq 'vcf'}
-				<h4>&nbsp;&nbsp;&nbsp;{'LBL_IMPORT_FROM_VCF_FILE'|@vtranslate:$MODULE}</h4>
-			{else if $FORMAT eq 'ics'}
-				<h4>&nbsp;&nbsp;&nbsp;{'LBL_IMPORT_FROM_ICS_FILE'|@vtranslate:$MODULE}</h4>
-			{else}
-				<h4>&nbsp;&nbsp;&nbsp;{'LBL_IMPORT_FROM_CSV_FILE'|@vtranslate:$MODULE}</h4>
-			{/if}
+		{if $FORMAT eq 'vcf'}
+			<h4>&nbsp;&nbsp;&nbsp;{'LBL_IMPORT_FROM_VCF_FILE'|@vtranslate:$MODULE}</h4>
+		{else if $FORMAT eq 'ics'}
+			<h4>&nbsp;&nbsp;&nbsp;{'LBL_IMPORT_FROM_ICS_FILE'|@vtranslate:$MODULE}</h4>
+		{else if $FORMAT eq 'xls'}
+			<h4>&nbsp;&nbsp;&nbsp;{'LBL_IMPORT_FROM_XLS_FILE'|@vtranslate:$MODULE}</h4>
+		{else}
+			<h4>&nbsp;&nbsp;&nbsp;{'LBL_IMPORT_FROM_CSV_FILE'|@vtranslate:$MODULE}</h4>
+		{/if}
         </span>
         <hr>
         <tr id="file_type_container" style="height:50px">
-			{if $FORMAT eq 'vcf'}
-				<td>{'LBL_SELECT_VCF_FILE'|@vtranslate:$MODULE}</td>
-			{else if $FORMAT eq 'ics'}
-				<td>{'LBL_SELECT_ICS_FILE'|@vtranslate:$MODULE}</td>
-			{else}
-				<td>{'LBL_SELECT_CSV_FILE'|@vtranslate:$MODULE}</td>
-			{/if}
+		{if $FORMAT eq 'vcf'}
+			<td>{'LBL_SELECT_VCF_FILE'|@vtranslate:$MODULE}</td>
+		{else if $FORMAT eq 'ics'}
+			<td>{'LBL_SELECT_ICS_FILE'|@vtranslate:$MODULE}</td>
+		{else if $FORMAT eq 'xls'}
+			<td>{'LBL_SELECT_XLS_FILE'|@vtranslate:$MODULE}</td>
+		{else}
+			<td>{'LBL_SELECT_CSV_FILE'|@vtranslate:$MODULE}</td>
+		{/if}
             <td data-import-upload-size="{$IMPORT_UPLOAD_SIZE}" data-import-upload-size-mb="{$IMPORT_UPLOAD_SIZE_MB}">
                 <div>
-                    <input type="hidden" id="type" name="type" value="csv" />
+                    <input type="hidden" id="type" name="type" value="{if $FORMAT eq ''}csv{else}{$FORMAT}{/if}" />
                     <input type="hidden" name="is_scheduled" value="1" />
                     <div class="fileUploadBtn btn btn-primary">
                         <span><i class="fa fa-laptop"></i> {vtranslate('Select from My Computer', $MODULE)}</span>
-                        <input type="file" name="import_file" id="import_file" onchange="Vtiger_Import_Js.checkFileType(event)" data-file-formats="{if $FORMAT eq ''}csv{else}{$FORMAT}{/if}" />
+                        <input type="file" name="import_file" id="import_file" onchange="Vtiger_Import_Js.checkFileType(event)" data-file-formats="{if $FORMAT eq 'xls'}xls|xlsx{else if $FORMAT eq ''}csv{else}{$FORMAT}{/if}" />
                     </div>
                     <div id="importFileDetails" class="padding10"></div>
                 </div>
             </td>
         </tr>
-        {if $FORMAT eq 'csv'}
+        {if $FORMAT eq 'csv' || $FORMAT eq 'xls'}
             <tr id="has_header_container" style="height:50px">
                 <td>{'LBL_HAS_HEADER'|@vtranslate:$MODULE}</td>
                 <td>
@@ -50,7 +54,7 @@
                 </td>
             </tr>
         {/if}
-		{if $FORMAT neq 'ics'}
+		{if $FORMAT neq 'ics' && $FORMAT neq 'xls'}
 			<tr id="file_encoding_container" style="height:50px">
 				<td>{'LBL_CHARACTER_ENCODING'|@vtranslate:$MODULE}</td>
 				<td>

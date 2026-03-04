@@ -47,7 +47,7 @@
                        <thead>
                           <tr class="listViewContentHeader">
                             {foreach item=LISTVIEW_HEADER from=$LISTVIEW_HEADERS}
-                                 <th nowrap>
+                                 <th nowrap width="16.66%">
                                     <a  {if !($LISTVIEW_HEADER->has('sort'))} class="listViewHeaderValues" style="cursor:text;" data-nextsortorderval="{if $COLUMN_NAME eq $LISTVIEW_HEADER->get('name')}{$NEXT_SORT_ORDER}{else}ASC{/if}" data-columnname="{$LISTVIEW_HEADER->get('name')}" {/if}>{vtranslate($LISTVIEW_HEADER->get('label'), $QUALIFIED_MODULE)}
                                        &nbsp;{if $COLUMN_NAME eq $LISTVIEW_HEADER->get('name')}<img class="{$SORT_IMAGE} icon-white">{/if}</a>&nbsp;
                                  </th>
@@ -62,11 +62,11 @@
                                  {foreach item=LISTVIEW_HEADER from=$LISTVIEW_HEADERS}
                                      {assign var=LISTVIEW_HEADERNAME value=$LISTVIEW_HEADER->get('name')}
                                      {assign var=LAST_COLUMN value=$LISTVIEW_HEADER@last}
-                                     <td class="listViewEntryValue {$WIDTHTYPE}"  width="{(isset($WIDTH)) ? $WIDTH : ''}%" nowrap style='cursor:text;'>
+                                     <td class="listViewEntryValue {$WIDTHTYPE}" width="16.66%" nowrap style='cursor:text;'>
                                         {$LISTVIEW_ENTRY->getDisplayValue($LISTVIEW_HEADERNAME)}
                                         {if $LAST_COLUMN && $LISTVIEW_ENTRY->getRecordLinks()}
-                                        </td>
-                                     {/if}
+                                           <!-- Actions could go here -->
+                                        {/if}
                                      </td>
                                  {/foreach}
                              </tr>

@@ -541,6 +541,160 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 	}
 
 	/**
+	 * Function to log history for the custom view
+	 * @param <String> $actionType - 'created' or 'updated'
+	 * @param <String> $details - JSON string describing what changed
+	 */
+	public function logHistory($actionType, $details = '') {
+		$db = PearDatabase::getInstance();
+		$currentUserModel = Users_Record_Model::getCurrentUserModel();
+		$cvId = $this->getId();
+
+		$sql = 'INSERT INTO vtiger_cv_history (cvid, userid, action_type, action_time, details) VALUES (?, ?, ?, NOW(), ?)';
+		$params = array($cvId, $currentUserModel->getId(), $actionType, $details);
+		$db->pquery($sql, $params);
+	}
+
+	/**
+	 * Function to get the history of changes for the current custom view
+	 * @return <Array> List of history entries
+	 */
+	public function getHistory() {
+		$db = PearDatabase::getInstance();
+		$cvId = $this->getId();
+
+		if (empty($cvId)) {
+			return array();
+		}
+
+		$sql = 'SELECT h.*, u.user_name, CONCAT(u.first_name, " ", u.last_name) as full_name
+				FROM vtiger_cv_history h
+				INNER JOIN vtiger_users u ON u.id = h.userid
+				WHERE h.cvid = ?
+				ORDER BY h.action_time DESC';
+		$result = $db->pquery($sql, array($cvId));
+		$noOfRows = $db->num_rows($result);
+
+		$history = array();
+		for ($i = 0; $i < $noOfRows; $i++) {
+			$detailsRaw = $db->query_result($result, $i, 'details');
+			// Vtiger's DB layer may HTML-encode stored values, decode before JSON parsing
+			$detailsClean = !empty($detailsRaw) ? html_entity_decode($detailsRaw, ENT_QUOTES, 'UTF-8') : '';
+			$detailsData = !empty($detailsClean) ? json_decode($detailsClean, true) : array();
+			if (!is_array($detailsData)) {
+				$detailsData = array();
+			}
+			$history[] = array(
+				'id' => $db->query_result($result, $i, 'id'),
+				'userid' => $db->query_result($result, $i, 'userid'),
+				'user_name' => $db->query_result($result, $i, 'user_name'),
+				'full_name' => trim($db->query_result($result, $i, 'full_name')),
+				'action_type' => $db->query_result($result, $i, 'action_type'),
+				'action_time' => $db->query_result($result, $i, 'action_time'),
+				'details' => $detailsRaw,
+				'details_data' => $detailsData,
+			);
+		}
+		return $history;
+	}
+
+	/**
+	 * Function to save share tasks for the custom view
+	 * @param <Array> $shareTasks - Array of share task rows, each with 'members' (JSON array) and 'task_description'
+	 */
+	public function saveShareTasks($shareTasks) {
+		$db = PearDatabase::getInstance();
+		$cvId = $this->getId();
+
+		// Delete existing share tasks
+		$db->pquery('DELETE FROM vtiger_cv_share_tasks WHERE cvid = ?', array($cvId));
+
+		if (!empty($shareTasks) && is_array($shareTasks)) {
+			foreach ($shareTasks as $task) {
+				$members = isset($task['members']) ? $task['members'] : '';
+				$description = isset($task['task_description']) ? $task['task_description'] : '';
+
+				// Vtiger Request may HTML-encode values, decode them first
+				if (is_string($description)) {
+					$description = html_entity_decode($description, ENT_QUOTES, 'UTF-8');
+				}
+
+				// members should be stored as clean JSON string
+				if (is_array($members)) {
+					// Decode any HTML entities in member IDs
+					$cleanMembers = array();
+					foreach ($members as $m) {
+						$cleanMembers[] = html_entity_decode($m, ENT_QUOTES, 'UTF-8');
+					}
+					$members = json_encode($cleanMembers);
+				} else if (is_string($members)) {
+					$members = html_entity_decode($members, ENT_QUOTES, 'UTF-8');
+				}
+
+				if (!empty($members) && $members !== '[]') {
+					$sql = 'INSERT INTO vtiger_cv_share_tasks (cvid, members, task_description) VALUES (?, ?, ?)';
+					$db->pquery($sql, array($cvId, $members, $description));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Function to get share tasks for the current custom view
+	 * @return <Array> List of share task entries
+	 */
+	public function getShareTasks() {
+		$db = PearDatabase::getInstance();
+		$cvId = $this->getId();
+
+		if (empty($cvId)) {
+			return array();
+		}
+
+		$sql = 'SELECT * FROM vtiger_cv_share_tasks WHERE cvid = ? ORDER BY id ASC';
+		$result = $db->pquery($sql, array($cvId));
+		$noOfRows = $db->num_rows($result);
+
+		$tasks = array();
+		for ($i = 0; $i < $noOfRows; $i++) {
+			$membersJson = $db->query_result($result, $i, 'members');
+			// Vtiger may HTML-encode stored values, decode before parsing
+			$membersJson = html_entity_decode($membersJson, ENT_QUOTES, 'UTF-8');
+			$membersArray = json_decode($membersJson, true);
+			if (!is_array($membersArray)) {
+				$membersArray = array();
+			}
+
+			// Resolve member names for display
+			$memberNames = array();
+			foreach ($membersArray as $memberId) {
+				$idComponents = Settings_Groups_Member_Model::getIdComponentsFromQualifiedId($memberId);
+				if ($idComponents && php7_count($idComponents) == 2) {
+					$memberType = $idComponents[0];
+					$id = $idComponents[1];
+					if ($memberType == Settings_Groups_Member_Model::MEMBER_TYPE_USERS) {
+						$userModel = Users_Record_Model::getInstanceById($id, 'Users');
+						$memberNames[] = $userModel->getName();
+					} else if ($memberType == Settings_Groups_Member_Model::MEMBER_TYPE_GROUPS) {
+						$groupModel = Settings_Groups_Record_Model::getInstance($id);
+						$memberNames[] = $groupModel->getName();
+					} else {
+						$memberNames[] = $memberId;
+					}
+				}
+			}
+
+			$tasks[] = array(
+				'id' => $db->query_result($result, $i, 'id'),
+				'members' => $membersArray,
+				'member_names' => $memberNames,
+				'task_description' => $db->query_result($result, $i, 'task_description'),
+			);
+		}
+		return $tasks;
+	}
+
+	/**
 	 * Function to get the list of selected fields for the current custom view
 	 * @return <Array> List of Field Column Names
 	 */

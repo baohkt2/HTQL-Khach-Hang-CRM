@@ -1,1 +1,178 @@
-/test
+# ==============================================
+# CUSC CRM - Git Ignore Configuration
+# ==============================================
+
+# ==============================================
+# ENVIRONMENT & SENSITIVE FILES
+# ==============================================
+.env
+.env.local
+.env.*.local
+config.inc.php
+config.csrf-secret.php
+
+# ==============================================
+# IDE & EDITOR FILES
+# ==============================================
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.project
+.settings/
+.classpath
+.buildpath
+nbproject/
+
+# ==============================================
+# OPERATING SYSTEM FILES
+# ==============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ==============================================
+# DEPENDENCIES
+# ==============================================
+/vendor/
+/node_modules/
+composer.lock
+
+# ==============================================
+# CACHE & TEMPORARY FILES
+# ==============================================
+/cache/*
+!/cache/.gitkeep
+!/cache/images/.gitkeep
+!/cache/import/.gitkeep
+!/cache/upload/.gitkeep
+!/cache/letters/.gitkeep
+
+/storage/*
+!/storage/.gitkeep
+
+/logs/*
+!/logs/.gitkeep
+
+*.log
+*.cache
+*.tmp
+*.temp
+
+# ==============================================
+# USER PRIVILEGES & SESSIONS
+# ==============================================
+/user_privileges/user_privileges_*.php
+/user_privileges/sharing_privileges_*.php
+!/user_privileges/default_module_view.php
+!/user_privileges/README.md
+
+# ==============================================
+# UPLOADED FILES
+# ==============================================
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+
+# ==============================================
+# DATABASE FILES
+# ==============================================
+*.sql
+!database/cusc_db.sql
+*.sqlite
+*.sqlite3
+*.db
+
+# ==============================================
+# BACKUP FILES
+# ==============================================
+*.bak
+*.backup
+*.old
+*_backup.*
+*_old.*
+backup/
+backups/
+
+# Keep vtiger backup for reference
+!*.vtiger.backup
+
+# ==============================================
+# BUILD & COMPILATION
+# ==============================================
+/build/
+/dist/
+*.min.js
+*.min.css
+*.map
+
+# ==============================================
+# PACKAGE ARCHIVES
+# ==============================================
+/packages/*.zip
+/packages/*.tar.gz
+/packages/*.tgz
+/pkg/*.zip
+/pkg/*.tar.gz
+
+# ==============================================
+# TESTING
+# ==============================================
+/test/
+/test/output/
+/test/coverage/
+.phpunit.result.cache
+phpunit.xml
+
+# ==============================================
+# DOCUMENTATION (generated)
+# ==============================================
+/docs/api/
+/docs/generated/
+
+# ==============================================
+# CRON OUTPUT
+# ==============================================
+/cron/output.txt
+/cron/*.log
+
+# ==============================================
+# KCFINDER UPLOADS
+# ==============================================
+/kcfinder/upload/*
+!/kcfinder/upload/.gitkeep
+
+# ==============================================
+# MISCELLANEOUS
+# ==============================================
+.htpasswd
+*.pem
+*.key
+*.crt
+*.p12
+error_log
+php_errors.log
+
+# Large media files
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+*.iso
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# Except specific needed files
+!libraries/**/*.zip

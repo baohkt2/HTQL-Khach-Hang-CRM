@@ -14,6 +14,10 @@ class Settings_LoginHistory_List_View extends Settings_Vtiger_List_View {
 		$viewer = $this->getViewer($request);
 		$this->initializeUsersList($request);
 		$viewer->assign('SELECTED_USER',$request->get('user_name'));
+		
+		$listViewModel = Settings_Vtiger_ListView_Model::getInstance($request->getModule(false));
+		$viewer->assign('LISTVIEW_LINKS', $listViewModel->getListViewLinks());
+		
 		parent::preProcess($request, false);
 	}
 

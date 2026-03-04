@@ -37,11 +37,7 @@ class Vtiger_Viewer extends Smarty {
 	 */
 	function __construct($media='') {
 		parent::__construct();
-    // Force UTF-8 charset for Vietnamese content support
-		Smarty::$_CHARSET = 'UTF-8';
-		if (function_exists('mb_internal_encoding')) {
-			mb_internal_encoding('UTF-8');
-		}
+
 		$THISDIR = dirname(__FILE__);
 
 		$templatesDir = '';

@@ -22,7 +22,7 @@ class Import_Utils_Helper {
 
 	static $supportedFileEncoding = array('UTF-8'=>'UTF-8', 'ISO-8859-1'=>'ISO-8859-1');
 	static $supportedDelimiters = array(','=>'comma', ';'=>'semicolon', '|'=> 'Pipe', '^'=>'Caret');
-	static $supportedFileExtensions = array('csv','vcf');
+	static $supportedFileExtensions = array('csv','vcf','xls','xlsx');
 
 	public static function getSupportedFileExtensions() {
 		return self::$supportedFileExtensions;
@@ -204,9 +204,10 @@ class Import_Utils_Helper {
 			return false;
 		}
 
-		if ($request->get('type') == "ics" || $request->get('type') == "vcf") {
+		$type = $request->get('type');
+		if ($type == "ics" || $type == "vcf" || $type == "xls" || $type == "xlsx") {
 			$fileCopied = move_uploaded_file($_FILES['import_file']['tmp_name'], $temporaryFileName);
-		}else{
+		} else {
 			$fileCopied = self::neutralizeAndMoveFile($_FILES['import_file']['tmp_name'], $temporaryFileName, $request->get('delimiter'));
 		}
 		if(!$fileCopied) {

@@ -1,6 +1,7 @@
-<?php  
+<?php
+
 /* * *******************************************************************************
- * The content of this file is subject to the PDF Maker license.
+ * The content of this file is subject to the PDF Maker Free license.
  * ("License"); You may not use this file except in compliance with the License
  * The Initial Developer of the Original Code is IT-Solutions4You s.r.o.
  * Portions created by IT-Solutions4You s.r.o. are Copyright(C) IT-Solutions4You s.r.o.
@@ -42,6 +43,7 @@ $languageStrings = Array(
     "LBL_LOGGED_USER_INFO" => "Prihlásený používateľ",
     "LBL_PDF_TEMPLATE" => "PDF predloha",
     "LBL_DUPLICATE" => "Duplikovať",
+//company information
     "LBL_COMPANY_NAME" => "Názov spoločnosti",
     "LBL_COMPANY_LOGO" => "Logo",
     "LBL_COMPANY_ADDRESS" => "Adresa",
@@ -52,6 +54,7 @@ $languageStrings = Array(
     "LBL_COMPANY_PHONE" => "Telefón",
     "LBL_COMPANY_FAX" => "Fax",
     "LBL_COMPANY_WEBSITE" => "Webstránka",
+//user information
     "LBL_USER_USERNAME" => "Meno používateľa",
     "LBL_USER_FIRSTNAME" => "Meno",
     "LBL_USER_LASTNAME" => "Priezvisko",
@@ -63,12 +66,16 @@ $languageStrings = Array(
     "LBL_USER_STATE" => "Štát",
     "LBL_USER_ZIP" => "PSČ",
     "LBL_USER_COUNTRY" => "Kraj",
+//terms and conditions
     "TERMS_AND_CONDITIONS" => "Zmluvné podmienky ",
     "LBL_TERMS_AND_CONDITIONS" => "Zmluvné podmienky ",
+//module available fields
     "LBL_MODULES_AVLBL" => "Dostupné polia",
     "LBL_SELECT_MODULE_FIELD" => "Vyberte ...",
+//related modules
     "LBL_RELATED_MODULES" => "Pripojené moduly",
     "LBL_SELECT_MODULE" => "Vyberte modul ...",
+//products
     "LBL_PRODUCT_POSITION" => "Pozícia",
     "LBL_CURRENCY_NAME" => "Mena",
     "LBL_CURRENCY_CODE" => "Kód meny",
@@ -88,6 +95,7 @@ $languageStrings = Array(
     "LBL_PRODUCT_TOTAL_VAT" => "Celková cena s DPH",
     "LBL_VARIABLE_DISCOUNT_PERCENT" => "Zľava (%)",
     "LBL_VARIABLE_TOTALDISCOUNT_PERCENT" => "Ceková zľava (%)",
+//invoice
     "LBL_VARIABLE_SUM" => "Suma",
     "LBL_VARIABLE_SUMWITHOUTVAT" => "Medzisúčet",
     "LBL_VARIABLE_TOTALDISCOUNT" => "Ceková zľava",
@@ -100,6 +108,7 @@ $languageStrings = Array(
     "LBL_VARIABLE_TOTALSUM" => "Celkom",
     "LBL_DETAILS_BLOCK" => "Detaily",
     "LBL_CALL_INFORMATION" => "Informácie o telefonáte",
+//footer/header variables
     "LBL_CURRENT_PAGE" => "Aktuálna strana",
     "LBL_ALL_PAGES" => "Počet strán",
     "LBL_PAGE_PAGES" => "Strana / strany",
@@ -114,9 +123,11 @@ $languageStrings = Array(
     "LBL_DATE_MM-DD-YYYY" => "mm-dd-rrrr",
     "LBL_DATE_YYYY-MM-DD" => "rrrr-mm-dd",
     "LBL_MODULE_FIELDS" => "Polia modulu",
+//labels
     "LBL_LABELS" => "Preklady",
     "LBL_GLOBAL_LANG" => "Globálne preklady",
     "LBL_MODULE_LANG" => "Preklady z vybraného modulu",
+//other
     "LBL_CHANGE_MODULE" => "Zmeniť modul",
     "LBL_MARGIN_ERROR" => "Nesprávne nastavenia okrajov!",
     "LBL_CHANGE_MODULE_QUESTION" => "Určite chcete zmeniť primárny modul?",
@@ -161,6 +172,7 @@ $languageStrings = Array(
     "LBL_ENCODING_TITLE" => "Vyberte konkrétne kódovanie, aby ste minimalizovali čas potrebný na vytvorenie pdf súboru a jeho veľkosť.",
     "LBL_SAVEASDOC" => "Uložiť PDF do dokumentov",
     "ALERT_DOC_TITLE" => "Názov dokumentu nemôže byť prázdny.",
+//installation
     "LBL_INSTALL" => "inštalácia",
     "LBL_EXPRESS" => "Expresná",
     "LBL_CUSTOM" => "Vlastná",
@@ -211,8 +223,10 @@ $languageStrings = Array(
     "LBL_BARCODES_TYPE3" => "EAN-2 a EAN-5 doplnky, a kombinované formy",
     "LBL_BARCODES_TYPE4" => "EAN-8, UPC-A a UPC-E čiarové kódy",
     "LBL_BARCODES_TYPE5" => "Čiarové kódy s variabilnou šírkou",
+//copyright
     "PDF_MAKER" => "PDF Maker",
-    "COPYRIGHT" => ":: <a href=\"http://www.its4you.sk\">IT-Solutions4You</a>",
+    "COPYRIGHT" => ":: IT-Solutions4You",
+//additional
     "LBL_INVALID_FOPEN_CURL" => "Povoľte nastavenie <strong>allow_url_fopen</strong> alebo rozšírenie <strong>cURL</strong> vo vašich nastaveniach PHP.",
     "LBL_PRODUCT_BREAKLINE" => "Zlom strany za produktom",
     "LBL_BREAKLINE_DESC" => "Vloží zlom strany za vybraným produktom.",
@@ -242,7 +256,7 @@ $languageStrings = Array(
     "LBL_FINAL_INSTRUCTIONS" => "Záverečné inštrukcie",
     "LBL_RECALCULATE_RIGHTS" => "Je potrebné <b>prepočítať</b> práva pre vykonanie zmien.<br />Kliknutím na tlačidlo Koniec budete presmerovaní do <b>Nastavenia globálnych práv modulov</b>.",
     "LBL_BATCH_PRINT" => "Hromadný PDF Export",
-    "LBL_PDF_ACTIONS" => "PDF Maker Export",
+    "LBL_PDF_ACTIONS" => "PDF Maker hromadný export",
     "LBL_UPDATE_SUCCESS" => "Úspešne ste ukončili aktualizáciu.",
     "LBL_PDFMAKER_IMPORT" => "Import PDF šablón",
     "LBL_STEP_1" => "Vyberte XML súbor",
@@ -253,7 +267,9 @@ $languageStrings = Array(
     "LBL_SETASACTIVE" => "Nastav ako aktívnu",
     "LBL_SETASINACTIVE" => "Nastav ako neaktívnu",
     "LBL_UNSETASDEFAULT" => "Zruš ako predvolenú",
+// v.1.29
     "LBL_CRMNOW_DESCRIPTION" => "PDF Configurator description",
+// v.1.30
     "LBL_EXPORT_TO_RTF" => "Exportovať do RTF",
     "LBL_RELATED_BLOCK_TPL" => "Pripojené bloky",
     "LBL_EDIT_RELATED_BLOCK" => "Upraviť blok",
@@ -267,6 +283,7 @@ $languageStrings = Array(
     'LBL_DELETE_GROUP' => 'Zmazať Skupinu',
     'LBL_NEW_CONDITION' => 'Nová podmienka',
     'LBL_SHOW_STANDARD_FILTERS' => 'Zobraziť Štandardný filter',
+// v.1.31
     "LBL_RECORD_ID" => "ID záznamu",
     "LBL_PS_NO" => "Produkt č./Služba č.",
     "LBL_DEACTIVATE" => "Deaktivovať licenciu",
@@ -274,6 +291,7 @@ $languageStrings = Array(
     "LBL_DEACTIVATE_QUESTION" => "Určite chcete deaktivovať Váš licenčný kľúč?",
     "LBL_DEACTIVATE_DESC" => "Po deaktivácii budete môcť iba exportovať predlohy.<br /> Po reaktivovaní získate spät plnú funkcionalitu.",
     "LBL_DEACTIVATE_ERROR" => "Deaktivácia licenčného kľúča sa nepodarila.",
+// v.1.33 
     "LBL_SETFORPORTAL" => "Nastaviť pre Zákaznícky portál",
     "LBL_WIDTH" => "Šírka (mm)",
     "LBL_HEIGHT" => "Výška (mm)",
@@ -298,6 +316,7 @@ $languageStrings = Array(
     "LBL_EXPRESS_INSTAL_EXT" => "Ak máte štandardnú inštaláciu vtiger bez úprav v zdrojovom kóde alebo v databáze, prosím rozbaľte balík rozšírenia a nakopírujte súbory do koreňového adresára Vašej inštalácie vtiger.",
     "LBL_CUSTOM_INSTAL_EXT" => "Inak nasledujte inštrukcie pre vlastnú inštaláciu popísané v",
     "LBL_CP_EXPRESS_INSTAL_EXT" => "Ak máte štandardnú inštaláciu vtiger a zákazníckého portálu bez akýchkoľvek zmien v zdrojovom kóde alebo v databáze, prosím rozbaľte balík rozšírenia a nakopírujte súbory do koreňového adresára Vašej inštalácie vtiger a zákazníckého portálu.",
+// v.1.34 
     "LBL_PROFILES_DESC" => "Spravuje prístup používateľov k PDF Maker na základe rôl.",
     "LBL_SETPRIVILEGIES" => "Definuje práva pre PDF Maker pre všetky profily",
     "LBL_PROFILES" => "Profily",
@@ -319,6 +338,7 @@ $languageStrings = Array(
     "LBL_COUNTER" => "Počítadlo",
     "LBL_HEADER_FOOTER_VARIABLES" => "Premenné hlavičky/pätičky",
     "LBL_INSTALL_SUCCESS" => "PDF Maker bol úspešne nainštalovaný.",
+// v.1.35
     "LBL_NEW_PDFMAKER" => "Nová verzia PDF Makera",
     "LBL_NEW_MPDF" => "Nová verzia mPDF",
     "LBL_AVAILABLE" => "je dostupná",
@@ -359,6 +379,7 @@ $languageStrings = Array(
     "LBL_CURR_LANG_VALUE" => "Preklady aktuálneho jazyka",
     "LBL_OTHER_VALS" => "Ostatné preklady",
     "LBL_LANG" => "Jazyk prekladu",
+// v.1.35.2
     "LBL_MODCOMMENTS" => "Komentáre",
     "LBL_MODCOMMENTS_INFORMATION" => "Informácie komentárov",
     "LBL_DEBUG_DESC" => "Zapni/vypni ladiaci režim PDF Makera. Zobraz informácie o systéme.",
@@ -399,6 +420,7 @@ $languageStrings = Array(
     "LBL_DBG_NOTIF" => "Nastavenia vášho servera nespĺňajú minimálne požiadavky. PDF Maker nemusí pracovať správne.",
     "LBL_GOTO_DEBUG" => "Choď do Ladiaceho režimu",
     "LBL_DBG_MAXEXTIME" => "max_execution_time",
+// v.1.35.3
     "LBL_SORTING" => "Zotriedenie",
     "LBL_SORT_BY" => "Zotrieď podľa",
     "LBL_THEN_BY" => "potom podľa",
@@ -416,6 +438,7 @@ $languageStrings = Array(
     "LBL_UNINSTALL" => "Odinštaluj PDF Maker",
     "LBL_UNINSTALL_DESC" => "Umožňuje odstrániť PDF Maker z Vášho vTigera.",
     "LBL_UNINSTALL_CONFIRM" => "Naozaj si želáte odstrániť PDF Maker z Vášho vTigera a deaktivovať licenčný kľúč?",
+// v.1.36.0
     "LBL_DOC_TITLE" => "Názov dokumentu",
     "LBL_DOC_DESC" => "Popis dokumentu",
     "LBL_FLD_NAME" => "Meno zložky",
@@ -440,11 +463,15 @@ $languageStrings = Array(
     "LBL_ROLES"=>"Roly",
     "LBL_ROLES_SUBORDINATES"=>"Rola a postavenie",    
     "LBL_MEMBER_OF"=>"Člen ",
+    // v.1.36.3
     "LBL_CURRENT_VALUES" => "Aktuálne hodnoty",
     "LBL_MIN_VALUES" => "Minimálne (odporúčané) hodnoty",
+    // v.1.37.0
     "LBL_EXPORT_FISCAL" => "Tlač fiškálne dokumenty",
     "LBL_CONFIRM_FISCAL" => "Chcete vytlačiť fiškálny dokument?",
+// v.1.37.1
     "LBL_DBG_NOTIF_NEW" => "Nastavenia vášho servera nespĺňajú minimálne požiadavky. Pre viac informácii kliknite tu a kontaktuje vášho správcu servera.",
+// v.6.1.0
     "LBL_RELATIVE_MODULE"=>"Súvisiaci modul",
     "LBL_SELECT_COLUMNS"=>"Vyberte stĺpce",
     "LBL_FILTERS"=>"Filtre",
@@ -463,6 +490,7 @@ $languageStrings = Array(
     "LBL_LABEL_KEY_EXIST" => "Daný preklad už existuje",
     "LBL_VALIDATION_ERROR" => "Došlo k chybe pri validácii licenčného kľúča",
     "LBL_PDF_ADDED_DOC" => "PDF bolo uložené do Dokumentov",
+    // v.2.3.0
     "LBL_WORKFLOWS_ARE_ALREADY_INSTALLED"=>"Workflow sú už nainštalované.",
     "LBL_INSTALLATION_FAILED" => "Inštalácia zlyhala",
     "LBL_CHANGE_PERMISSION" => "Prosím, zmeňte práva zložiek na 777 (modules/com_vtiger_workflow/tasks a layouts/vlayout/modules/Settings/Workflows/Tasks).",
@@ -473,13 +501,18 @@ $languageStrings = Array(
     "LBL_EMAIL_CONTENT" => "Obsah emailu",
     "LBL_DUPLICATE_TEMPLATE_CREATION_CONFIRMATION" => "Názov predlohy už existuje, chcete vytvoriť predlohu s rovnakým názvom?",
     "LBL_DUPLICATES_EXIST" => "Predloha s daným názvom už existuje.",
+// v.2.5.1
     "LBL_SAME_ORGA" => "Organizácie musia byť rovnaké.",
+// v.2.5.3
     "LBL_CLASS_SOAPCLIENT2_DOES_NOT_EXIST" => "Klas soapclient2 neexistuje",  
+// v.2.7.0    
     'LBL_PRINT' => 'Tlačiť',
+// v.2.9.0
     "LBL_DISPLAY_TAB"=>"Podmienky zobrazenia",
     "LBL_DISPLAYED"=>"Zobrazeńe",
     "LBL_IF"=>"ak",
     "LBL_CONDITIONS"=>"Podmienky",
+// v.2.10.0
     "LBL_URL" => "Vaša vtiger url adresa",
     "LBL_COMPANY_LICENSE_INFO" => "Vaše informácie o firme",
     "LBL_CHECK_COMPANY" => "Prosím, skontrolujte informácie o spoločnosti.",
@@ -487,28 +520,23 @@ $languageStrings = Array(
     "LBL_ACTIVATE_BTN" => "Aby bolo možné správne používať PDF Maker, musíte (re)aktivovať licenciu.",
     "LBL_LICENSE_SETTINGS_INFO" => "Správa Vášho PDF Maker licenčneho kľúča",
     "LBL_ACTIVATE_KEY_TITLE" => "Aktivovať licenčný kľúč",
+// v.2.12.0
     "LBL_CURRENCY_ID" => "ID Meny",
     "LBL_PRODUCTS_AND_SERVICES" => "Produkty a služby",
     "LBL_PRODUCTS_ONLY" => "Iba produkty",
     "LBL_SERVICES_ONLY" => "Iba služby",
+// v.2.13.0
     "LBL_MODIFIEDBY_USER_INFO" => "Upravené používateľom", 
     "LBL_CREATOR_USER_INFO" => "Vytvorené používateľom", 
+// v.2.14.0
     "LBL_EXPORT_TO_RTF_DESC" => "PDF Maker dokáže vygenerovat šablónu do RTF formátu, ale kedže pri komplikovaných šablónach nedokážeme garantovať či sa Vami vytvorený štýl správne vygeneruje, tak túto možnosť exportu štandardne deaktivujeme.<br> Je len na Vás či sa s daným obmedzením na jednoduché šablóny uskromnite a daný export si aktivujete.",
+// v.2.16.0
     "LBL_CSS_STYLE_TAB"=>"CSS Štýly",
     "LBL_STYLES_LIST"=>"Štýly",
     "ITS4YouStyles" => "Styles 4 You",
     "LBL_ITS4YOUSTYLES_DESC" => "Vďaka tomuto rozšíreniu môžete spravovať css štýly na jednom mieste a použiť vo viacerých šablonách.",
     "LBL_ITS4YOUSTYLES_ARE_ALREADY_INSTALLED" => "Styles 4 You už máte nainštalovaný.",
     "LBL_ITS4YOUSTYLES_INSTALL_INFO" => "Pre inštaláciu tohto rozšírenia najskôr stiahnite balik použitím tlačidla na pravej strane a potom daný balik nainštalujte pomocou tlačidla nižšie, alebo cez modulmanažér.",
-    "LBL_CREATED_IN_OLD_LOOK_CANNOT_BE_EDITED"=>"Tieto podmienky pre zobrazenie boli vytvorené v staršej verzii. Podmienky vytvorené v starej verzii nie je možné upraviť. Tieto podmienky môžete znovu nastaviť.",
-    "LBL_USE_EXISTING_CONDITIONS"=>"Použiť existujúce podmienky",
-    "LBL_RECREATE_CONDITIONS" => "Obnoviť podmienky",
-    "LBL_OLD_CONDITIONS" => "Staré podmienky",
-    "LBL_NO_DISPLAY_CONDITIONS_DEFINED" => "Podmienky pre zobrazenie neboli definované",
-    "LBL_DISPLAY_CONDITIONS_YES" => "Šablóna sa zobrazí pri exportovaní keď",
-    "LBL_DISPLAY_CONDITIONS_NO" => "Šablóna sa pri exportovaní nezobrazí keď",
-    "LBL_STYLES"=>"Styly",
-    "LBL_SELECT_USER_INFO" => "Užívateľské informácie",
 );
 
 $jsLanguageStrings = array(
@@ -535,4 +563,6 @@ $jsLanguageStrings = array(
     "LBL_COMMON_FILEINFO" => "Základné informácie o súbore",
     "LBL_UNINSTALL_CONFIRM" => "Naozaj si želáte odstrániť PDF Maker z Vášho vTigera a deaktivovať licenčný kľúč?",
     "LBL_DUPLICATE_TEMPLATE_CREATION_CONFIRMATION" => "Predloha s daným názvom už existuje. Chcete vytvoriť predlohu s rovnakým názvom?",
-);    
+);
+
+

@@ -40,7 +40,25 @@ class Settings_LoginHistory_ListView_Model extends Settings_Vtiger_ListView_Mode
     }
 
 	public function getListViewLinks() {
-		return array();
+		$links = array();
+		$basicLinks = $this->getBasicLinks();
+		
+		foreach($basicLinks as $basicLink) {
+			$links['LISTVIEWBASIC'][] = Vtiger_Link_Model::getInstanceFromValues($basicLink);
+		}
+		return $links;
+	}
+
+	public function getBasicLinks(){
+		$basicLinks = array();
+		$moduleModel = $this->getModule();
+		$basicLinks[] = array(
+			'linktype' => 'LISTVIEWBASIC',
+			'linklabel' => 'LBL_EXPORT',
+			'linkurl' => 'javascript:Settings_LoginHistory_List_Js.triggerExportAction()',
+			'linkicon' => 'fa fa-download'
+		);
+		return $basicLinks;
 	}
 	
 	/** 

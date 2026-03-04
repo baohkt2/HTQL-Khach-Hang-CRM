@@ -73,5 +73,9 @@ $languageStrings = array(
 	'semicolon' => 'Dấu phẩu',
 	'comma' => 'Dấu chấm phẩu',
 	'comma' => 'Dấu phẩu',
+	'LBL_XLS_FILE' => 'File Excel',
+	'LBL_UPLOAD_XLS' => 'Tải lên File Excel',
+	'LBL_IMPORT_FROM_XLS_FILE' => 'Import từ File Excel',
+	'LBL_SELECT_XLS_FILE' => 'Chọn File Excel',
 	
 );

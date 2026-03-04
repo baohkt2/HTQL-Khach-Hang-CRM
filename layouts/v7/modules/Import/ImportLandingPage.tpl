@@ -47,6 +47,14 @@
 						</div>
 					</div>
 				{/if}
+				<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" id="xlsImport">
+					<div class="menu-item app-item" style="background: #1f7244 none repeat scroll 0 0 !important;">
+						<span class="fa fa-file-excel-o"></span>
+						<div>
+							<h4>{'LBL_XLS_FILE'|@vtranslate:$MODULE}</h4>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
