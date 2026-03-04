@@ -177,24 +177,15 @@ class Vtiger_Module_Model extends Vtiger_Module {
 	public function deleteRecord(Vtiger_Record_Model $recordModel) {
 		$moduleName = $this->get('name');
 		$recordId = $recordModel->getId();
-		error_log("Module.deleteRecord: START for module=$moduleName, recordId=$recordId");
-		
+
 		$focus = CRMEntity::getInstance($moduleName);
-		error_log("Module.deleteRecord: Got CRMEntity instance");
-		
-		error_log("Module.deleteRecord: Calling trash() method");
 		$focus->trash($moduleName, $recordId);
-		error_log("Module.deleteRecord: trash() completed");
-		
+
 		if(method_exists($focus, 'transferRelatedRecords')) {
-			error_log("Module.deleteRecord: transferRelatedRecords method exists");
 			if($recordModel->get('transferRecordIDs')) {
-				error_log("Module.deleteRecord: Calling transferRelatedRecords");
 				$focus->transferRelatedRecords($moduleName, $recordModel->get('transferRecordIDs'), $recordId);
-				error_log("Module.deleteRecord: transferRelatedRecords completed");
 			}
 		}
-		error_log("Module.deleteRecord: END for recordId=$recordId");
 	}
 
 	/**
