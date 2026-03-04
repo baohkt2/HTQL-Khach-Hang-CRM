@@ -34,7 +34,8 @@ class Import_XLSReader_Reader extends Import_FileReader_Reader {
 
 		try {
 			$objPHPExcel = PHPExcel_IOFactory::load($filePath);
-		} catch (Exception $e) {
+		} catch (\Throwable $e) {
+			error_log("XLSReader: Failed to load file $filePath: " . $e->getMessage());
 			$this->sheetData = array();
 			return $this->sheetData;
 		}

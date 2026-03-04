@@ -158,7 +158,8 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 		try{
 			$this->initializeMappingParameters($request);
 			return $viewer->view('ImportAdvanced.tpl', 'Import');
-		} catch(Exception $e) {
+		} catch(\Throwable $e) {
+			error_log("Import uploadAndParse error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
 			$this->importBasicStep($request);
 		}
 	}
@@ -326,6 +327,9 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 		$user = Users_Record_Model::getCurrentUserModel();
 		$mode = $request->getMode();
 
+		// Auto-release stale locks (older than staleLockTimeout seconds)
+		$this->cleanupStaleLocks($moduleName, $user);
+
 		// Check if import on the module is locked
 		$lockInfo = Import_Lock_Action::isLockedForModule($moduleName);
 		if($lockInfo != null) {
@@ -364,5 +368,43 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 
 	public function updateSavedMapping(Vtiger_Request $request) {
 		Import_Main_View::updateMap($request);
+	}
+
+	/**
+	 * Auto-release import locks that are older than the configured timeout.
+	 * This prevents permanently stuck imports from blocking the module.
+	 */
+	protected function cleanupStaleLocks($moduleName, $user) {
+		$adb = PearDatabase::getInstance();
+		if (!Vtiger_Utils::CheckTable('vtiger_import_locks')) {
+			return;
+		}
+
+		$configReader = new Import_Config_Model();
+		$staleLockTimeout = $configReader->get('staleLockTimeout');
+		if (empty($staleLockTimeout)) {
+			$staleLockTimeout = 1800; // default 30 minutes
+		}
+
+		$tabId = getTabid($moduleName);
+		$result = $adb->pquery(
+			'SELECT * FROM vtiger_import_locks WHERE tabid = ? AND locked_since < DATE_SUB(NOW(), INTERVAL ? SECOND)',
+			array($tabId, $staleLockTimeout)
+		);
+
+		if ($result && $adb->num_rows($result) > 0) {
+			for ($i = 0; $i < $adb->num_rows($result); $i++) {
+				$lockRow = $adb->query_result_rowdata($result, $i);
+				$lockedUserId = $lockRow['userid'];
+				$importId = $lockRow['importid'];
+
+				// Clean up the stale lock, queue entry, and staging table
+				$lockedUser = new Users();
+				$lockedUser->id = $lockedUserId;
+				Import_Utils_Helper::clearUserImportInfo($lockedUser);
+
+				error_log("Import: Auto-released stale lock for module=$moduleName, userId=$lockedUserId, importId=$importId (locked_since={$lockRow['locked_since']})");
+			}
+		}
 	}
 }

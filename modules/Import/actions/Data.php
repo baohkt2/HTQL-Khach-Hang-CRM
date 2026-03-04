@@ -253,7 +253,8 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			$entityInfo = null;
 			$fieldData = array();
 			foreach ($fieldMapping as $fieldName => $index) {
-				$fieldData[$fieldName] = trim($row[$fieldName]);
+				if ($fieldName === 'undefined' || !isset($moduleFields[$fieldName])) continue;
+				$fieldData[$fieldName] = isset($row[$fieldName]) ? trim($row[$fieldName]) : '';
 			}
 
 			$mergeType = $this->mergeType;
@@ -401,7 +402,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
                                                             $entityIdComponents = vtws_getIdComponents($entityInfo['id']);
                                                             $createdRecords[] = $entityIdComponents[1];
                                                     }
-						} catch (Exception $e) {
+						} catch (\Throwable $e) {
 
 						}
 					}
@@ -532,6 +533,10 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			}
 		}
 		foreach ($fieldData as $fieldName => $fieldValue) {
+			if (!isset($moduleFields[$fieldName])) {
+				unset($fieldData[$fieldName]);
+				continue;
+			}
 			$fieldInstance = $moduleFields[$fieldName];
 			$fieldDataType = $fieldInstance->getFieldDataType();
 			if ($fieldValue === '0') {
@@ -622,7 +627,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 								$wsEntityId = $wsEntityIdInfo['id'];
 								$entityIdComponents = vtws_getIdComponents($wsEntityId);
 								$entityId = $entityIdComponents[1];
-							} catch (Exception $e) {
+							} catch (\Throwable $e) {
 								$entityId = false;
 							}
 						}
@@ -922,7 +927,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		$fieldData = DataTransform::sanitizeData($fieldData, $moduleMeta);
 		try {
 			$entityIdInfo = vtws_create($moduleName, $fieldData, $this->user);
-		} catch (Exception $e) {
+		} catch (\Throwable $e) {
 			error_log("IMPORT ERROR for row: " . print_r($fieldData, true) . " - Exception: " . $e->getMessage());
 			$this->importRecord->updateStatus(Import_Data_Action::$IMPORT_RECORD_FAILED);
 			return false;
@@ -1238,7 +1243,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 							case 'revise' : $entityInfo['status'] = self::$IMPORT_RECORD_MERGED;	break;
 						}
 					}
-				} catch (Exception $e) {
+				} catch (\Throwable $e) {
 					if ($operation != 'create') {
 						$entityInfo['status'] = self::$IMPORT_RECORD_SKIPPED;
 					}
@@ -1267,7 +1272,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 									break;
 				}
 			}
-		} catch (Exception $e) {
+		} catch (\Throwable $e) {
 			error_log("IMPORT ERROR in importSavedRecord operation=$operation: " . print_r($recordData, true) . " - Exception: " . $e->getMessage());
 			if ($operation != 'create') {
 				$entityInfo['status'] = self::$IMPORT_RECORD_SKIPPED;
@@ -1296,7 +1301,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 							$wsEntityId = $wsEntityIdInfo['id'];
 							$entityIdComponents = vtws_getIdComponents($wsEntityId);
 							$entityId = $entityIdComponents[1];
-						} catch (Exception $e) {
+						} catch (\Throwable $e) {
 						}
 					}
 				}
@@ -1335,7 +1340,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 
 			try {
 				$this->processEntityWorkflowsForImport($entityData, $entityCache, $user, $adb);
-			} catch (Exception $e) {
+			} catch (\Throwable $e) {
 				error_log("Import_Data_Action: Error processing workflows for entity " . $entityData->getId() . ": " . $e->getMessage());
 			}
 		}
@@ -1403,7 +1408,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 					} else {
 						error_log("Import_Data_Action: Workflow " . $workflow->id . " conditions not met");
 					}
-				} catch (Exception $e) {
+				} catch (\Throwable $e) {
 					error_log("Import_Data_Action: Error executing workflow " . $workflow->id . ": " . $e->getMessage());
 				}
 			}

@@ -34,7 +34,7 @@ class Import_Main_View extends Vtiger_View_Controller{
 		}
 
 		$isImportScheduled = $importController->request->get('is_scheduled');
-                $enableCron = $importController->request->get('enable_cron');
+		$enableCron = $importController->request->get('enable_cron');
 		if($isImportScheduled) {
 			$importInfo = Import_Queue_Action::getUserCurrentImportInfo($importController->user);
 			self::showScheduledStatus($importInfo, $enableCron);
@@ -44,7 +44,17 @@ class Import_Main_View extends Vtiger_View_Controller{
 	}
 
 	public function triggerImport($batchImport=false) {
+		// Extend execution time for import processing
+		if (function_exists('set_time_limit')) {
+			@set_time_limit(0);
+		}
+		ini_set('memory_limit', '1024M');
+
 		$importInfo = Import_Queue_Action::getImportInfo($this->request->get('module'), $this->user);
+		if ($importInfo == null) {
+			Import_Utils_Helper::showErrorPage(vtranslate('ERR_IMPORT_INTERRUPTED', 'Import'));
+			exit;
+		}
 		$importDataController = new Import_Data_Action($importInfo, $this->user);
 
 		if(!$batchImport) {
@@ -54,7 +64,11 @@ class Import_Main_View extends Vtiger_View_Controller{
 			}
 		}
 
-		$importDataController->importData();
+		try {
+			$importDataController->importData();
+		} catch (\Throwable $e) {
+			file_put_contents('logs/import_error.log', date('Y-m-d H:i:s') . ' ERROR: ' . get_class($e) . ' - ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString() . "\n\n", FILE_APPEND);
+		}
 		Import_Queue_Action::updateStatus($importInfo['id'], Import_Queue_Action::$IMPORT_STATUS_HALTED);
 		$importInfo = Import_Queue_Action::getImportInfo($this->request->get('module'), $this->user);
 
