@@ -582,37 +582,37 @@ body {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
                 </svg>
-                HỆ THỐNG QUẢN LÝ KHÁCH HÀNG
+                H? TH?NG QU?N L� KH�CH H�NG
             </div>
 
             <div class="marketing-title">
-                Chào mừng đến với<br><span>{$BRANDING.app_name}</span>
+                Ch�o m?ng d?n v?i<br><span>{$BRANDING.app_name}</span>
             </div>
 
             <div class="marketing-description">
-                Nền tảng quản lý quan hệ khách hàng toàn diện, giúp tổ chức của bạn tối ưu hóa quy trình làm việc và phát triển bền vững.
+                N?n t?ng qu?n l� quan h? kh�ch h�ng to�n di?n, gi�p t? ch?c c?a b?n t?i uu h�a quy tr�nh l�m vi?c v� ph�t tri?n b?n v?ng.
             </div>
 
             <div class="feature-grid">
                 <div class="feature-card">
-                    <div class="feature-icon blue">👥</div>
-                    <h4>Quản lý liên hệ</h4>
-                    <p>Theo dõi và quản lý thông tin khách hàng, đối tác hiệu quả</p>
+                    <div class="feature-icon blue">??</div>
+                    <h4>Qu?n l� li�n h?</h4>
+                    <p>Theo d�i v� qu?n l� th�ng tin kh�ch h�ng, d?i t�c hi?u qu?</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon cyan">📧</div>
-                    <h4>Tích hợp Email</h4>
-                    <p>Gửi và nhận email trực tiếp trong hệ thống CRM</p>
+                    <div class="feature-icon cyan">??</div>
+                    <h4>T�ch h?p Email</h4>
+                    <p>G?i v� nh?n email tr?c ti?p trong h? th?ng CRM</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon green">📊</div>
-                    <h4>Báo cáo thông minh</h4>
-                    <p>Phân tích dữ liệu với biểu đồ trực quan, dễ hiểu</p>
+                    <div class="feature-icon green">??</div>
+                    <h4>B�o c�o th�ng minh</h4>
+                    <p>Ph�n t�ch d? li?u v?i bi?u d? tr?c quan, d? hi?u</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon purple">⚡</div>
-                    <h4>Tự động hóa</h4>
-                    <p>Quy trình làm việc tự động, tiết kiệm thời gian</p>
+                    <div class="feature-icon purple">?</div>
+                    <h4>T? d?ng h�a</h4>
+                    <p>Quy tr�nh l�m vi?c t? d?ng, ti?t ki?m th?i gian</p>
                 </div>
             </div>
         </div>
@@ -622,10 +622,10 @@ body {
             <img class="login-logo" src="{$BRANDING.app_logo}" alt="{$BRANDING.app_name}">
 
             <div class="login-heading">
-                <h2>Đăng nhập</h2>
+                <h2>�ang nh?p</h2>
             </div>
             <div class="login-subheading">
-                Nhập thông tin tài khoản để truy cập hệ thống
+                Nh?p th�ng tin t�i kho?n d? truy c?p h? th?ng
             </div>
 
             {if $ERROR}
@@ -651,12 +651,12 @@ body {
                 <input type="hidden" name="action" value="Login">
 
                 <div class="form-group">
-                    <label class="form-label">Tên đăng nhập</label>
+                    <label class="form-label">T�n dang nh?p</label>
                     <div class="input-wrapper">
                         <input type="text"
                                name="username"
                                class="form-input"
-                               placeholder="Nhập tên đăng nhập"
+                               placeholder="Nh?p t�n dang nh?p"
                                required
                                autofocus
                                autocomplete="username">
@@ -669,13 +669,13 @@ body {
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Mật khẩu</label>
+                    <label class="form-label">M?t kh?u</label>
                     <div class="input-wrapper">
                         <input type="password"
                                id="loginPassword"
                                name="password"
                                class="form-input"
-                               placeholder="Nhập mật khẩu"
+                               placeholder="Nh?p m?t kh?u"
                                required
                                autocomplete="current-password">
                         <span class="input-icon">
@@ -683,7 +683,7 @@ body {
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                             </svg>
                         </span>
-                        <button type="button" class="password-toggle" onclick="togglePassword()" tabindex="-1" title="Hiện/Ẩn mật khẩu">
+                        <button type="button" class="password-toggle" onclick="togglePassword()" tabindex="-1" title="Hi?n/?n m?t kh?u">
                             <svg id="eyeIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                             </svg>
@@ -692,16 +692,16 @@ body {
                 </div>
 
                 <button type="submit" class="login-btn">
-                    Đăng nhập
+                    �ang nh?p
                 </button>
             </form>
 
             <div class="login-footer">
-                <a href="forgotPassword.php">Quên mật khẩu?</a>
+                <a href="forgotPassword.php">Qu�n m?t kh?u?</a>
             </div>
 
             <div class="login-copyright">
-                <p>&copy; {$smarty.now|date_format:"%Y"} {$BRANDING.app_name}. Bản quyền thuộc CUSC.</p>
+                <p>&copy; {$smarty.now|date_format:"%Y"} {$BRANDING.app_name}. B?n quy?n thu?c CUSC.</p>
             </div>
         </div>
     </div>
