@@ -1,0 +1,54 @@
+<?xml version='1.0'?>
+<schema>
+	<tables>
+		<table>
+			<name>its4you_installer_user</name>
+			<sql><![CDATA[CREATE TABLE IF NOT EXISTS `its4you_installer_user` (
+      `userid` int(11),
+      `username` varchar(200),
+      `password` varchar(200),
+      `createdon` datetime
+    ) ENGINE=InnoDB]]></sql>
+		</table>
+		<table>
+			<name>its4you_installer_license</name>
+			<sql><![CDATA[CREATE TABLE IF NOT EXISTS `its4you_installer_license` (
+        `license` varchar(250),
+        `license_data` text,
+        PRIMARY KEY (`license`)
+    ) ENGINE=InnoDB ]]></sql>
+		</table>
+		<table>
+			<name>its4you_installer_alert</name>
+			<sql><![CDATA[CREATE TABLE IF NOT EXISTS `its4you_installer_alert` (
+  `alert` int(11),
+  `message` varchar(250),
+  `alert_type` varchar(50),
+  `link` varchar(250),
+  `createdtime` datetime,
+  `status` int(1)
+) ENGINE=InnoDB]]></sql>
+		</table>
+		<table>
+			<name>its4you_installer_version</name>
+			<sql><![CDATA[CREATE TABLE IF NOT EXISTS `its4you_installer_version` (
+  `versionid` int(11) NOT NULL AUTO_INCREMENT,
+  `extension` varchar(30) DEFAULT NULL,
+  `version` varchar(25) DEFAULT NULL,
+  `update_datetime` datetime DEFAULT NULL,
+  PRIMARY KEY (`versionid`),
+  UNIQUE KEY `extension` (`extension`)
+) ENGINE=InnoDB]]></sql>
+		</table>
+		<table>
+			<name>its4you_installer_license_user</name>
+			<sql><![CDATA[CREATE TABLE IF NOT EXISTS `its4you_installer_license_user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `license` varchar(255) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `module` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB]]></sql>
+		</table>
+	</tables>
+</schema>

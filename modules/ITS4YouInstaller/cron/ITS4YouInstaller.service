@@ -1,0 +1,21 @@
+<?php
+/* * *******************************************************************************
+ * The content of this file is subject to the ITS4YouInstaller license.
+ * ("License"); You may not use this file except in compliance with the License
+ * The Initial Developer of the Original Code is IT-Solutions4You s.r.o.
+ * Portions created by IT-Solutions4You s.r.o. are Copyright(C) IT-Solutions4You s.r.o.
+ * All Rights Reserved.
+ * ****************************************************************************** */
+
+$previousBulkSaveMode = $VTIGER_BULK_SAVE_MODE;
+$VTIGER_BULK_SAVE_MODE = true;
+
+require_once  'includes/Loader.php';
+require_once 'includes/runtime/Controller.php';
+require_once 'includes/runtime/BaseModel.php';
+require_once 'includes/runtime/Globals.php';
+
+Settings_ITS4YouInstaller_Module_Model::clearAlerts();
+Settings_ITS4YouInstaller_License_Model::updateLicensesAlerts();
+
+$VTIGER_BULK_SAVE_MODE = $previousBulkSaveMode;

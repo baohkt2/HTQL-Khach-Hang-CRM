@@ -1,0 +1,18 @@
+<?xml version='1.0'?>
+<schema>
+	<tables>
+		<table>
+			<name>vte_modules</name>
+			<sql><![CDATA[CREATE TABLE `vte_modules` (
+				`module`  varchar(50) NOT NULL ,
+				`valid`  int(1) NULL ,
+				PRIMARY KEY (`module`));]]></sql>
+		</table>
+		<table>
+			<name>vte_labeleditor_setting</name>
+			<sql><![CDATA[CREATE TABLE `vte_labeleditor_setting` (
+				`enable`  int(3) NULL DEFAULT 1
+				)]]></sql>
+		</table>
+	</tables>
+</schema>

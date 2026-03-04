@@ -1,0 +1,45 @@
+<?xml version='1.0'?>
+<schema>
+	<tables>
+		<table>
+			<name>vte_modules</name>
+			<sql><![CDATA[CREATE TABLE `vte_modules` (
+				`module`  varchar(50) NOT NULL ,
+				`valid`  int(1) NULL ,
+				PRIMARY KEY (`module`));]]></sql>
+		</table>
+		<table>
+			<name>vtestore_user</name>
+			<sql><![CDATA[CREATE TABLE `vtestore_user` (
+			  `username` varchar(100) NOT NULL,
+			  `password` varchar(100) DEFAULT NULL,
+			  `created_time` datetime DEFAULT NULL,
+			  PRIMARY KEY (`username`)
+			) ENGINE=InnoDB DEFAULT CHARSET=latin1;]]></sql>
+		</table>
+		<table>
+			<name>vtestore_other_setting</name>
+			<sql><![CDATA[CREATE TABLE `vtestore_other_setting` (
+			  `id` int(5) NOT NULL AUTO_INCREMENT,
+			  `use_custom_header` tinyint(1) DEFAULT NULL,
+			  PRIMARY KEY (`id`)
+			) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;]]></sql>
+		</table>
+		<table>
+			<name>vtestore_system_info</name>
+			<sql><![CDATA[CREATE TABLE `vtestore_system_info` (
+			  `name` varchar(100) CHARACTER SET latin1 NOT NULL,
+			  `value` longtext CHARACTER SET latin1,
+			  `description` text CHARACTER SET latin1,
+			  PRIMARY KEY (`name`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;]]></sql>
+		</table>
+		<table>
+			<name>vtestore_forgotpwd</name>
+			<sql><![CDATA[CREATE TABLE `vtestore_forgotpwd` (
+			  `userid` int NULL,
+			  `created_on` datetime NULL
+			) ENGINE=InnoDB DEFAULT CHARSET=latin1;]]></sql>
+		</table>
+	</tables>
+</schema>

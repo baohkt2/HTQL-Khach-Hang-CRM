@@ -1,0 +1,116 @@
+[2025-11-18 12:24:24] Starting session cleanup...
+Session timeout: 1440 seconds (24 minutes)
+Cutoff time: 2025-11-18 12:00:24
+Found 7 expired sessions to update
+  Updated login_id 92 for user 'TAM' - logout time set to 2025-11-17 12:39:10
+  Updated login_id 93 for user 'Cuong' - logout time set to 2025-11-17 12:43:42
+  Updated login_id 94 for user 'admin' - logout time set to 2025-11-17 13:02:23
+  Updated login_id 95 for user 'Van' - logout time set to 2025-11-17 13:33:55
+  Updated login_id 96 for user 'Van' - logout time set to 2025-11-17 13:34:28
+  Updated login_id 97 for user 'admin' - logout time set to 2025-11-17 14:50:10
+  Updated login_id 98 for user 'admin' - logout time set to 2025-11-18 12:22:20
+
+Summary:
+  Total expired sessions: 7
+  Successfully updated: 7
+  Failed: 0
+
+[2025-11-18 12:24:24] Checking for incomplete logout records...
+Found 0 incomplete logout records
+
+[2025-11-18 12:24:24] Session cleanup completed
+====================================
+
+[2025-11-18 12:53:16] Starting session cleanup...
+Session timeout: 1440 seconds (24 minutes)
+Cutoff time: 2025-11-18 12:29:16
+Found 0 expired sessions to update
+No expired sessions found
+
+[2025-11-18 12:53:16] Checking for incomplete logout records...
+Found 0 incomplete logout records
+
+[2025-11-18 12:53:16] Session cleanup completed
+====================================
+
+[2025-11-19 08:24:42] Starting session cleanup...
+Session timeout: 1440 seconds (24 minutes)
+Cutoff time: 2025-11-19 08:00:42
+Found 2 expired sessions to update
+  Updated login_id 99 for user 'admin' - logout: 2025-11-18 13:01:06 (duration: 7 mins)
+  Updated login_id 100 for user 'admin' - logout: 2025-11-18 15:28:54 (duration: 38 mins)
+
+Summary:
+  Total expired sessions: 2
+  Successfully updated: 2
+  Failed: 0
+
+[2025-11-19 08:24:42] Checking for incomplete logout records...
+Found 1 incomplete logout records
+  Fixed login_id 101 for user 'admin' - duration: 30 mins
+Fixed 1 incomplete logout records
+
+[2025-11-19 08:24:42] Session cleanup completed
+====================================
+
+[2025-11-19 14:03:57] Starting session cleanup...
+Session timeout: 1440 seconds (24 minutes)
+Cutoff time: 2025-11-19 13:39:57
+Found 1 expired sessions to update
+  Updated login_id 102 for user 'Van' - logout: 2025-11-19 09:13:33 (duration: 54 mins)
+
+Summary:
+  Total expired sessions: 1
+  Successfully updated: 1
+  Failed: 0
+
+[2025-11-19 14:03:57] Checking for incomplete logout records...
+Found 1 incomplete logout records
+  Fixed login_id 103 for user 'admin' - duration: 120 mins
+Fixed 1 incomplete logout records
+
+[2025-11-19 14:03:57] Session cleanup completed
+====================================
+
+[2025-11-19 15:22:39] Starting session cleanup...
+Session timeout: 1440 seconds (24 minutes)
+Cutoff time: 2025-11-19 14:58:39
+Found 7 expired sessions to update
+  Updated login_id 106 for user 'admin' - logout: 2025-11-19 14:54:22 (duration: 51 mins)
+  Updated login_id 107 for user 'admin' - logout: 2025-11-19 14:54:26 (duration: 48 mins)
+  Updated login_id 108 for user 'admin' - logout: 2025-11-19 14:09:48 (duration: 1 mins)
+  Updated login_id 109 for user 'Cuong' - logout: 2025-11-19 14:08:29 (duration: 0 mins)
+  Updated login_id 110 for user 'Cuong' - logout: 2025-11-19 14:08:31 (duration: 0 mins)
+  Updated login_id 111 for user 'Cuong' - logout: 2025-11-19 14:10:39 (duration: 2 mins)
+  Updated login_id 112 for user 'TAM' - logout: 2025-11-19 14:48:28 (duration: 10 mins)
+
+Summary:
+  Total expired sessions: 7
+  Successfully updated: 7
+  Failed: 0
+
+[2025-11-19 15:22:39] Checking for incomplete logout records...
+Found 1 incomplete logout records
+  Fixed login_id 104 for user 'admin' - duration: 80 mins
+Fixed 1 incomplete logout records
+
+[2025-11-19 15:22:39] Session cleanup completed
+====================================
+
+[2025-11-20 01:47:16] Starting session cleanup...
+Session timeout: 1440 seconds (24 minutes)
+Cutoff time: 2025-11-20 01:23:16
+Found 1 expired sessions to update
+  Updated login_id 115 for user 'admin' - logout: 2025-11-19 15:36:34 (duration: 32 mins)
+
+Summary:
+  Total expired sessions: 1
+  Successfully updated: 1
+  Failed: 0
+
+[2025-11-20 01:47:16] Checking for incomplete logout records...
+Found 0 incomplete logout records
+
+[2025-11-20 01:47:16] Session cleanup completed
+====================================
+

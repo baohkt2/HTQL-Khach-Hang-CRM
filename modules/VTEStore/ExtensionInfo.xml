@@ -1,0 +1,19 @@
+<?xml version='1.0'?>
+<ExtensionInfo>
+	<vte_modules>VTEStore</vte_modules>
+
+	<!-- Fill all entities name. Eg: VTE_MODULE_NAME||VTE_MODULE_NAME1 -->
+	<vtiger_ws_entity><![CDATA[]]></vtiger_ws_entity>
+
+	<!-- Fill all linklabel::linkurl. Eg: linklabel1::linkurl1||linklabel2::linkurl2 -->
+	<vtiger_links><![CDATA[VTEStoreJs::layouts/v7/modules/VTEStore/resources/VTEStore.js||VTEStoreLoadHeaderSettings::layouts/v7/modules/VTEStore/resources/LoadHeaderSettings.js]]></vtiger_links>
+
+	<!-- Fill all values of name column in table vtiger_settings_field. Eg: name1||name2 -->
+	<vtiger_settings_field><![CDATA[Extension Pack]]></vtiger_settings_field>
+
+	<!-- Fill all event_name::handler_path::handler_class. Eg: event_name1::handler_path1::handler_class1||event_name2::handler_path2::handler_class2 -->
+	<vtiger_eventhandlers><![CDATA[]]></vtiger_eventhandlers>
+
+	<!-- Fill all parent_module::child_module::label. Eg: Accounts::Contacts::Contacts||Accounts::Invoice::Invoices -->
+	<vtiger_relatedlists><![CDATA[]]></vtiger_relatedlists>
+</ExtensionInfo>

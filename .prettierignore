@@ -1,0 +1,16 @@
+# Ignore all PHP files to prevent format breaking
+*.php
+*.inc
+
+# Ignore vendor directories
+vendor/**
+libraries/**
+node_modules/**
+
+# Ignore cache directories
+cache/**
+test/templates_c/**
+
+# Ignore log files
+logs/**
+*.log

@@ -1,0 +1,48 @@
+Debug traced ON 2025-11-13 10:50:59
+
+	#0  File : C:\xampp\htdocs\vtigercrm-final\modules\Google\views\List.php || Line : 166 || Class : Google_Module_Model || Function : deleteSync
+	#1  File : C:\xampp\htdocs\vtigercrm-final\modules\Google\views\List.php || Line : 33 || Class : Google_List_View || Function : deleteSync
+	#2  File : C:\xampp\htdocs\vtigercrm-final\includes\main\WebUI.php || Line : 215 || Class : Google_List_View || Function : process
+	#3  File : C:\xampp\htdocs\vtigercrm-final\index.php || Line : 29 || Class : Vtiger_WebUI || Function : process
+
+
+Debug traced ON 2025-11-13 10:50:59
+
+	#0  File : C:\xampp\htdocs\vtigercrm-final\modules\Google\views\List.php || Line : 166 || Class : Google_Module_Model || Function : deleteSync
+	#1  File : C:\xampp\htdocs\vtigercrm-final\modules\Google\views\List.php || Line : 35 || Class : Google_List_View || Function : deleteSync
+	#2  File : C:\xampp\htdocs\vtigercrm-final\includes\main\WebUI.php || Line : 215 || Class : Google_List_View || Function : process
+	#3  File : C:\xampp\htdocs\vtigercrm-final\index.php || Line : 29 || Class : Vtiger_WebUI || Function : process
+
+
+Debug traced ON 2025-11-20 10:27:15
+
+	#0  File : /var/www/html/cusc/modules/Google/views/List.php || Line : 166 || Class : Google_Module_Model || Function : deleteSync
+	#1  File : /var/www/html/cusc/modules/Google/views/List.php || Line : 33 || Class : Google_List_View || Function : deleteSync
+	#2  File : /var/www/html/cusc/includes/main/WebUI.php || Line : 221 || Class : Google_List_View || Function : process
+	#3  File : /var/www/html/cusc/index.php || Line : 29 || Class : Vtiger_WebUI || Function : process
+
+
+Debug traced ON 2025-11-20 10:27:15
+
+	#0  File : /var/www/html/cusc/modules/Google/views/List.php || Line : 166 || Class : Google_Module_Model || Function : deleteSync
+	#1  File : /var/www/html/cusc/modules/Google/views/List.php || Line : 35 || Class : Google_List_View || Function : deleteSync
+	#2  File : /var/www/html/cusc/includes/main/WebUI.php || Line : 221 || Class : Google_List_View || Function : process
+	#3  File : /var/www/html/cusc/index.php || Line : 29 || Class : Vtiger_WebUI || Function : process
+
+
+Debug traced ON 2025-11-28 05:12:30
+
+	#0  File : C:\xampp\htdocs\cusc\modules\Google\views\List.php || Line : 166 || Class : Google_Module_Model || Function : deleteSync
+	#1  File : C:\xampp\htdocs\cusc\modules\Google\views\List.php || Line : 33 || Class : Google_List_View || Function : deleteSync
+	#2  File : C:\xampp\htdocs\cusc\includes\main\WebUI.php || Line : 221 || Class : Google_List_View || Function : process
+	#3  File : C:\xampp\htdocs\cusc\index.php || Line : 29 || Class : Vtiger_WebUI || Function : process
+
+
+Debug traced ON 2025-11-28 05:12:30
+
+	#0  File : C:\xampp\htdocs\cusc\modules\Google\views\List.php || Line : 166 || Class : Google_Module_Model || Function : deleteSync
+	#1  File : C:\xampp\htdocs\cusc\modules\Google\views\List.php || Line : 35 || Class : Google_List_View || Function : deleteSync
+	#2  File : C:\xampp\htdocs\cusc\includes\main\WebUI.php || Line : 221 || Class : Google_List_View || Function : process
+	#3  File : C:\xampp\htdocs\cusc\index.php || Line : 29 || Class : Vtiger_WebUI || Function : process
+
+

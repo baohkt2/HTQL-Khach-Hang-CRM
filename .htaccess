@@ -1,0 +1,14 @@
+Options -Indexes
+
+# UTF-8 encoding for Vietnamese content
+AddDefaultCharset UTF-8
+
+<IfModule mod_mime.c>
+    AddCharset UTF-8 .html .css .js .php .tpl
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(html|css|js|php|tpl)$">
+        Header set Content-Type "text/html; charset=UTF-8"
+    </FilesMatch>
+</IfModule>

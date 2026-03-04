@@ -1,0 +1,43 @@
+/* ********************************************************************************
+* The content of this file is subject to the ITS4YouInstaller license.
+* ("License"); You may not use this file except in compliance with the License
+* The Initial Developer of the Original Code is IT-Solutions4You s.r.o.
+* Portions created by IT-Solutions4You s.r.o. are Copyright(C) IT-Solutions4You s.r.o.
+* All Rights Reserved.
+* ****************************************************************************** */
+.reqTable td {
+    width: 25%;
+}
+.reqUserTable td {
+    width: 25%;
+}
+.reqUserTable td:first-child {
+    width: 50%;
+}
+.noWarning, .noError {
+    color: #2f973f;
+}
+.yesWarning {
+    color: #f99e1e;
+}
+.yesError {
+    color: #c13e2c;
+}
+.source-module-link {
+    display: inline-block;
+    width: 25%;
+    min-width: 200px;
+    padding: 0.5rem 1rem;
+}
+.requirements-table {
+
+}
+.requirements-table th {
+    width: 20%;
+}
+.requirements-table th:first-child {
+    width: 30px;
+}
+.requirements-table th:last-child {
+    width: auto;
+}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3498db;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2c3e50;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="80" fill="white"/>
+  <rect x="10" y="15" width="50" height="50" rx="8" fill="url(#grad1)"/>
+  <text x="22" y="50" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="white">C</text>
+  <text x="70" y="38" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#2c3e50">CUSC</text>
+  <text x="70" y="58" font-family="Arial, sans-serif" font-size="12" fill="#7f8c8d">CRM System</text>
+</svg>
