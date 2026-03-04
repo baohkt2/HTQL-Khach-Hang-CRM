@@ -2,7 +2,7 @@
 $languageStrings = array(
 	'--None--' => '--Chưa chọn--',
 	'Pricing Information' => 'Thông tin giá Sản phẩm',
-	'Account Name' => 'Tên tổ chức',
+	'Account Name' => 'Tên trường',
 	'Customer Portal' => 'Cổng thông tin chăm sóc khách hàng',
 	'Picklist' => 'Sửa danh sách chọn',
 	'PBXManager' => 'Tổng đài điện thoại',
@@ -24,7 +24,7 @@ $languageStrings = array(
 	'MenuEditor' => 'Chỉnh sửa menu chính',
 	'Accounts' => 'Khách hàng',
 	'Acquired' => 'Đã mua',
-	'Roles' => 'Sơ đồ tổ chức',
+	'Roles' => 'Sơ đồ trường',
 	'Profiles' => 'Hồ sơ',
 	'Dashboards' => 'Bảng điều khiển',
 	'Extension Store' => 'Thành phần mở rộng',
