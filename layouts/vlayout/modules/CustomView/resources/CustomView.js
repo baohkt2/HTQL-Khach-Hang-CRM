@@ -198,7 +198,7 @@ var Vtiger_CustomView_Js = {
 	 */
 	registerSelect2ElementForColumnsSelection : function() {
 		var selectElement = Vtiger_CustomView_Js.getColumnSelectElement();
-		app.changeSelectElementView(selectElement, 'select2', {maximumSelectionSize: 12,dropdownCss : {'z-index' : 0}});
+		app.changeSelectElementView(selectElement, 'select2', {maximumSelectionSize: 40,dropdownCss : {'z-index' : 0}});
 	},
 
 	registerEvents: function(){
@@ -240,26 +240,7 @@ var Vtiger_CustomView_Js = {
                 return;
             }
 
-			//Mandatory Fields selection validation
-			//Any one Mandatory Field should select while creating custom view.
-			var mandatoryFieldsList = JSON.parse(jQuery('#mandatoryFieldsList').val());
-			var selectedOptions = selectElement.val();
-			var mandatoryFieldsMissing = true;
-			for(var i=0; i<selectedOptions.length; i++) {
-				if(jQuery.inArray(selectedOptions[i], mandatoryFieldsList) >= 0) {
-					mandatoryFieldsMissing = false;
-					break;
-				}
-			}
-			if(mandatoryFieldsMissing){
-				var result = app.vtranslate('JS_PLEASE_SELECT_ATLEAST_ONE_MANDATORY_FIELD');
-				select2Element.validationEngine('showPrompt', result , 'error','bottomLeft',true);
-				e.preventDefault();
-				return;
-			} else {
-				select2Element.validationEngine('hide');
-			}
-			//Mandatory Fields validation ends
+			//Mandatory Fields validation removed - users can freely choose any columns
 
 			var result = jQuery(e.currentTarget).validationEngine('validate');
 			if(result == true){
