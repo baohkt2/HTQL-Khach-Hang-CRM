@@ -91,40 +91,51 @@ if (typeof Vtiger_Import_Js == "undefined") {
       ) {
         var formData = jQuery("form[name='importAdvanced']").serialize();
 
-        // Show progress modal immediately
+        // Prevent any native form submission
+        jQuery("form[name='importAdvanced']").on('submit', function(e) {
+          e.preventDefault();
+          return false;
+        });
+
+        // Show progress modal immediately (replaces the import form overlay)
         Vtiger_Import_Js.showImportProgressModal();
 
-        // Start polling for progress updates
+        // Start polling for progress updates after a short delay
+        // to ensure the modal DOM is rendered first
         Vtiger_Import_Js._importStartTime = Date.now();
         Vtiger_Import_Js._lastProcessed = 0;
         Vtiger_Import_Js._importDone = false;
-        Vtiger_Import_Js.startProgressPolling();
 
-        // Submit the import - server processes ALL records in one go
-        app.request.post({ data: formData }).then(function (err, response) {
-          // Import request completed - stop polling
-          Vtiger_Import_Js._importDone = true;
-          Vtiger_Import_Js.stopProgressPolling();
+        // Delay AJAX + polling slightly so the progress modal renders first
+        setTimeout(function() {
+          Vtiger_Import_Js.startProgressPolling();
 
-          if (!err) {
-            // Do one final progress poll to get accurate final counts
-            Vtiger_Import_Js.pollProgress(function () {
-              // Short delay to show 100% before transitioning
-              setTimeout(function () {
-                app.helper.loadPageContentOverlay(response).then(function () {
-                  app.helper.showSuccessNotification({
-                    message: app.vtranslate("Import Completed."),
+          // Submit the import - server processes ALL records in one go
+          app.request.post({ data: formData }).then(function (err, response) {
+            // Import request completed - stop polling
+            Vtiger_Import_Js._importDone = true;
+            Vtiger_Import_Js.stopProgressPolling();
+
+            if (!err) {
+              // Do one final progress poll to get accurate final counts
+              Vtiger_Import_Js.pollProgress(function () {
+                // Short delay to show 100% before transitioning
+                setTimeout(function () {
+                  app.helper.loadPageContentOverlay(response).then(function () {
+                    app.helper.showSuccessNotification({
+                      message: app.vtranslate("Import Completed."),
+                    });
                   });
-                });
-              }, 800);
-            });
-          } else {
-            app.helper.loadPageContentOverlay(response);
-            app.helper.showErrorNotification({
-              message: "Import encountered an error.",
-            });
-          }
-        });
+                }, 800);
+              });
+            } else {
+              app.helper.loadPageContentOverlay(response);
+              app.helper.showErrorNotification({
+                message: "Import encountered an error.",
+              });
+            }
+          });
+        }, 300);
       }
       return false;
     },
