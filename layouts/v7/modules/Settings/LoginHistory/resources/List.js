@@ -9,17 +9,7 @@
 
 Settings_Vtiger_List_Js(
   "Settings_LoginHistory_List_Js",
-  {
-    triggerExportAction: function () {
-      var selectedUser = jQuery("#usersFilter").val();
-      var url =
-        "index.php?module=LoginHistory&parent=Settings&action=ExportData";
-      if (selectedUser) {
-        url += "&user_name=" + encodeURIComponent(selectedUser);
-      }
-      window.location.href = url;
-    },
-  },
+  {},
   {
     registerFilterChangeEvent: function () {
       var thisInstance = this;
@@ -195,6 +185,19 @@ Settings_Vtiger_List_Js(
     registerEvents: function () {
       this.initializePaginationEvents();
       this.registerFilterChangeEvent();
+      this.registerExportEvent();
+    },
+
+    registerExportEvent: function () {
+      jQuery("#exportLoginHistoryBtn").on("click", function () {
+        var url =
+          "index.php?module=LoginHistory&parent=Settings&action=ExportData";
+        var selectedUser = jQuery("#usersFilter").val();
+        if (selectedUser) {
+          url += "&user_name=" + encodeURIComponent(selectedUser);
+        }
+        window.location.href = url;
+      });
     },
   },
 );

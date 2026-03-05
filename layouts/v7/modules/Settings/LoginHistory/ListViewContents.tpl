@@ -32,6 +32,9 @@
                             <option value="{$USER}" name="{$USERNAME}" {if isset($SELECTED_USER ) && $USERNAME eq $SELECTED_USER} selected {/if}>{$USERNAME}</option>
                         {/foreach}
                     </select>
+                    <button class="btn btn-default" id="exportLoginHistoryBtn" style="margin-left: 10px;">
+                        <i class="fa fa-download"></i>&nbsp;&nbsp;{vtranslate('LBL_EXPORT', $QUALIFIED_MODULE)}
+                    </button>
                 </div>
                 <div class="col-md-6 pull-right">
                     {assign var=RECORD_COUNT value=$LISTVIEW_ENTRIES_COUNT}
