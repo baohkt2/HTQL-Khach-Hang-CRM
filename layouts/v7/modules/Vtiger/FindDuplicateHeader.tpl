@@ -22,32 +22,29 @@
 			</div>
 		</h3>
 	</div>
-	<div class="row">
-		<div class="col-lg-1">
+	<div class="row" style="margin-bottom:8px;">
+		<div class="col-lg-6">
 			{if $LISTVIEW_ENTRIES_COUNT > 0}
-				{foreach item=LISTVIEW_BASICACTION from=$LISTVIEW_LINKS}
-					<button id="{$MODULE}_listView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($LISTVIEW_BASICACTION->getLabel())}" class="btn btn-danger pull-left" 
-						{if stripos($LISTVIEW_BASICACTION->getUrl(), 'javascript:')===0} onclick='{$LISTVIEW_BASICACTION->getUrl()|substr:strlen("javascript:")};'{else} onclick='window.location.href="{$LISTVIEW_BASICACTION->getUrl()}"'{/if}>
-							<strong>{vtranslate($LISTVIEW_BASICACTION->getLabel(), $MODULE)}</strong>
+				<div class="btn-group" style="margin-right:10px;">
+					{foreach item=LISTVIEW_BASICACTION from=$LISTVIEW_LINKS}
+						<button id="{$MODULE}_listView_basicAction_{Vtiger_Util_Helper::replaceSpaceWithUnderScores($LISTVIEW_BASICACTION->getLabel())}" class="btn btn-danger" 
+							{if stripos($LISTVIEW_BASICACTION->getUrl(), 'javascript:')===0} onclick='{$LISTVIEW_BASICACTION->getUrl()|substr:strlen("javascript:")};'{else} onclick='window.location.href="{$LISTVIEW_BASICACTION->getUrl()}"'{/if}>
+								<strong>{vtranslate($LISTVIEW_BASICACTION->getLabel(), $MODULE)}</strong>
+						</button>
+					{/foreach}
+					<button id="deleteOldDuplicatesBtn" class="btn btn-warning" onclick='Vtiger_FindDuplicates_Js.deleteOldDuplicates("index.php?module={$MODULE}&action=DeleteOldDuplicates");'>
+						<strong><i class="fa fa-trash-o"></i> {vtranslate('LBL_DELETE_OLD_DUPLICATES', $MODULE)}</strong>
 					</button>
-				{/foreach}
-				<button id="deleteOldDuplicatesBtn" class="btn btn-warning pull-left" style="margin-left:8px;" onclick='Vtiger_FindDuplicates_Js.deleteOldDuplicates("index.php?module={$MODULE}&action=DeleteOldDuplicates");'>
-					<strong>{vtranslate('LBL_DELETE_OLD_DUPLICATES', $MODULE)}</strong>
-				</button>
+				</div>
+				<div class="hide messageContainer" style="display:inline-block;height:30px;">
+					<a id="selectAllMsgDiv" href="#">{vtranslate('LBL_SELECT_ALL',$MODULE)}&nbsp;{vtranslate($MODULE ,$MODULE)}&nbsp;(<span id="totalRecordsCount" value=""></span>)</a>
+				</div>
+				<div class="hide messageContainer" style="display:inline-block;height:30px;">
+					<a id="deSelectAllMsgDiv" href="#">{vtranslate('LBL_DESELECT_ALL_RECORDS',$MODULE)}</a>
+				</div>
 			{/if}
 		</div>
-		<div class="col-lg-11">
-			<div class="col-lg-1">
-				&nbsp;
-			</div>
-			<div class="col-lg-9 select-deselect-container" >
-				<div class="hide messageContainer" style = "height:30px;">
-					<center><a id="selectAllMsgDiv" href="#">{vtranslate('LBL_SELECT_ALL',$MODULE)}&nbsp;{vtranslate($MODULE ,$MODULE)}&nbsp;(<span id="totalRecordsCount" value=""></span>)</a></center>
-				</div>
-				<div class="hide messageContainer" style = "height:30px;">
-					<center><a id="deSelectAllMsgDiv" href="#">{vtranslate('LBL_DESELECT_ALL_RECORDS',$MODULE)}</a></center>
-				</div>
-			</div>
+		<div class="col-lg-6">
 			{assign var=RECORD_COUNT value=$LISTVIEW_ENTRIES_COUNT}
 			{include file="Pagination.tpl"|vtemplate_path:$MODULE SHOWPAGEJUMP=true}
 		</div>

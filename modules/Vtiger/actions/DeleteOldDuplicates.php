@@ -34,9 +34,6 @@ class Vtiger_DeleteOldDuplicates_Action extends Vtiger_Mass_Action {
 		$dataModelInstance->set('fields', $fields);
 		$dataModelInstance->set('ignoreEmpty', $ignoreEmptyValue);
 
-		// Get ALL duplicate records (no paging)
-		$allRecordIds = $this->getAllDuplicateRecordIds($dataModelInstance, $moduleName, $fields, $ignoreEmptyValue);
-
 		// Group records and determine which to delete (all except newest per group)
 		$recordsToDelete = $this->getOldDuplicateIds($dataModelInstance, $moduleName, $fields, $ignoreEmptyValue);
 

@@ -118,8 +118,4 @@ $SMSNotifier_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
 
 $SMSNotifier_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
 
-$ITS4YouEmails_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
-
-$ITS4YouEmails_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
-
 ?>
