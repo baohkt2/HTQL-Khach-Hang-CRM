@@ -129,4 +129,6 @@ $jsLanguageStrings = array(
 	'Cancelling' => 'Cancelling',
 	'Import Completed.' => 'Import Completed.',
 	'Import Cancelled.' => 'Import Cancelled.',
+	'LBL_IMPORT_SUCCESS' => 'Import Successful!',
+	'LBL_AUTO_CLOSE_IN' => 'Auto-closing in {s} seconds...',
 );

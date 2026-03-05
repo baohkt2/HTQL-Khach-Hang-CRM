@@ -134,6 +134,9 @@ if (typeof Vtiger_Import_Js == "undefined") {
     _importDone: false,
     _importId: 0,
 
+    /** Auto-close countdown timer reference */
+    _autoCloseTimer: null,
+
     /**
      * Build and display the import progress overlay modal
      */
@@ -142,117 +145,92 @@ if (typeof Vtiger_Import_Js == "undefined") {
       var moduleLabel = app.vtranslate(moduleName);
       var html =
         '<div class="fc-overlay-modal" id="importProgressOverlay">' +
-        '  <div class="modal-content">' +
-        '    <div class="overlayHeader">' +
-        '      <div class="row">' +
-        '        <div class="col-lg-12">' +
-        '          <h4 class="pull-left" style="padding:10px 15px;margin:0">' +
-        '            <i class="fa fa-upload"></i>&nbsp; ' +
-        app.vtranslate("LBL_IMPORT") +
-        " " +
-        moduleLabel +
-        "  " +
-        '            <span id="ipStatusLabel" style="color:#e67e22;font-size:14px;font-weight:normal">' +
-        '              <i class="fa fa-spinner fa-spin"></i> ' +
-        app.vtranslate("LBL_RUNNING") +
-        "..." +
-        "            </span>" +
-        "          </h4>" +
-        "        </div>" +
-        "      </div>" +
-        "    </div>" +
-        '    <div class="modal-body" style="padding:20px 25px 15px">' +
-        // Progress bar
-        '      <div style="margin-bottom:18px">' +
-        '        <div style="display:flex;justify-content:space-between;margin-bottom:6px">' +
-        '          <span id="ipPercentText" style="font-weight:600;font-size:15px">0%</span>' +
-        '          <span id="ipCountText" style="color:#888;font-size:13px">0 / 0 ' +
-        app.vtranslate("records") +
-        "</span>" +
-        "        </div>" +
-        '        <div class="progress" style="height:22px;margin-bottom:0;border-radius:11px;background:#ecf0f1">' +
-        '          <div id="ipProgressBar" class="progress-bar progress-bar-info progress-bar-striped active" ' +
-        '               role="progressbar" style="width:0%;min-width:0;transition:width 0.6s ease;border-radius:11px;line-height:22px;font-size:12px">' +
-        "          </div>" +
-        "        </div>" +
-        "      </div>" +
-        // Stats grid
-        '      <div class="row" style="margin-bottom:15px">' +
-        '        <div class="col-sm-6 col-md-3" style="margin-bottom:10px">' +
-        '          <div style="background:#f8f9fa;border-radius:8px;padding:12px 15px;text-align:center">' +
-        '            <div style="font-size:22px;font-weight:700;color:#27ae60" id="ipCreated">0</div>' +
-        '            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px">' +
-        app.vtranslate("LBL_CREATED") +
-        "            </div>" +
-        "          </div>" +
-        "        </div>" +
-        '        <div class="col-sm-6 col-md-3" style="margin-bottom:10px">' +
-        '          <div style="background:#f8f9fa;border-radius:8px;padding:12px 15px;text-align:center">' +
-        '            <div style="font-size:22px;font-weight:700;color:#2980b9" id="ipUpdated">0</div>' +
-        '            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px">' +
-        app.vtranslate("LBL_UPDATED") +
-        "            </div>" +
-        "          </div>" +
-        "        </div>" +
-        '        <div class="col-sm-6 col-md-3" style="margin-bottom:10px">' +
-        '          <div style="background:#f8f9fa;border-radius:8px;padding:12px 15px;text-align:center">' +
-        '            <div style="font-size:22px;font-weight:700;color:#f39c12" id="ipSkipped">0</div>' +
-        '            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px">' +
-        app.vtranslate("LBL_SKIPPED") +
-        "            </div>" +
-        "          </div>" +
-        "        </div>" +
-        '        <div class="col-sm-6 col-md-3" style="margin-bottom:10px">' +
-        '          <div style="background:#f8f9fa;border-radius:8px;padding:12px 15px;text-align:center">' +
-        '            <div style="font-size:22px;font-weight:700;color:#e74c3c" id="ipFailed">0</div>' +
-        '            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px">' +
-        app.vtranslate("LBL_FAILED") +
-        "            </div>" +
-        "          </div>" +
-        "        </div>" +
-        "      </div>" +
-        // Speed and ETA
-        '      <div style="display:flex;justify-content:space-between;padding:10px 15px;background:#f8f9fa;border-radius:8px;font-size:13px">' +
-        "        <span>" +
-        '          <i class="fa fa-tachometer"></i>&nbsp; ' +
-        app.vtranslate("Speed") +
-        ": " +
-        '          <strong id="ipSpeed">--</strong> ' +
-        app.vtranslate("records") +
-        "/s" +
-        "        </span>" +
-        "        <span>" +
-        '          <i class="fa fa-clock-o"></i>&nbsp; ' +
-        app.vtranslate("ETA") +
-        ": " +
-        '          <strong id="ipEta">' +
-        app.vtranslate("calculating") +
-        "...</strong>" +
-        "        </span>" +
-        "        <span>" +
-        '          <i class="fa fa-hourglass-half"></i>&nbsp; ' +
-        app.vtranslate("Elapsed") +
-        ": " +
-        '          <strong id="ipElapsed">0s</strong>' +
-        "        </span>" +
-        "      </div>" +
-        "    </div>" +
-        // Footer with cancel
-        '    <div class="modal-overlay-footer border1px clearfix" style="padding:12px 20px">' +
-        '      <div class="row clearfix">' +
-        '        <div class="textAlignCenter col-lg-12">' +
-        '          <button id="ipCancelBtn" class="btn btn-danger btn-lg">' +
-        '            <i class="fa fa-times"></i>&nbsp; ' +
-        app.vtranslate("LBL_CANCEL_IMPORT") +
-        "          </button>" +
-        "        </div>" +
-        "      </div>" +
-        "    </div>" +
-        "  </div>" +
-        "</div>";
+        '<style>' +
+        '  #importProgressOverlay .modal-content { position: relative; overflow: hidden; border: none; box-shadow: 0 8px 32px rgba(0,0,0,0.12); border-radius: 8px; }' +
+        '  #importProgressOverlay .ip-header { padding: 18px 24px; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; background: #fff; }' +
+        '  #importProgressOverlay .ip-title { font-size: 16px; font-weight: 600; color: #222; margin: 0; display: flex; align-items: center; gap: 10px; }' +
+        '  #importProgressOverlay .ip-title i { color: #1a73e8; }' +
+        '  #importProgressOverlay .ip-badge { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.3px; text-transform: uppercase; }' +
+        '  #importProgressOverlay .ip-badge-running { background: #fff3e0; color: #e65100; }' +
+        '  #importProgressOverlay .ip-badge-done { background: #e8f5e9; color: #2e7d32; }' +
+        '  #importProgressOverlay .ip-body { padding: 28px 24px 20px; background: #fff; }' +
+        '  #importProgressOverlay .ip-progress-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }' +
+        '  #importProgressOverlay .ip-percent { font-size: 28px; font-weight: 700; color: #1a73e8; letter-spacing: -0.5px; }' +
+        '  #importProgressOverlay .ip-percent.done { color: #2e7d32; }' +
+        '  #importProgressOverlay .ip-count { font-size: 13px; color: #888; }' +
+        '  #importProgressOverlay .ip-track { height: 8px; background: #e8eaed; border-radius: 4px; overflow: hidden; margin-bottom: 28px; }' +
+        '  #importProgressOverlay .ip-fill { height: 100%; background: linear-gradient(90deg, #1a73e8, #4285f4); border-radius: 4px; transition: width 0.5s ease; width: 0%; }' +
+        '  #importProgressOverlay .ip-fill.done { background: linear-gradient(90deg, #0d904f, #34a853); }' +
+        '  #importProgressOverlay .ip-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }' +
+        '  #importProgressOverlay .ip-card { text-align: center; padding: 16px 8px; background: #fafbfc; border-radius: 10px; border: 1px solid #eef0f2; transition: border-color 0.3s; }' +
+        '  #importProgressOverlay .ip-card:hover { border-color: #d0d5dd; }' +
+        '  #importProgressOverlay .ip-val { font-size: 28px; font-weight: 700; line-height: 1.2; }' +
+        '  #importProgressOverlay .ip-lbl { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 6px; font-weight: 500; }' +
+        '  #importProgressOverlay .ip-meta { display: flex; justify-content: space-between; padding: 12px 16px; background: #f7f8fa; border-radius: 8px; border: 1px solid #eef0f2; font-size: 13px; color: #555; }' +
+        '  #importProgressOverlay .ip-meta-item { display: flex; align-items: center; gap: 6px; }' +
+        '  #importProgressOverlay .ip-meta-item i { color: #aaa; font-size: 13px; }' +
+        '  #importProgressOverlay .ip-meta-item strong { color: #333; }' +
+        '  #importProgressOverlay .ip-footer { padding: 16px 24px; border-top: 1px solid #eee; text-align: center; background: #fff; }' +
+        '  #importProgressOverlay .ip-success { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.97); z-index: 10; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; }' +
+        '  #importProgressOverlay .ip-success.show { display: flex; }' +
+        '  #importProgressOverlay .ip-success-icon { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; animation: ipPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }' +
+        '  #importProgressOverlay .ip-success-icon i { font-size: 40px; color: #2e7d32; }' +
+        '  #importProgressOverlay .ip-success-title { font-size: 22px; font-weight: 700; color: #222; margin-bottom: 8px; }' +
+        '  #importProgressOverlay .ip-success-summary { font-size: 14px; color: #666; margin-bottom: 24px; line-height: 1.6; }' +
+        '  #importProgressOverlay .ip-success-actions { display: flex; gap: 10px; margin-bottom: 16px; }' +
+        '  #importProgressOverlay .ip-btn { padding: 9px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }' +
+        '  #importProgressOverlay .ip-btn-primary { background: #1a73e8; color: #fff; }' +
+        '  #importProgressOverlay .ip-btn-primary:hover { background: #1557b0; }' +
+        '  #importProgressOverlay .ip-btn-ghost { background: transparent; color: #555; border: 1px solid #ddd; }' +
+        '  #importProgressOverlay .ip-btn-ghost:hover { background: #f5f5f5; }' +
+        '  #importProgressOverlay .ip-countdown { font-size: 12px; color: #aaa; }' +
+        '  @keyframes ipPop { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }' +
+        '</style>' +
+        '<div class="modal-content">' +
+        // Success overlay (hidden until complete)
+        '  <div class="ip-success" id="ipSuccessOverlay">' +
+        '    <div class="ip-success-icon"><i class="fa fa-check"></i></div>' +
+        '    <div class="ip-success-title" id="ipSuccessTitle">' + app.vtranslate('LBL_IMPORT_SUCCESS') + '</div>' +
+        '    <div class="ip-success-summary" id="ipSuccessSummary"></div>' +
+        '    <div class="ip-success-actions">' +
+        '      <button class="ip-btn ip-btn-primary" id="ipFinishBtn"><i class="fa fa-check"></i> ' + app.vtranslate('LBL_FINISH_BUTTON_LABEL') + '</button>' +
+        '      <button class="ip-btn ip-btn-ghost" id="ipImportMoreBtn"><i class="fa fa-upload"></i> ' + app.vtranslate('LBL_IMPORT_MORE') + '</button>' +
+        '    </div>' +
+        '    <div class="ip-countdown" id="ipCountdown"></div>' +
+        '  </div>' +
+        // Header
+        '  <div class="ip-header">' +
+        '    <h4 class="ip-title"><i class="fa fa-cloud-upload"></i>' + app.vtranslate('LBL_IMPORT') + ' ' + moduleLabel + '</h4>' +
+        '    <span class="ip-badge ip-badge-running" id="ipBadge"><i class="fa fa-circle-o-notch fa-spin"></i> ' + app.vtranslate('LBL_RUNNING') + '</span>' +
+        '  </div>' +
+        // Body
+        '  <div class="ip-body">' +
+        '    <div class="ip-progress-row">' +
+        '      <span class="ip-percent" id="ipPercentText">0%</span>' +
+        '      <span class="ip-count" id="ipCountText">0 / 0 ' + app.vtranslate('records') + '</span>' +
+        '    </div>' +
+        '    <div class="ip-track"><div class="ip-fill" id="ipProgressBar"></div></div>' +
+        '    <div class="ip-stats">' +
+        '      <div class="ip-card"><div class="ip-val" style="color:#2e7d32" id="ipCreated">0</div><div class="ip-lbl">' + app.vtranslate('LBL_CREATED') + '</div></div>' +
+        '      <div class="ip-card"><div class="ip-val" style="color:#1565c0" id="ipUpdated">0</div><div class="ip-lbl">' + app.vtranslate('LBL_UPDATED') + '</div></div>' +
+        '      <div class="ip-card"><div class="ip-val" style="color:#ef6c00" id="ipSkipped">0</div><div class="ip-lbl">' + app.vtranslate('LBL_SKIPPED') + '</div></div>' +
+        '      <div class="ip-card"><div class="ip-val" style="color:#c62828" id="ipFailed">0</div><div class="ip-lbl">' + app.vtranslate('LBL_FAILED') + '</div></div>' +
+        '    </div>' +
+        '    <div class="ip-meta">' +
+        '      <div class="ip-meta-item"><i class="fa fa-tachometer"></i><span>' + app.vtranslate('Speed') + ': <strong id="ipSpeed">--</strong> ' + app.vtranslate('records') + '/s</span></div>' +
+        '      <div class="ip-meta-item"><i class="fa fa-clock-o"></i><span>' + app.vtranslate('ETA') + ': <strong id="ipEta">' + app.vtranslate('calculating') + '...</strong></span></div>' +
+        '      <div class="ip-meta-item"><i class="fa fa-hourglass-half"></i><span>' + app.vtranslate('Elapsed') + ': <strong id="ipElapsed">0s</strong></span></div>' +
+        '    </div>' +
+        '  </div>' +
+        // Footer
+        '  <div class="ip-footer">' +
+        '    <button id="ipCancelBtn" class="btn btn-danger"><i class="fa fa-times"></i>&nbsp; ' + app.vtranslate('LBL_CANCEL_IMPORT') + '</button>' +
+        '  </div>' +
+        '</div>' +
+        '</div>';
 
       app.helper.loadPageContentOverlay(html).then(function () {
-        jQuery("#ipCancelBtn").on("click", function () {
+        jQuery('#ipCancelBtn').on('click', function () {
           Vtiger_Import_Js.cancelImportFromProgress();
         });
       });
@@ -299,10 +277,11 @@ if (typeof Vtiger_Import_Js == "undefined") {
           if (Vtiger_Import_Js._pollErrorCount > 20) {
             // Too many consecutive errors - stop polling
             Vtiger_Import_Js.stopProgressPolling();
-            jQuery("#ipStatusLabel").html(
-              '<span style="color:#e74c3c"><i class="fa fa-exclamation-triangle"></i> ' +
-              'Connection lost. Please refresh the page.</span>'
-            );
+            jQuery('#ipBadge')
+              .removeClass('ip-badge-running')
+              .addClass('ip-badge-done')
+              .css('background', '#fbe9e7').css('color', '#c62828')
+              .html('<i class="fa fa-exclamation-triangle"></i> ' + app.vtranslate('LBL_ERROR'));
           }
           if (typeof callback === "function") callback();
           return;
@@ -338,7 +317,6 @@ if (typeof Vtiger_Import_Js == "undefined") {
       var processed = data.processed || 0;
       var percent = total > 0 ? Math.round((processed / total) * 100) : 0;
 
-      // Force 100% if import is done
       if (Vtiger_Import_Js._importDone && total > 0) {
         percent = 100;
         processed = total - (data.pending || 0);
@@ -346,84 +324,113 @@ if (typeof Vtiger_Import_Js == "undefined") {
       }
 
       // Update progress bar
-      var bar = jQuery("#ipProgressBar");
-      bar.css("width", percent + "%");
-
-      // Change color based on progress
-      bar.removeClass(
-        "progress-bar-info progress-bar-success progress-bar-warning",
-      );
+      jQuery('#ipProgressBar').css('width', percent + '%');
       if (percent >= 100) {
-        bar.addClass("progress-bar-success").removeClass("active");
-      } else if (percent >= 50) {
-        bar.addClass("progress-bar-info");
-      } else {
-        bar.addClass("progress-bar-info");
+        jQuery('#ipProgressBar').addClass('done');
+        jQuery('#ipPercentText').addClass('done');
       }
 
-      jQuery("#ipPercentText").text(percent + "%");
-      jQuery("#ipCountText").text(
-        processed + " / " + total + " " + app.vtranslate("records"),
-      );
+      jQuery('#ipPercentText').text(percent + '%');
+      jQuery('#ipCountText').text(processed + ' / ' + total + ' ' + app.vtranslate('records'));
 
-      // Update stat cards
-      jQuery("#ipCreated").text(data.created || 0);
-      jQuery("#ipUpdated").text(data.updated || 0);
-      jQuery("#ipSkipped").text(data.skipped || 0);
-      jQuery("#ipFailed").text(data.failed || 0);
+      // Stat cards
+      jQuery('#ipCreated').text(data.created || 0);
+      jQuery('#ipUpdated').text(data.updated || 0);
+      jQuery('#ipSkipped').text(data.skipped || 0);
+      jQuery('#ipFailed').text(data.failed || 0);
 
-      // Calculate speed and ETA
+      // Speed & ETA
       var elapsed = (Date.now() - Vtiger_Import_Js._importStartTime) / 1000;
-      jQuery("#ipElapsed").text(Vtiger_Import_Js.formatDuration(elapsed));
+      jQuery('#ipElapsed').text(Vtiger_Import_Js.formatDuration(elapsed));
 
       if (elapsed > 2 && processed > 0) {
         var speed = processed / elapsed;
-        jQuery("#ipSpeed").text(speed.toFixed(1));
-
+        jQuery('#ipSpeed').text(speed.toFixed(1));
         var remaining = total - processed;
         if (remaining > 0 && speed > 0) {
-          var eta = remaining / speed;
-          jQuery("#ipEta").text(Vtiger_Import_Js.formatDuration(eta));
+          jQuery('#ipEta').text(Vtiger_Import_Js.formatDuration(remaining / speed));
         } else {
-          jQuery("#ipEta").text(app.vtranslate("almost done") + "...");
+          jQuery('#ipEta').text(app.vtranslate('almost done') + '...');
         }
       }
 
-      // Update status label when complete
+      // Badge status
       if (Vtiger_Import_Js._importDone || percent >= 100) {
-        jQuery("#ipStatusLabel").html(
-          '<i class="fa fa-check-circle" style="color:#27ae60"></i> <span style="color:#27ae60">' +
-            app.vtranslate("Completed") +
-            "!</span>",
-        );
+        jQuery('#ipBadge')
+          .removeClass('ip-badge-running')
+          .addClass('ip-badge-done')
+          .html('<i class="fa fa-check-circle"></i> ' + app.vtranslate('Completed'));
       }
     },
 
     /**
-     * Show completion state: update progress bar to 100%, show finish buttons
+     * Show completion state: success overlay with auto-close countdown
      */
     showImportComplete: function (data) {
-      // Final UI update with 100%
+      // Final UI update
       var finalData = jQuery.extend({}, data, { pending: 0 });
       Vtiger_Import_Js._importDone = true;
       Vtiger_Import_Js.updateProgressUI(finalData);
 
-      // Replace cancel button with action buttons
-      var moduleName = app.getModuleName();
-      var buttonsHtml =
-        '<button class="btn btn-success btn-lg" style="margin-right:10px" ' +
-        '  onclick="Vtiger_Import_Js.loadListRecords(); app.helper.hidePageContentOverlay();">' +
-        '  <i class="fa fa-check"></i>&nbsp; ' + app.vtranslate("LBL_FINISH_BUTTON_LABEL") +
-        '</button>' +
-        '<button class="btn btn-default btn-lg" ' +
-        '  onclick="Vtiger_Import_Js.showImportActionStepOne();">' +
-        '  <i class="fa fa-upload"></i>&nbsp; ' + app.vtranslate("LBL_IMPORT_MORE") +
-        '</button>';
-      jQuery("#ipCancelBtn").replaceWith(buttonsHtml);
+      // Build summary text
+      var created = data.created || 0;
+      var updated = data.updated || 0;
+      var skipped = data.skipped || 0;
+      var failed = data.failed || 0;
+      var total = data.total || 0;
+      var elapsed = (Date.now() - Vtiger_Import_Js._importStartTime) / 1000;
+      var summaryLines = [];
+      summaryLines.push('<strong>' + total + '</strong> ' + app.vtranslate('records') + ' · ' + Vtiger_Import_Js.formatDuration(elapsed));
+      var details = [];
+      if (created > 0) details.push('<span style="color:#2e7d32">' + created + ' ' + app.vtranslate('LBL_CREATED').toLowerCase() + '</span>');
+      if (updated > 0) details.push('<span style="color:#1565c0">' + updated + ' ' + app.vtranslate('LBL_UPDATED').toLowerCase() + '</span>');
+      if (skipped > 0) details.push('<span style="color:#ef6c00">' + skipped + ' ' + app.vtranslate('LBL_SKIPPED').toLowerCase() + '</span>');
+      if (failed > 0) details.push('<span style="color:#c62828">' + failed + ' ' + app.vtranslate('LBL_FAILED').toLowerCase() + '</span>');
+      if (details.length > 0) summaryLines.push(details.join(' &middot; '));
+      jQuery('#ipSuccessSummary').html(summaryLines.join('<br>'));
 
+      // Show success overlay
+      jQuery('#ipSuccessOverlay').addClass('show');
+
+      // Toast notification
       app.helper.showSuccessNotification({
-        message: app.vtranslate("Import Completed."),
+        message: app.vtranslate('Import Completed.')
       });
+
+      // Bind action buttons
+      jQuery('#ipFinishBtn').on('click', function () {
+        Vtiger_Import_Js._clearAutoClose();
+        app.helper.hidePageContentOverlay();
+        Vtiger_Import_Js.loadListRecords();
+      });
+      jQuery('#ipImportMoreBtn').on('click', function () {
+        Vtiger_Import_Js._clearAutoClose();
+        Vtiger_Import_Js.showImportActionStepOne();
+      });
+
+      // Auto-close countdown (5 seconds)
+      var seconds = 5;
+      jQuery('#ipCountdown').text(app.vtranslate('LBL_AUTO_CLOSE_IN').replace('{s}', seconds));
+      Vtiger_Import_Js._autoCloseTimer = setInterval(function () {
+        seconds--;
+        if (seconds <= 0) {
+          Vtiger_Import_Js._clearAutoClose();
+          app.helper.hidePageContentOverlay();
+          Vtiger_Import_Js.loadListRecords();
+        } else {
+          jQuery('#ipCountdown').text(app.vtranslate('LBL_AUTO_CLOSE_IN').replace('{s}', seconds));
+        }
+      }, 1000);
+    },
+
+    /**
+     * Clear the auto-close countdown timer
+     */
+    _clearAutoClose: function () {
+      if (Vtiger_Import_Js._autoCloseTimer) {
+        clearInterval(Vtiger_Import_Js._autoCloseTimer);
+        Vtiger_Import_Js._autoCloseTimer = null;
+      }
     },
 
     /**
@@ -459,11 +466,9 @@ if (typeof Vtiger_Import_Js == "undefined") {
             app.vtranslate("Cancelling") +
             "...",
         );
-      jQuery("#ipStatusLabel").html(
-        '<span style="color:#e74c3c"><i class="fa fa-spinner fa-spin"></i> ' +
-          app.vtranslate("Cancelling") +
-          "...</span>",
-      );
+      jQuery('#ipBadge')
+        .removeClass('ip-badge-running')
+        .html('<i class="fa fa-spinner fa-spin"></i> ' + app.vtranslate('Cancelling') + '...');
       var params = {
         module: app.getModuleName(),
         view: "Import",

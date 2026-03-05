@@ -80,4 +80,27 @@ $languageStrings = array(
 	
 );
 
-
+$jsLanguageStrings = array(
+	'LBL_IMPORT' => 'Import',
+	'LBL_RUNNING' => 'Đang chạy',
+	'LBL_CREATED' => 'Đã tạo',
+	'LBL_UPDATED' => 'Cập nhật',
+	'LBL_SKIPPED' => 'Bỏ qua',
+	'LBL_FAILED' => 'Lỗi',
+	'LBL_CANCEL_IMPORT' => 'Hủy Import',
+	'LBL_FINISH_BUTTON_LABEL' => 'Hoàn thành',
+	'LBL_IMPORT_MORE' => 'Nhập thêm',
+	'LBL_IMPORT_SUCCESS' => 'Import thành công!',
+	'LBL_AUTO_CLOSE_IN' => 'Tự động đóng sau {s} giây...',
+	'LBL_ERROR' => 'Lỗi kết nối',
+	'records' => 'bản ghi',
+	'Speed' => 'Tốc độ',
+	'ETA' => 'Còn lại',
+	'Elapsed' => 'Đã chạy',
+	'calculating' => 'đang tính',
+	'almost done' => 'sắp xong',
+	'Completed' => 'Hoàn tất',
+	'Cancelling' => 'Đang hủy',
+	'Import Completed.' => 'Import hoàn tất.',
+	'Import Cancelled.' => 'Đã hủy Import.',
+);
