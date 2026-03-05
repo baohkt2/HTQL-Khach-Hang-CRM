@@ -43,9 +43,10 @@ $PERFORMANCE_CONFIG = Array(
 	
 	// Maximum memory limit for bulk operations (e.g. '512M', '1024M')
 	'BULK_OPERATION_MEMORY_LIMIT' => '4096M',
-  
-  
-  
-  
+
+	// Session inactivity timeout (seconds) for Login History cleanup.
+	// Sessions with no activity for longer than this will be marked 'Session expired'.
+	// Default: 1800 (30 minutes)
+	'SESSION_INACTIVITY_TIMEOUT' => 1800,
 );
 ?>
