@@ -14,6 +14,7 @@ class Users_AutoLogout_Action extends Vtiger_Action_Controller {
         $response = new Vtiger_Response();
         
         try {
+            $reason = $request->get('reason');
             $adb = PearDatabase::getInstance();
             $currentTime = date("Y-m-d H:i:s");
             $loginId = null;
@@ -33,7 +34,7 @@ class Users_AutoLogout_Action extends Vtiger_Action_Controller {
                     
                     $result = $adb->pquery(
                         "SELECT login_id FROM vtiger_loginhistory 
-                         WHERE user_name=? AND user_ip=? AND status='Signed in'
+                         WHERE user_name=? AND user_ip=? AND status IN ('Signed in','Signed off')
                          ORDER BY login_id DESC LIMIT 1",
                         array($username, $userIPAddress)
                     );
@@ -45,11 +46,22 @@ class Users_AutoLogout_Action extends Vtiger_Action_Controller {
             }
             
             if ($loginId) {
-                $adb->pquery(
-                    "UPDATE vtiger_loginhistory SET logout_time = ?, status = 'Signed off' 
-                     WHERE login_id = ? AND status = 'Signed in'",
-                    array($currentTime, $loginId)
-                );
+                if ($reason === 'beforeunload') {
+                    // ACTUAL tab close → mark as Signed off definitively
+                    $adb->pquery(
+                        "UPDATE vtiger_loginhistory SET logout_time = ?, status = 'Signed off' 
+                         WHERE login_id = ? AND status IN ('Signed in','Signed off')",
+                        array($currentTime, $loginId)
+                    );
+                } else {
+                    // Heartbeat or any other reason → only touch logout_time,
+                    // keep status 'Signed in' so the session stays active.
+                    $adb->pquery(
+                        "UPDATE vtiger_loginhistory SET logout_time = ? 
+                         WHERE login_id = ? AND status = 'Signed in'",
+                        array($currentTime, $loginId)
+                    );
+                }
                 $response->setResult(array('success' => true));
             } else {
                 $response->setResult(array('success' => false, 'message' => 'No active session'));

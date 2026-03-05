@@ -27,7 +27,7 @@ class ActivityTracker {
         if (empty($loginId) && !empty($userName)) {
             $query = "SELECT login_id FROM vtiger_loginhistory 
                      WHERE user_name = ? 
-                     AND status = 'Signed in' 
+                     AND status IN ('Signed in', 'Signed off') 
                      ORDER BY login_time DESC 
                      LIMIT 1";
             $result = $adb->pquery($query, array($userName));
@@ -44,12 +44,15 @@ class ActivityTracker {
         try {
             $currentTime = date('Y-m-d H:i:s');
             
-            // 1) Update logout_time in loginhistory to reflect last activity.
-            //    This is the primary mechanism: when a session expires, the
-            //    logout_time already holds the real last-activity timestamp.
-            //    The cron UpdateExpiredSessions.php only needs to flip the status.
+            // 1) Update logout_time AND re-activate the session.
+            //    If a previous AutoLogout falsely marked it as 'Signed off'
+            //    (e.g., user was just reading a page), this re-opens it.
+            //    An authenticated request = the user is still active.
             $adb->pquery(
-                "UPDATE vtiger_loginhistory SET logout_time = ? WHERE login_id = ? AND status = 'Signed in'",
+                "UPDATE vtiger_loginhistory 
+                 SET logout_time = ?, status = 'Signed in' 
+                 WHERE login_id = ? 
+                 AND status IN ('Signed in', 'Signed off')",
                 array($currentTime, $loginId)
             );
             
