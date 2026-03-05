@@ -110,3 +110,23 @@ $languageStrings = array(
         'LBL_IMPORT_COMPLETED' => 'vtiger CRM has just completed your import process. <br/><br/>',
         'LBL_CHECK_IMPORT_STATUS' => '<br/><br/> We recommend you to login to the CRM and check few records to confirm that the import has been successful.'
 );
+
+$jsLanguageStrings = array(
+	'LBL_IMPORT' => 'Import',
+	'LBL_RUNNING' => 'Running',
+	'LBL_CREATED' => 'Created',
+	'LBL_UPDATED' => 'Updated',
+	'LBL_SKIPPED' => 'Skipped',
+	'LBL_FAILED' => 'Failed',
+	'LBL_CANCEL_IMPORT' => 'Cancel Import',
+	'records' => 'records',
+	'Speed' => 'Speed',
+	'ETA' => 'ETA',
+	'Elapsed' => 'Elapsed',
+	'calculating' => 'calculating',
+	'almost done' => 'almost done',
+	'Completed' => 'Completed',
+	'Cancelling' => 'Cancelling',
+	'Import Completed.' => 'Import Completed.',
+	'Import Cancelled.' => 'Import Cancelled.',
+);

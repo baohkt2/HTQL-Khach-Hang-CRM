@@ -90,33 +90,342 @@ if (typeof Vtiger_Import_Js == "undefined") {
         Vtiger_Import_Js.validateCustomMap()
       ) {
         var formData = jQuery("form[name='importAdvanced']").serialize();
-        app.helper.showProgress();
+
+        // Show progress modal immediately
+        Vtiger_Import_Js.showImportProgressModal();
+
+        // Start polling for progress updates
+        Vtiger_Import_Js._importStartTime = Date.now();
+        Vtiger_Import_Js._lastProcessed = 0;
+        Vtiger_Import_Js._importDone = false;
+        Vtiger_Import_Js.startProgressPolling();
+
+        // Submit the import - server processes ALL records in one go
         app.request.post({ data: formData }).then(function (err, response) {
-          app.helper.loadPageContentOverlay(response);
-          app.helper.hideProgress();
+          // Import request completed - stop polling
+          Vtiger_Import_Js._importDone = true;
+          Vtiger_Import_Js.stopProgressPolling();
+
           if (!err) {
-            if (jQuery("#scheduleImportStatus").length > 0) {
-              app.event.one(
-                "post.overlayPageContent.hide",
-                function (container) {
-                  clearTimeout(Vtiger_Import_Js.timer);
-                  Vtiger_Import_Js.isReloadStatusPageStopped = true;
-                },
-              );
-              Vtiger_Import_Js.isReloadStatusPageStopped = false;
-              Vtiger_Import_Js.timer = setTimeout(
-                Vtiger_Import_Js.scheduledImportRunning,
-                5000,
-              );
-            } else {
-              app.helper.showSuccessNotification({
-                message: "Import Completed.",
-              });
-            }
+            // Do one final progress poll to get accurate final counts
+            Vtiger_Import_Js.pollProgress(function () {
+              // Short delay to show 100% before transitioning
+              setTimeout(function () {
+                app.helper.loadPageContentOverlay(response).then(function () {
+                  app.helper.showSuccessNotification({
+                    message: app.vtranslate("Import Completed."),
+                  });
+                });
+              }, 800);
+            });
+          } else {
+            app.helper.loadPageContentOverlay(response);
+            app.helper.showErrorNotification({
+              message: "Import encountered an error.",
+            });
           }
         });
       }
       return false;
+    },
+
+    /** Progress modal state */
+    _progressTimer: null,
+    _importStartTime: 0,
+    _lastProcessed: 0,
+    _importDone: false,
+    _importId: 0,
+
+    /**
+     * Build and display the import progress overlay modal
+     */
+    showImportProgressModal: function () {
+      var moduleName = app.getModuleName();
+      var moduleLabel = app.vtranslate(moduleName);
+      var html =
+        '<div class="fc-overlay-modal" id="importProgressOverlay">' +
+        '  <div class="modal-content">' +
+        '    <div class="overlayHeader">' +
+        '      <div class="row">' +
+        '        <div class="col-lg-12">' +
+        '          <h4 class="pull-left" style="padding:10px 15px;margin:0">' +
+        '            <i class="fa fa-upload"></i>&nbsp; ' +
+        app.vtranslate("LBL_IMPORT") +
+        " " +
+        moduleLabel +
+        "  " +
+        '            <span id="ipStatusLabel" style="color:#e67e22;font-size:14px;font-weight:normal">' +
+        '              <i class="fa fa-spinner fa-spin"></i> ' +
+        app.vtranslate("LBL_RUNNING") +
+        "..." +
+        "            </span>" +
+        "          </h4>" +
+        "        </div>" +
+        "      </div>" +
+        "    </div>" +
+        '    <div class="modal-body" style="padding:20px 25px 15px">' +
+        // Progress bar
+        '      <div style="margin-bottom:18px">' +
+        '        <div style="display:flex;justify-content:space-between;margin-bottom:6px">' +
+        '          <span id="ipPercentText" style="font-weight:600;font-size:15px">0%</span>' +
+        '          <span id="ipCountText" style="color:#888;font-size:13px">0 / 0 ' +
+        app.vtranslate("records") +
+        "</span>" +
+        "        </div>" +
+        '        <div class="progress" style="height:22px;margin-bottom:0;border-radius:11px;background:#ecf0f1">' +
+        '          <div id="ipProgressBar" class="progress-bar progress-bar-info progress-bar-striped active" ' +
+        '               role="progressbar" style="width:0%;min-width:0;transition:width 0.6s ease;border-radius:11px;line-height:22px;font-size:12px">' +
+        "          </div>" +
+        "        </div>" +
+        "      </div>" +
+        // Stats grid
+        '      <div class="row" style="margin-bottom:15px">' +
+        '        <div class="col-sm-6 col-md-3" style="margin-bottom:10px">' +
+        '          <div style="background:#f8f9fa;border-radius:8px;padding:12px 15px;text-align:center">' +
+        '            <div style="font-size:22px;font-weight:700;color:#27ae60" id="ipCreated">0</div>' +
+        '            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px">' +
+        app.vtranslate("LBL_CREATED") +
+        "            </div>" +
+        "          </div>" +
+        "        </div>" +
+        '        <div class="col-sm-6 col-md-3" style="margin-bottom:10px">' +
+        '          <div style="background:#f8f9fa;border-radius:8px;padding:12px 15px;text-align:center">' +
+        '            <div style="font-size:22px;font-weight:700;color:#2980b9" id="ipUpdated">0</div>' +
+        '            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px">' +
+        app.vtranslate("LBL_UPDATED") +
+        "            </div>" +
+        "          </div>" +
+        "        </div>" +
+        '        <div class="col-sm-6 col-md-3" style="margin-bottom:10px">' +
+        '          <div style="background:#f8f9fa;border-radius:8px;padding:12px 15px;text-align:center">' +
+        '            <div style="font-size:22px;font-weight:700;color:#f39c12" id="ipSkipped">0</div>' +
+        '            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px">' +
+        app.vtranslate("LBL_SKIPPED") +
+        "            </div>" +
+        "          </div>" +
+        "        </div>" +
+        '        <div class="col-sm-6 col-md-3" style="margin-bottom:10px">' +
+        '          <div style="background:#f8f9fa;border-radius:8px;padding:12px 15px;text-align:center">' +
+        '            <div style="font-size:22px;font-weight:700;color:#e74c3c" id="ipFailed">0</div>' +
+        '            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px">' +
+        app.vtranslate("LBL_FAILED") +
+        "            </div>" +
+        "          </div>" +
+        "        </div>" +
+        "      </div>" +
+        // Speed and ETA
+        '      <div style="display:flex;justify-content:space-between;padding:10px 15px;background:#f8f9fa;border-radius:8px;font-size:13px">' +
+        "        <span>" +
+        '          <i class="fa fa-tachometer"></i>&nbsp; ' +
+        app.vtranslate("Speed") +
+        ": " +
+        '          <strong id="ipSpeed">--</strong> ' +
+        app.vtranslate("records") +
+        "/s" +
+        "        </span>" +
+        "        <span>" +
+        '          <i class="fa fa-clock-o"></i>&nbsp; ' +
+        app.vtranslate("ETA") +
+        ": " +
+        '          <strong id="ipEta">' +
+        app.vtranslate("calculating") +
+        "...</strong>" +
+        "        </span>" +
+        "        <span>" +
+        '          <i class="fa fa-hourglass-half"></i>&nbsp; ' +
+        app.vtranslate("Elapsed") +
+        ": " +
+        '          <strong id="ipElapsed">0s</strong>' +
+        "        </span>" +
+        "      </div>" +
+        "    </div>" +
+        // Footer with cancel
+        '    <div class="modal-overlay-footer border1px clearfix" style="padding:12px 20px">' +
+        '      <div class="row clearfix">' +
+        '        <div class="textAlignCenter col-lg-12">' +
+        '          <button id="ipCancelBtn" class="btn btn-danger btn-lg">' +
+        '            <i class="fa fa-times"></i>&nbsp; ' +
+        app.vtranslate("LBL_CANCEL_IMPORT") +
+        "          </button>" +
+        "        </div>" +
+        "      </div>" +
+        "    </div>" +
+        "  </div>" +
+        "</div>";
+
+      app.helper.loadPageContentOverlay(html).then(function () {
+        jQuery("#ipCancelBtn").on("click", function () {
+          Vtiger_Import_Js.cancelImportFromProgress();
+        });
+      });
+    },
+
+    /**
+     * Start polling the getImportProgress endpoint
+     */
+    startProgressPolling: function () {
+      Vtiger_Import_Js.stopProgressPolling();
+      // Poll every 1.5 seconds
+      Vtiger_Import_Js._progressTimer = setInterval(function () {
+        Vtiger_Import_Js.pollProgress();
+      }, 1500);
+    },
+
+    /**
+     * Stop the progress polling timer
+     */
+    stopProgressPolling: function () {
+      if (Vtiger_Import_Js._progressTimer) {
+        clearInterval(Vtiger_Import_Js._progressTimer);
+        Vtiger_Import_Js._progressTimer = null;
+      }
+    },
+
+    /**
+     * Make a single progress poll request
+     * @param {Function} callback - optional callback after UI update
+     */
+    pollProgress: function (callback) {
+      var params = {
+        module: app.getModuleName(),
+        view: "Import",
+        mode: "getImportProgress",
+      };
+      app.request.get({ data: params }).then(function (err, data) {
+        if (err || !data) {
+          if (typeof callback === "function") callback();
+          return;
+        }
+        // app.request auto-extracts 'result' from {success:true, result:{...}}
+        if (data.import_id) {
+          Vtiger_Import_Js._importId = data.import_id;
+        }
+        Vtiger_Import_Js.updateProgressUI(data);
+        if (typeof callback === "function") callback();
+      });
+    },
+
+    /**
+     * Update the progress modal UI with polling data
+     */
+    updateProgressUI: function (data) {
+      var total = data.total || 0;
+      var processed = data.processed || 0;
+      var percent = total > 0 ? Math.round((processed / total) * 100) : 0;
+
+      // Force 100% if import is done
+      if (Vtiger_Import_Js._importDone && total > 0) {
+        percent = 100;
+        processed = total - (data.pending || 0);
+        if (processed > total) processed = total;
+      }
+
+      // Update progress bar
+      var bar = jQuery("#ipProgressBar");
+      bar.css("width", percent + "%");
+
+      // Change color based on progress
+      bar.removeClass(
+        "progress-bar-info progress-bar-success progress-bar-warning",
+      );
+      if (percent >= 100) {
+        bar.addClass("progress-bar-success").removeClass("active");
+      } else if (percent >= 50) {
+        bar.addClass("progress-bar-info");
+      } else {
+        bar.addClass("progress-bar-info");
+      }
+
+      jQuery("#ipPercentText").text(percent + "%");
+      jQuery("#ipCountText").text(
+        processed + " / " + total + " " + app.vtranslate("records"),
+      );
+
+      // Update stat cards
+      jQuery("#ipCreated").text(data.created || 0);
+      jQuery("#ipUpdated").text(data.updated || 0);
+      jQuery("#ipSkipped").text(data.skipped || 0);
+      jQuery("#ipFailed").text(data.failed || 0);
+
+      // Calculate speed and ETA
+      var elapsed = (Date.now() - Vtiger_Import_Js._importStartTime) / 1000;
+      jQuery("#ipElapsed").text(Vtiger_Import_Js.formatDuration(elapsed));
+
+      if (elapsed > 2 && processed > 0) {
+        var speed = processed / elapsed;
+        jQuery("#ipSpeed").text(speed.toFixed(1));
+
+        var remaining = total - processed;
+        if (remaining > 0 && speed > 0) {
+          var eta = remaining / speed;
+          jQuery("#ipEta").text(Vtiger_Import_Js.formatDuration(eta));
+        } else {
+          jQuery("#ipEta").text(app.vtranslate("almost done") + "...");
+        }
+      }
+
+      // Update status label when complete
+      if (Vtiger_Import_Js._importDone || percent >= 100) {
+        jQuery("#ipStatusLabel").html(
+          '<i class="fa fa-check-circle" style="color:#27ae60"></i> <span style="color:#27ae60">' +
+            app.vtranslate("Completed") +
+            "!</span>",
+        );
+      }
+    },
+
+    /**
+     * Format seconds into human-readable duration (e.g., "1m 23s")
+     */
+    formatDuration: function (seconds) {
+      seconds = Math.round(seconds);
+      if (seconds < 60) return seconds + "s";
+      var mins = Math.floor(seconds / 60);
+      var secs = seconds % 60;
+      if (mins < 60) return mins + "m " + (secs > 0 ? secs + "s" : "");
+      var hours = Math.floor(mins / 60);
+      mins = mins % 60;
+      return hours + "h " + (mins > 0 ? mins + "m" : "");
+    },
+
+    /**
+     * Cancel import from the progress modal
+     */
+    cancelImportFromProgress: function () {
+      var importId = Vtiger_Import_Js._importId;
+      if (!importId) {
+        app.helper.showErrorNotification({
+          message: "Import ID not available yet. Please wait a moment.",
+        });
+        return;
+      }
+      Vtiger_Import_Js.stopProgressPolling();
+      jQuery("#ipCancelBtn")
+        .prop("disabled", true)
+        .html(
+          '<i class="fa fa-spinner fa-spin"></i>&nbsp; ' +
+            app.vtranslate("Cancelling") +
+            "...",
+        );
+      jQuery("#ipStatusLabel").html(
+        '<span style="color:#e74c3c"><i class="fa fa-spinner fa-spin"></i> ' +
+          app.vtranslate("Cancelling") +
+          "...</span>",
+      );
+      var params = {
+        module: app.getModuleName(),
+        view: "Import",
+        mode: "cancelImport",
+        import_id: importId,
+      };
+      app.request.get({ data: params }).then(function (err, data) {
+        Vtiger_Import_Js._importDone = true;
+        app.helper.loadPageContentOverlay(data).then(function () {
+          app.helper.showSuccessNotification({
+            message: app.vtranslate("Import Cancelled."),
+          });
+        });
+      });
     },
     sanitizeFieldMapping: function () {
       var fieldsList = jQuery(".fieldIdentifier");

@@ -24,6 +24,7 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 		$this->exposeMethod('cancelImport');
 		$this->exposeMethod('checkImportStatus');
 		$this->exposeMethod('updateSavedMapping');
+		$this->exposeMethod('getImportProgress');
 	}
 
 	public function requiresPermission(Vtiger_Request $request){
@@ -320,6 +321,91 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 				Import_Main_View::showResult($importInfo, $importStatusCount);
 			}
 		}
+	}
+
+	/**
+	 * Lightweight JSON endpoint for polling import progress.
+	 * Returns record counts from the import staging table without processing any records.
+	 */
+	function getImportProgress(Vtiger_Request $request) {
+		$moduleName = $request->getModule();
+		$user = Users_Record_Model::getCurrentUserModel();
+		$adb = PearDatabase::getInstance();
+
+		$tableName = Import_Utils_Helper::getDbTableName($user);
+
+		// Check if staging table exists
+		if (!Vtiger_Utils::CheckTable($tableName)) {
+			$response = new Vtiger_Response();
+			$response->setResult(array(
+				'status' => 'no_data',
+				'total' => 0,
+				'processed' => 0,
+				'created' => 0,
+				'updated' => 0,
+				'skipped' => 0,
+				'merged' => 0,
+				'failed' => 0,
+				'pending' => 0,
+				'is_running' => false
+			));
+			$response->emit();
+			exit;
+		}
+
+		$result = $adb->pquery(
+			"SELECT
+				COUNT(*) as total,
+				SUM(CASE WHEN status != 0 THEN 1 ELSE 0 END) as processed,
+				SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as created,
+				SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as updated,
+				SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as skipped,
+				SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as merged,
+				SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as failed,
+				SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as pending
+			FROM $tableName",
+			array(
+				Import_Data_Action::$IMPORT_RECORD_CREATED,
+				Import_Data_Action::$IMPORT_RECORD_UPDATED,
+				Import_Data_Action::$IMPORT_RECORD_SKIPPED,
+				Import_Data_Action::$IMPORT_RECORD_MERGED,
+				Import_Data_Action::$IMPORT_RECORD_FAILED
+			)
+		);
+
+		$row = $adb->query_result_rowdata($result, 0);
+
+		// Check if import is still actively running (lock exists)
+		$lockInfo = Import_Lock_Action::isLockedForModule($moduleName);
+		$isRunning = ($lockInfo != null);
+
+		// Also check queue status
+		$importInfo = Import_Queue_Action::getUserCurrentImportInfo($user);
+		$importId = 0;
+		if ($importInfo != null) {
+			$importId = $importInfo['id'];
+			// If import is in queue but no lock, it might be scheduled or finished
+			if (!$isRunning && $importInfo['status'] == Import_Queue_Action::$IMPORT_STATUS_HALTED) {
+				$isRunning = true; // Still processing (HALTED means in-between batches)
+			}
+		}
+
+		$response = new Vtiger_Response();
+		$response->setResult(array(
+			'status' => 'ok',
+			'total' => (int)$row['total'],
+			'processed' => (int)($row['processed'] ?? 0),
+			'created' => (int)($row['created'] ?? 0),
+			'updated' => (int)($row['updated'] ?? 0),
+			'skipped' => (int)($row['skipped'] ?? 0),
+			'merged' => (int)($row['merged'] ?? 0),
+			'failed' => (int)($row['failed'] ?? 0),
+			'pending' => (int)($row['pending'] ?? 0),
+			'is_running' => $isRunning,
+			'import_id' => $importId
+		));
+		$response->emit();
+		exit;
 	}
 
 	function checkImportStatus(Vtiger_Request $request) {

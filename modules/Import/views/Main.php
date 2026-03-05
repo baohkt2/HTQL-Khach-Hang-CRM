@@ -74,6 +74,9 @@ class Import_Main_View extends Vtiger_View_Controller{
 				Import_Utils_Helper::showErrorPage(vtranslate('ERR_FAILED_TO_LOCK_MODULE', 'Import'));
 				exit;
 			}
+			// Process all records at once (no batch LIMIT) - progress is tracked
+			// via the getImportProgress AJAX endpoint polling the staging table.
+			$importDataController->batchImport = false;
 		}
 
 		try {
@@ -81,10 +84,23 @@ class Import_Main_View extends Vtiger_View_Controller{
 		} catch (\Throwable $e) {
 			file_put_contents('logs/import_error.log', date('Y-m-d H:i:s') . ' ERROR: ' . get_class($e) . ' - ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString() . "\n\n", FILE_APPEND);
 		}
-		Import_Queue_Action::updateStatus($importInfo['id'], Import_Queue_Action::$IMPORT_STATUS_HALTED);
-		$importInfo = Import_Queue_Action::getImportInfo($this->request->get('module'), $this->user);
 
-		self::showImportStatus($importInfo, $this->user);
+		// All records processed - finalize import and show result
+		$importStatusCount = $importDataController->getImportStatusCount();
+		$totalRecords = $importStatusCount['TOTAL'];
+		$importedAndFailed = $importStatusCount['IMPORTED'] + $importStatusCount['FAILED'];
+
+		if ($totalRecords <= $importedAndFailed) {
+			// All done - finalize
+			$importDataController->finishImport();
+			self::showResult($importInfo, $importStatusCount);
+		} else {
+			// Edge case: not all records processed (e.g., memory/timeout issue)
+			// Fall back to the status page for manual continuation
+			Import_Queue_Action::updateStatus($importInfo['id'], Import_Queue_Action::$IMPORT_STATUS_HALTED);
+			$importInfo = Import_Queue_Action::getImportInfo($this->request->get('module'), $this->user);
+			self::showImportStatus($importInfo, $this->user);
+		}
 	}
 
 	public static function showImportStatus($importInfo, $user) {
