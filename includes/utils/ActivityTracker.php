@@ -44,19 +44,26 @@ class ActivityTracker {
         try {
             $currentTime = date('Y-m-d H:i:s');
             
-            // Check if record exists
+            // 1) Update logout_time in loginhistory to reflect last activity.
+            //    This is the primary mechanism: when a session expires, the
+            //    logout_time already holds the real last-activity timestamp.
+            //    The cron UpdateExpiredSessions.php only needs to flip the status.
+            $adb->pquery(
+                "UPDATE vtiger_loginhistory SET logout_time = ? WHERE login_id = ? AND status = 'Signed in'",
+                array($currentTime, $loginId)
+            );
+            
+            // 2) Also update the activity tracking table (secondary/audit)
             $checkQuery = "SELECT id FROM vtiger_user_activity_tracking WHERE login_id = ?";
             $checkResult = $adb->pquery($checkQuery, array($loginId));
             
-            if ($adb->num_rows($checkResult) > 0) {
-                // Update existing record
+            if ($checkResult && $adb->num_rows($checkResult) > 0) {
                 $updateQuery = "UPDATE vtiger_user_activity_tracking 
                                SET last_activity_time = ?, 
                                    updated_at = ? 
                                WHERE login_id = ?";
                 $adb->pquery($updateQuery, array($currentTime, $currentTime, $loginId));
             } else {
-                // Insert new record
                 $insertQuery = "INSERT INTO vtiger_user_activity_tracking 
                                (login_id, user_name, last_activity_time, created_at, updated_at) 
                                VALUES (?, ?, ?, ?, ?)";
@@ -64,8 +71,8 @@ class ActivityTracker {
             }
             
             return true;
-        } catch (Exception $e) {
-            error_log("ActivityTracker Error: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            // Silently continue - activity tracking should never break the app
             return false;
         }
     }

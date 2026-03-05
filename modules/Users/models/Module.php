@@ -210,23 +210,37 @@ class Users_Module_Model extends Vtiger_Module_Model {
 	public function saveLogoutHistory(){
 		$adb = PearDatabase::getInstance();
 
-		$userRecordModel = Users_Record_Model::getCurrentUserModel();
-		$userIPAddress = $_SERVER['REMOTE_ADDR'];
 		$outtime = date("Y-m-d H:i:s");
-
-		// Get the latest active session (where status is 'Signed in' or logout_time equals login_time)
+		
+		// Prefer login_id from session (most reliable, set during login)
+		$loginId = isset($_SESSION['login_id']) ? $_SESSION['login_id'] : null;
+		
+		if (!empty($loginId)) {
+			$adb->pquery(
+				"UPDATE vtiger_loginhistory SET logout_time = ?, status = 'Signed off' WHERE login_id = ? AND status = 'Signed in'",
+				array($outtime, $loginId)
+			);
+			return;
+		}
+		
+		// Fallback: lookup by user_name + IP
+		$userRecordModel = Users_Record_Model::getCurrentUserModel();
+		if (!$userRecordModel) return;
+		
+		$userIPAddress = $_SERVER['REMOTE_ADDR'];
 		$loginIdQuery = "SELECT login_id FROM vtiger_loginhistory 
 		                 WHERE user_name=? AND user_ip=? 
-		                 AND (status='Signed in' OR logout_time = login_time)
+		                 AND status='Signed in'
 		                 ORDER BY login_id DESC LIMIT 1";
 		$result = $adb->pquery($loginIdQuery, array($userRecordModel->get('user_name'), $userIPAddress));
 		
 		if ($adb->num_rows($result) > 0) {
 			$loginid = $adb->query_result($result, 0, "login_id");
-			
 			if (!empty($loginid)){
-				$query = "UPDATE vtiger_loginhistory SET logout_time =?, status=? WHERE login_id = ?";
-				$result = $adb->pquery($query, array($outtime, 'Signed off', $loginid));
+				$adb->pquery(
+					"UPDATE vtiger_loginhistory SET logout_time = ?, status = 'Signed off' WHERE login_id = ?",
+					array($outtime, $loginid)
+				);
 			}
 		}
 	}
