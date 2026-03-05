@@ -15,6 +15,36 @@ Vtiger_List_Js("Vtiger_FindDuplicates_Js",{
         var ignoreEmpty = jQuery('#ignoreEmpty').val();
         url += '&mode=FindDuplicates&fields=' + fields + '&ignoreEmpty=' + ignoreEmpty;
 		listInstance.performMassDeleteRecords(url);
+	},
+
+	deleteOldDuplicates : function(url) {
+		var fields = jQuery('#duplicateSearchFields').val();
+		var ignoreEmpty = jQuery('#ignoreEmpty').val();
+		var totalCount = jQuery('#totalCount').val();
+		var message = app.vtranslate('JS_DELETE_OLD_DUPLICATES_CONFIRMATION');
+		app.helper.showConfirmationBox({message: message}).then(function() {
+			app.helper.showProgress();
+			var params = {
+				url: url,
+				data: {
+					fields: fields,
+					ignoreEmpty: ignoreEmpty
+				}
+			};
+			app.request.post(params).then(function(error, data) {
+				app.helper.hideProgress();
+				if(error === null && data) {
+					var msg = app.vtranslate('JS_DELETE_OLD_DUPLICATES_SUCCESS')
+						.replace('%d', data.deleted);
+					app.helper.showSuccessNotification({message: msg});
+					// Reload page
+					var listInstance = app.controller();
+					listInstance.loadListViewRecords({page: 1});
+				} else {
+					app.helper.showErrorNotification({message: app.vtranslate('JS_DELETE_OLD_DUPLICATES_FAILED')});
+				}
+			});
+		});
 	}
     
 },{

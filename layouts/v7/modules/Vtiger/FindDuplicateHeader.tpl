@@ -31,6 +31,9 @@
 							<strong>{vtranslate($LISTVIEW_BASICACTION->getLabel(), $MODULE)}</strong>
 					</button>
 				{/foreach}
+				<button id="deleteOldDuplicatesBtn" class="btn btn-warning pull-left" style="margin-left:8px;" onclick='Vtiger_FindDuplicates_Js.deleteOldDuplicates("index.php?module={$MODULE}&action=DeleteOldDuplicates");'>
+					<strong>{vtranslate('LBL_DELETE_OLD_DUPLICATES', $MODULE)}</strong>
+				</button>
 			{/if}
 		</div>
 		<div class="col-lg-11">
