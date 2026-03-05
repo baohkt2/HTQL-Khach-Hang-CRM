@@ -328,6 +328,12 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 	 * Returns record counts from the import staging table without processing any records.
 	 */
 	function getImportProgress(Vtiger_Request $request) {
+		// Clean all output buffers from preProcess (which outputs HTML headers)
+		// so we can return pure JSON
+		while (ob_get_level()) {
+			ob_end_clean();
+		}
+
 		$moduleName = $request->getModule();
 		$user = Users_Record_Model::getCurrentUserModel();
 		$adb = PearDatabase::getInstance();

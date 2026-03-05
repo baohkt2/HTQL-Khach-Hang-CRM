@@ -50,6 +50,9 @@ class Import_Main_View extends Vtiger_View_Controller{
 	}
 
 	public function triggerImport($batchImport=false) {
+		// Ensure PHP continues processing even if the client/proxy disconnects (504)
+		ignore_user_abort(true);
+
 		// Extend execution time for import processing
 		if (function_exists('set_time_limit')) {
 			@set_time_limit(0);
@@ -79,28 +82,37 @@ class Import_Main_View extends Vtiger_View_Controller{
 			$importDataController->batchImport = false;
 		}
 
+		// Send immediate response to client BEFORE processing records.
+		// This prevents the web proxy from returning 504 Gateway Timeout.
+		// The client polls getImportProgress for real-time status updates.
+		while (ob_get_level()) {
+			ob_end_clean();
+		}
+		header('Content-Type: application/json; charset=UTF-8');
+		header('Connection: close');
+		$earlyResponse = json_encode(array('success' => true, 'result' => array(
+			'status' => 'import_started',
+			'import_id' => $importInfo['id']
+		)));
+		header('Content-Length: ' . strlen($earlyResponse));
+		echo $earlyResponse;
+		flush();
+		if (function_exists('fastcgi_finish_request')) {
+			fastcgi_finish_request();
+		}
+
+		// --- Client connection is now closed. Processing continues in background. ---
+
 		try {
 			$importDataController->importData();
 		} catch (\Throwable $e) {
 			file_put_contents('logs/import_error.log', date('Y-m-d H:i:s') . ' ERROR: ' . get_class($e) . ' - ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString() . "\n\n", FILE_APPEND);
 		}
 
-		// All records processed - finalize import and show result
-		$importStatusCount = $importDataController->getImportStatusCount();
-		$totalRecords = $importStatusCount['TOTAL'];
-		$importedAndFailed = $importStatusCount['IMPORTED'] + $importStatusCount['FAILED'];
-
-		if ($totalRecords <= $importedAndFailed) {
-			// All done - finalize
-			$importDataController->finishImport();
-			self::showResult($importInfo, $importStatusCount);
-		} else {
-			// Edge case: not all records processed (e.g., memory/timeout issue)
-			// Fall back to the status page for manual continuation
-			Import_Queue_Action::updateStatus($importInfo['id'], Import_Queue_Action::$IMPORT_STATUS_HALTED);
-			$importInfo = Import_Queue_Action::getImportInfo($this->request->get('module'), $this->user);
-			self::showImportStatus($importInfo, $this->user);
-		}
+		// Finalize import - release locks and queue entry.
+		// The staging table is NOT dropped here (finishImport only removes lock+queue),
+		// so the client's poll endpoint can still read final counts.
+		$importDataController->finishImport();
 	}
 
 	public static function showImportStatus($importInfo, $user) {

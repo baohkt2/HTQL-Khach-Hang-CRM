@@ -110,30 +110,17 @@ if (typeof Vtiger_Import_Js == "undefined") {
         setTimeout(function() {
           Vtiger_Import_Js.startProgressPolling();
 
-          // Submit the import - server processes ALL records in one go
+          // Submit the import - server sends early JSON response then
+          // continues processing in background. We rely on polling
+          // for progress/completion, NOT this AJAX response.
           app.request.post({ data: formData }).then(function (err, response) {
-            // Import request completed - stop polling
-            Vtiger_Import_Js._importDone = true;
-            Vtiger_Import_Js.stopProgressPolling();
-
-            if (!err) {
-              // Do one final progress poll to get accurate final counts
-              Vtiger_Import_Js.pollProgress(function () {
-                // Short delay to show 100% before transitioning
-                setTimeout(function () {
-                  app.helper.loadPageContentOverlay(response).then(function () {
-                    app.helper.showSuccessNotification({
-                      message: app.vtranslate("Import Completed."),
-                    });
-                  });
-                }, 800);
-              });
-            } else {
-              app.helper.loadPageContentOverlay(response);
-              app.helper.showErrorNotification({
-                message: "Import encountered an error.",
-              });
+            // Early response received (import_started) or server returned result HTML.
+            // If response has import_id, store it.
+            if (!err && response && response.import_id) {
+              Vtiger_Import_Js._importId = response.import_id;
             }
+            // Don't stop polling here - let polling detect completion.
+            // The server continues processing in the background.
           });
         }, 300);
       }
@@ -296,6 +283,9 @@ if (typeof Vtiger_Import_Js == "undefined") {
      * Make a single progress poll request
      * @param {Function} callback - optional callback after UI update
      */
+    /** Counter for consecutive poll errors */
+    _pollErrorCount: 0,
+
     pollProgress: function (callback) {
       var params = {
         module: app.getModuleName(),
@@ -304,14 +294,38 @@ if (typeof Vtiger_Import_Js == "undefined") {
       };
       app.request.get({ data: params }).then(function (err, data) {
         if (err || !data) {
+          // Tolerate occasional poll errors (network glitch, etc.)
+          Vtiger_Import_Js._pollErrorCount++;
+          if (Vtiger_Import_Js._pollErrorCount > 20) {
+            // Too many consecutive errors - stop polling
+            Vtiger_Import_Js.stopProgressPolling();
+            jQuery("#ipStatusLabel").html(
+              '<span style="color:#e74c3c"><i class="fa fa-exclamation-triangle"></i> ' +
+              'Connection lost. Please refresh the page.</span>'
+            );
+          }
           if (typeof callback === "function") callback();
           return;
         }
+        // Reset error counter on successful poll
+        Vtiger_Import_Js._pollErrorCount = 0;
+
         // app.request auto-extracts 'result' from {success:true, result:{...}}
         if (data.import_id) {
           Vtiger_Import_Js._importId = data.import_id;
         }
         Vtiger_Import_Js.updateProgressUI(data);
+
+        // Detect completion: all records processed AND server finished
+        var total = data.total || 0;
+        var pending = data.pending || 0;
+        if (total > 0 && pending === 0 && !data.is_running && !Vtiger_Import_Js._importDone) {
+          Vtiger_Import_Js._importDone = true;
+          Vtiger_Import_Js.stopProgressPolling();
+          // Show completion state in progress UI
+          Vtiger_Import_Js.showImportComplete(data);
+        }
+
         if (typeof callback === "function") callback();
       });
     },
@@ -383,6 +397,33 @@ if (typeof Vtiger_Import_Js == "undefined") {
             "!</span>",
         );
       }
+    },
+
+    /**
+     * Show completion state: update progress bar to 100%, show finish buttons
+     */
+    showImportComplete: function (data) {
+      // Final UI update with 100%
+      var finalData = jQuery.extend({}, data, { pending: 0 });
+      Vtiger_Import_Js._importDone = true;
+      Vtiger_Import_Js.updateProgressUI(finalData);
+
+      // Replace cancel button with action buttons
+      var moduleName = app.getModuleName();
+      var buttonsHtml =
+        '<button class="btn btn-success btn-lg" style="margin-right:10px" ' +
+        '  onclick="Vtiger_Import_Js.loadListRecords(); app.helper.hidePageContentOverlay();">' +
+        '  <i class="fa fa-check"></i>&nbsp; ' + app.vtranslate("LBL_FINISH_BUTTON_LABEL") +
+        '</button>' +
+        '<button class="btn btn-default btn-lg" ' +
+        '  onclick="Vtiger_Import_Js.showImportActionStepOne();">' +
+        '  <i class="fa fa-upload"></i>&nbsp; ' + app.vtranslate("LBL_IMPORT_MORE") +
+        '</button>';
+      jQuery("#ipCancelBtn").replaceWith(buttonsHtml);
+
+      app.helper.showSuccessNotification({
+        message: app.vtranslate("Import Completed."),
+      });
     },
 
     /**
