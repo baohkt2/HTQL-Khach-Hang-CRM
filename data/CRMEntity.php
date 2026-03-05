@@ -1399,7 +1399,19 @@ class CRMEntity {
 				continue;
 			}
 
-			$focusObj = CRMEntity::getInstance($relatedModule);
+			// Skip if module class file is missing (avoids fatal die() from checkFileAccessForInclusion)
+			if (!class_exists($relatedModule)) {
+				$moduleFile = "modules/$relatedModule/$relatedModule.php";
+				if (!file_exists($moduleFile)) {
+					continue;
+				}
+			}
+
+			try {
+				$focusObj = CRMEntity::getInstance($relatedModule);
+			} catch (\Throwable $ex) {
+				continue;
+			}
 
 			//Backup Field Relations for the deleted entity
 			$targetTableColumn = isset($focusObj->tab_name_index[$tableName]) ? $focusObj->tab_name_index[$tableName] : null;

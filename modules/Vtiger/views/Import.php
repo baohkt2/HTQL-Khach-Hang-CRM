@@ -101,7 +101,7 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 	}
 
 	function importBasicStep(Vtiger_Request $request) {
-		$viewer = $this->getViewer($request);
+			$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
 
 		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);

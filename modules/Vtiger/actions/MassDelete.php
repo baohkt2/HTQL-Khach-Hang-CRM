@@ -35,8 +35,17 @@ class Vtiger_MassDelete_Action extends Vtiger_Mass_Action {
 		}
 
 		$cvId = $request->get('viewname');
-		$deletedCount = 0;
-		$failedCount = 0;
+
+		// Use bulk save mode to skip per-record event handlers (beforedelete/afterdelete)
+		// This dramatically speeds up mass deletion and prevents timeouts
+		global $VTIGER_BULK_SAVE_MODE;
+		$previousBulkSaveMode = $VTIGER_BULK_SAVE_MODE;
+		$VTIGER_BULK_SAVE_MODE = true;
+
+		// Extend time limit for large batch deletions
+		if (function_exists('set_time_limit')) {
+			@set_time_limit(0);
+		}
 
 		foreach($recordIds as $recordId) {
 			try {
@@ -44,10 +53,9 @@ class Vtiger_MassDelete_Action extends Vtiger_Mass_Action {
 					$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleModel);
 					$recordModel->delete();
 					deleteRecordFromDetailViewNavigationRecords($recordId, $cvId, $moduleName);
-					$deletedCount++;
 				}
 			} catch (\Throwable $e) {
-				$failedCount++;
+				// Log and continue with next record
 				$logFile = 'logs/mass_delete_error.log';
 				$timestamp = date('Y-m-d H:i:s');
 				$msg = "[$timestamp] MassDelete FAIL record=$recordId module=$moduleName: "
@@ -55,6 +63,8 @@ class Vtiger_MassDelete_Action extends Vtiger_Mass_Action {
 				file_put_contents($logFile, $msg, FILE_APPEND);
 			}
 		}
+
+		$VTIGER_BULK_SAVE_MODE = $previousBulkSaveMode;
 
 		$response = new Vtiger_Response();
 		$response->setResult(array('viewname'=>$cvId, 'module'=>$moduleName));

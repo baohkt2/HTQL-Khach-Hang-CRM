@@ -10572,3 +10572,185 @@ FileAccessForInclusion -
 /var/www/html/cusc/includes/main/WebUI.php::vimport::15<br>
 /var/www/html/cusc/index.php::include_once::26<br>
 
+Traced on 2026-03-04 19:23:46
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1425<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1376<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::186<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::77<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-04 19:24:06
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1425<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1376<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::186<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::77<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-04 19:24:22
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1425<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1376<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::186<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::77<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-04 19:24:44
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1425<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1376<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::186<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/DeleteAjax.php::delete::18<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-04 19:24:58
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1425<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1376<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::186<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::77<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-04 19:25:46
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1425<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1376<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::186<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::77<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-04 19:32:33
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1425<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1376<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::186<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::77<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-04 19:46:25
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1425<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1376<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::186<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::77<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-04 23:22:35
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1402<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1368<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::182<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::45<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-04 23:23:51
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1402<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1368<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::182<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::45<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-04 23:41:24
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1402<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1368<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::182<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::45<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-04 23:56:45
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1402<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1368<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::182<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::48<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-05 00:04:54
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1402<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1368<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::182<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::48<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-05 00:05:38
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/data/CRMEntity.php::getInstance::1402<br>
+/var/www/html/cusc/modules/Contacts/Contacts.php::unlinkDependencies::1480<br>
+/var/www/html/cusc/data/CRMEntity.php::unlinkDependencies::1368<br>
+/var/www/html/cusc/modules/Vtiger/models/Module.php::trash::182<br>
+/var/www/html/cusc/modules/Vtiger/models/Record.php::deleteRecord::266<br>
+/var/www/html/cusc/modules/Vtiger/actions/MassDelete.php::delete::48<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
