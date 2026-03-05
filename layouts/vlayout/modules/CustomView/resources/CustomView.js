@@ -222,14 +222,7 @@ var Vtiger_CustomView_Js = {
 		jQuery("#CustomView").submit(function(e) {
 			var selectElement = Vtiger_CustomView_Js.getColumnSelectElement();
 			var select2Element = app.getSelect2ElementFromSelect(selectElement);
-			var result = Vtiger_MultiSelect_Validator_Js.invokeValidation(selectElement);
-			if(result != true){
-				select2Element.validationEngine('showPrompt', result , 'error','bottomLeft',true);
-				e.preventDefault();
-				return;
-			} else {
-				select2Element.validationEngine('hide');
-			}
+			// MultiSelect validation removed - no mandatory column requirement
             if(jQuery('#viewname').val().length > 40) {
                 var params = {
                     title : app.vtranslate('JS_MESSAGE'),
