@@ -33,6 +33,12 @@ class Import_Main_View extends Vtiger_View_Controller{
 			$importController->queueDataImport();
 		}
 
+		// Release PHP session lock after file processing is done.
+		// This allows the user to use other CRM features while import runs.
+		if (session_status() === PHP_SESSION_ACTIVE) {
+			session_write_close();
+		}
+
 		$isImportScheduled = $importController->request->get('is_scheduled');
 		$enableCron = $importController->request->get('enable_cron');
 		if($isImportScheduled) {
@@ -49,6 +55,12 @@ class Import_Main_View extends Vtiger_View_Controller{
 			@set_time_limit(0);
 		}
 		ini_set('memory_limit', '1024M');
+
+		// Release PHP session lock so the user can continue using other features
+		// while the import runs. Session data is no longer needed at this point.
+		if (session_status() === PHP_SESSION_ACTIVE) {
+			session_write_close();
+		}
 
 		$importInfo = Import_Queue_Action::getImportInfo($this->request->get('module'), $this->user);
 		if ($importInfo == null) {

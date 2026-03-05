@@ -530,7 +530,7 @@ if (typeof Vtiger_Import_Js == "undefined") {
             if (!Vtiger_Import_Js.isReloadStatusPageStopped) {
               Vtiger_Import_Js.timer = setTimeout(
                 Vtiger_Import_Js.scheduledImportRunning,
-                50000,
+                3000,
               );
             }
           }

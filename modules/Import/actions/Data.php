@@ -119,7 +119,6 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 	}
 
 	public function importData() {
-		error_log("Import_Data_Action: importData() method called for module: " . $this->module);
 		$focus = CRMEntity::getInstance($this->module);
 		$moduleModel = Vtiger_Module_Model::getInstance($this->module);
 		// pre fetch the fields and premmisions of module
@@ -128,13 +127,10 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			Vtiger_Field_Model::preFetchModuleFieldPermission($moduleModel->getId());
 		}
 		if (method_exists($focus, 'createRecords')) {
-			error_log("Import_Data_Action: Using focus->createRecords()");
 			$focus->createRecords($this);
 		} else {
-			error_log("Import_Data_Action: Using $this->createRecords()");
 			$this->createRecords();
 		}
-		error_log("Import_Data_Action: importData() completed");
 	}
 
 	public function initializeImport() {
@@ -178,8 +174,6 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		$moduleName = $this->module;
 		$tabId = getTabid($moduleName);
 		
-		error_log("Import_Data_Action: createRecords() started for module: $moduleName");
-
 		$focus = CRMEntity::getInstance($moduleName);
 		$moduleHandler = vtws_getModuleHandlerFromName($moduleName, $this->user);
 		$moduleMeta = $moduleHandler->getMeta();
@@ -461,7 +455,6 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 
 		//Creating entity data of created records for post save events 
 		if (!empty($createdRecords)) {
-			error_log("Import_Data_Action: Found " . count($createdRecords) . " created records: " . implode(',', $createdRecords));
 			$recordModels = Vtiger_Record_Model::getInstancesFromIds($createdRecords, $this->module);
 			$entityInfos = array();
 			foreach ($recordModels as $recordModel) {
@@ -469,26 +462,15 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 				$entityInfos[] = VTEntityData::fromCRMEntity($focus);
 			}
 			$this->entitydata = array_merge($this->entitydata, $entityInfos);
-			error_log("Import_Data_Action: Total entitydata count after merge: " . count($this->entitydata));
-		} else {
-			error_log("Import_Data_Action: No created records found");
 		}
 
 		//Triggering post save events
 		if ($this->entitydata) {
-			error_log("Import_Data_Action: Triggering batchevent.save for " . count($this->entitydata) . " entities");
-			error_log("Import_Data_Action: First entity type: " . (is_array($this->entitydata) && count($this->entitydata) > 0 ? gettype($this->entitydata[0]) : 'empty'));
-			
 			$entity = new VTEventsManager($adb);
 			$entity->triggerEvent('vtiger.batchevent.save', $this->entitydata);
-			error_log("Import_Data_Action: batchevent.save triggered");
 			
 			// CUSTOM: Trigger workflows for imported entities
-			error_log("Import_Data_Action: Starting custom workflow trigger");
 			$this->triggerWorkflowsForImportedEntities($this->entitydata, $adb);
-			error_log("Import_Data_Action: Custom workflow trigger completed");
-		} else {
-			error_log("Import_Data_Action: No entitydata to trigger events for");
 		}
 		$this->entitydata = null;
 		$result = null;
@@ -928,7 +910,6 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		try {
 			$entityIdInfo = vtws_create($moduleName, $fieldData, $this->user);
 		} catch (\Throwable $e) {
-			error_log("IMPORT ERROR for row: " . print_r($fieldData, true) . " - Exception: " . $e->getMessage());
 			$this->importRecord->updateStatus(Import_Data_Action::$IMPORT_RECORD_FAILED);
 			return false;
 		}
@@ -1273,7 +1254,6 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 				}
 			}
 		} catch (\Throwable $e) {
-			error_log("IMPORT ERROR in importSavedRecord operation=$operation: " . print_r($recordData, true) . " - Exception: " . $e->getMessage());
 			if ($operation != 'create') {
 				$entityInfo['status'] = self::$IMPORT_RECORD_SKIPPED;
 			}
@@ -1322,8 +1302,6 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			return;
 		}
 
-		error_log("Import_Data_Action: Triggering workflows for " . count($entityDataArray) . " imported entities");
-
 		require_once('modules/com_vtiger_workflow/VTWorkflowUtils.php');
 		require_once('modules/com_vtiger_workflow/VTWorkflowManager.inc');
 		require_once('modules/com_vtiger_workflow/VTEntityCache.inc');
@@ -1334,19 +1312,17 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 
 		foreach ($entityDataArray as $index => $entityData) {
 			if (!is_a($entityData, 'VTEntityData')) {
-				error_log("Import_Data_Action: Entity at index $index is not VTEntityData");
 				continue;
 			}
 
 			try {
 				$this->processEntityWorkflowsForImport($entityData, $entityCache, $user, $adb);
 			} catch (\Throwable $e) {
-				error_log("Import_Data_Action: Error processing workflows for entity " . $entityData->getId() . ": " . $e->getMessage());
+				// Skip workflow errors silently
 			}
 		}
 
 		$util->revertUser();
-		error_log("Import_Data_Action: Workflow processing completed");
 	}
 
 	/**
@@ -1358,13 +1334,9 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		$wsId = vtws_getWebserviceEntityId($wsModuleName, $entityData->getId());
 		$cachedEntityData = $entityCache->forId($wsId);
 
-		error_log("Import_Data_Action: Processing workflows for " . $entityData->getId() . " (" . $cachedEntityData->getModuleName() . ")");
-
 		// Get workflows for this module
 		$wfs = new VTWorkflowManager($adb);
 		$workflows = $wfs->getWorkflowsForModule($cachedEntityData->getModuleName());
-
-		error_log("Import_Data_Action: Found " . count($workflows) . " workflows for module " . $cachedEntityData->getModuleName());
 
 		foreach ($workflows as $workflow) {
 			if (!is_a($workflow, 'Workflow')) {
@@ -1378,38 +1350,30 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 				case VTWorkflowManager::$ON_FIRST_SAVE:
 				case VTWorkflowManager::$ON_EVERY_SAVE:
 					$shouldEvaluate = true;
-					error_log("Import_Data_Action: Will evaluate workflow " . $workflow->id . " (" . $workflow->description . ")");
 					break;
 				case VTWorkflowManager::$ONCE:
 					$entityId = vtws_getIdComponents($cachedEntityData->getId())[1];
 					if (!$workflow->isCompletedForRecord($entityId)) {
 						$shouldEvaluate = true;
-						error_log("Import_Data_Action: Will evaluate ONCE workflow " . $workflow->id);
 					}
 					break;
 				default:
-					error_log("Import_Data_Action: Skipping workflow " . $workflow->id . " (condition: " . $workflow->executionCondition . ")");
 					break;
 			}
 
 			if ($shouldEvaluate) {
 				try {
-					error_log("Import_Data_Action: Evaluating workflow " . $workflow->id);
 					if ($workflow->evaluate($entityCache, $cachedEntityData->getId())) {
-						error_log("Import_Data_Action: Executing workflow " . $workflow->id . " tasks");
 						$workflow->performTasks($cachedEntityData);
-						error_log("Import_Data_Action: Workflow " . $workflow->id . " completed successfully");
 
 						// Mark ONCE workflows as completed
 						if ($workflow->executionCondition == VTWorkflowManager::$ONCE) {
 							$entityId = vtws_getIdComponents($cachedEntityData->getId())[1];
 							$workflow->markAsCompletedForRecord($entityId);
 						}
-					} else {
-						error_log("Import_Data_Action: Workflow " . $workflow->id . " conditions not met");
 					}
 				} catch (\Throwable $e) {
-					error_log("Import_Data_Action: Error executing workflow " . $workflow->id . ": " . $e->getMessage());
+					// Skip workflow errors
 				}
 			}
 		}

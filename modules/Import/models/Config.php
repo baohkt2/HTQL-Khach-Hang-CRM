@@ -22,11 +22,11 @@ class Import_Config_Model extends Vtiger_Base_Model {
 						),
 
 			'userImportTablePrefix' => 'vtiger_import_',
-			// Individual batch limit - Specified number of records will be imported at one shot and the cycle will repeat till all records are imported
-			'importBatchLimit' => '5000',
+			// Individual batch limit - Keep low (250) so each AJAX cycle completes quickly and the UI stays responsive
+			'importBatchLimit' => '250',
 			// Threshold record limit for immediate import. If record count is more than this, then the import is scheduled through cron job
 			'immediateImportLimit' => '1000',
-			'importPagingLimit' => '1000',
+			'importPagingLimit' => '250',
 			// Stale lock timeout in seconds - locks older than this will be auto-released
 			'staleLockTimeout' => '1800',
 		);
