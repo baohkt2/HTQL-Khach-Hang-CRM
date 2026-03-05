@@ -77,9 +77,10 @@ class Import_Main_View extends Vtiger_View_Controller{
 				Import_Utils_Helper::showErrorPage(vtranslate('ERR_FAILED_TO_LOCK_MODULE', 'Import'));
 				exit;
 			}
-			// Process all records at once (no batch LIMIT) - progress is tracked
+			// Process all records at once (no LIMIT) - progress is tracked
 			// via the getImportProgress AJAX endpoint polling the staging table.
 			$importDataController->batchImport = false;
+			$importDataController->paging = false;
 		}
 
 		// Send immediate response to client BEFORE processing records.

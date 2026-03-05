@@ -987,6 +987,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		foreach ($scheduledImports as $scheduledId => $importDataController) {
 			$current_user = $importDataController->user;
 			$importDataController->batchImport = false;
+			$importDataController->paging = false;
 
 			if(!$importDataController->initializeImport()) { continue; }
 			$importDataController->importData();

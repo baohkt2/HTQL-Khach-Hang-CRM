@@ -23,7 +23,7 @@ class Import_Config_Model extends Vtiger_Base_Model {
 
 			'userImportTablePrefix' => 'vtiger_import_',
 			// Individual batch limit - Keep low (250) so each AJAX cycle completes quickly and the UI stays responsive
-			'importBatchLimit' => '250',
+			'importBatchLimit' => '10000',
 			// Threshold record limit for immediate import. If record count is more than this, then the import is scheduled through cron job
 			// Set high (100000) because session_write_close() + set_time_limit(0) + batchImport=false allow safe immediate processing
 			'immediateImportLimit' => '100000',
