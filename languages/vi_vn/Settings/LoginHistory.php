@@ -16,5 +16,8 @@ $languageStrings = array(
 	'LBL_LOGIN_TIME' => 'Thời gian đăng nhập',
 	'LBL_LOGGED_OUT_TIME' => 'Thời gian thoát', 
 	'LBL_STATUS' => 'Trạng thái',
-	'LBL_SESSION_DURATION' => 'Thời lượng'
+	'LBL_SESSION_DURATION' => 'Thời lượng',
+	'LBL_FROM_DATE' => 'Từ ngày',
+	'LBL_TO_DATE' => 'Đến ngày',
+	'LBL_APPLY_FILTER' => 'Lọc'
 );

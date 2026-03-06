@@ -14,6 +14,8 @@ class Settings_LoginHistory_List_View extends Settings_Vtiger_List_View {
 		$viewer = $this->getViewer($request);
 		$this->initializeUsersList($request);
 		$viewer->assign('SELECTED_USER',$request->get('user_name'));
+		$viewer->assign('SELECTED_DATE_START', $request->get('date_start'));
+		$viewer->assign('SELECTED_DATE_END', $request->get('date_end'));
 		
 		$listViewModel = Settings_Vtiger_ListView_Model::getInstance($request->getModule(false));
 		$viewer->assign('LISTVIEW_LINKS', $listViewModel->getListViewLinks());
@@ -31,6 +33,9 @@ class Settings_LoginHistory_List_View extends Settings_Vtiger_List_View {
 		$loginHistoryRecordModel = new  Settings_LoginHistory_Record_Model();
 		$usersList = $loginHistoryRecordModel->getAccessibleUsers();
 		$viewer->assign('USERSLIST',$usersList);
+		$viewer->assign('SELECTED_USER',$request->get('user_name'));
+		$viewer->assign('SELECTED_DATE_START', $request->get('date_start'));
+		$viewer->assign('SELECTED_DATE_END', $request->get('date_end'));
 	}
 
 	/**

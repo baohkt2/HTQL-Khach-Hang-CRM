@@ -9,6 +9,43 @@
  *************************************************************************************/
 class Settings_LoginHistory_ListView_Model extends Settings_Vtiger_ListView_Model {
 
+	private function getFilterValue($key) {
+		$value = $this->get($key);
+		if ($value === null && isset($_REQUEST[$key])) {
+			$value = $_REQUEST[$key];
+		}
+		return $value;
+	}
+
+	private function isValidDateFilterValue($dateValue) {
+		return is_string($dateValue) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateValue);
+	}
+
+	private function getFilterConditions($module, &$params) {
+		$conditions = array();
+
+		$searchKey = $this->getFilterValue('search_key');
+		$searchValue = trim((string) $this->getFilterValue('search_value'));
+		if ($searchKey === 'user_name' && $searchValue !== '') {
+			$conditions[] = "$module->baseTable.$searchKey = ?";
+			$params[] = Vtiger_Functions::realEscapeString($searchValue);
+		}
+
+		$dateStart = trim((string) $this->getFilterValue('date_start'));
+		if ($this->isValidDateFilterValue($dateStart)) {
+			$conditions[] = "$module->baseTable.login_time >= ?";
+			$params[] = $dateStart . ' 00:00:00';
+		}
+
+		$dateEnd = trim((string) $this->getFilterValue('date_end'));
+		if ($this->isValidDateFilterValue($dateEnd)) {
+			$conditions[] = "$module->baseTable.login_time <= ?";
+			$params[] = $dateEnd . ' 23:59:59';
+		}
+
+		return $conditions;
+	}
+
 	/**
 	 * Funtion to get the Login history basic query
 	 * @return type
@@ -27,13 +64,10 @@ class Settings_LoginHistory_ListView_Model extends Settings_Vtiger_ListView_Mode
 				FROM $module->baseTable 
 				INNER JOIN vtiger_users ON vtiger_users.user_name = $module->baseTable.user_name";
 		
-		$search_key = $this->get('search_key');
-		$value = Vtiger_Functions::realEscapeString($this->get('search_value'));
-
         $params = array();
-		if(!empty($search_key) && !empty($value)) {
-			$query .= " WHERE $module->baseTable.$search_key = ?";
-            $params[] = $value;
+		$conditions = $this->getFilterConditions($module, $params);
+		if (!empty($conditions)) {
+			$query .= ' WHERE ' . implode(' AND ', $conditions);
 		}
         $query .= " ORDER BY login_time DESC"; 
  	 return $db->convert2Sql($query, $params); 
@@ -64,12 +98,10 @@ class Settings_LoginHistory_ListView_Model extends Settings_Vtiger_ListView_Mode
 		$module = $this->getModule();
 		$listQuery = "SELECT count(*) AS count FROM $module->baseTable INNER JOIN vtiger_users ON vtiger_users.user_name = $module->baseTable.user_name";
 
-		$search_key = $this->get('search_key');
-		$value = $this->get('search_value');
 		$params = array();
-		if(!empty($search_key) && !empty($value)) {
-			$listQuery .= " WHERE $module->baseTable.$search_key = ?";
-            $params[] = $value;
+		$conditions = $this->getFilterConditions($module, $params);
+		if (!empty($conditions)) {
+			$listQuery .= ' WHERE ' . implode(' AND ', $conditions);
 		}
 
 		$listResult = $db->pquery($listQuery, $params);

@@ -25,18 +25,29 @@
    <div class="col-sm-12 col-xs-12 ">
         <div id="listview-actions" class="listview-actions-container">
             <div class = "row">
-                <div class='col-md-6 usersListDiv'>
+                <div class='col-md-8 usersListDiv'>
                     <select class="select2 col-md-4" id="usersFilter" >
                         <option value="">{vtranslate('LBL_ALL', $QUALIFIED_MODULE)}</option>
                         {foreach item=USERNAME key=USER from=$USERSLIST}
                             <option value="{$USER}" name="{$USERNAME}" {if isset($SELECTED_USER ) && $USERNAME eq $SELECTED_USER} selected {/if}>{$USERNAME}</option>
                         {/foreach}
                     </select>
+                    <div class="input-group input-group-sm" style="display: inline-table; width: 180px; margin-left: 10px; vertical-align: middle;">
+                        <span class="input-group-addon">{vtranslate('LBL_FROM_DATE', $QUALIFIED_MODULE)}</span>
+                        <input type="date" class="form-control" id="exportDateStart" value="{$SELECTED_DATE_START|escape:'html'}" />
+                    </div>
+                    <div class="input-group input-group-sm" style="display: inline-table; width: 180px; margin-left: 10px; vertical-align: middle;">
+                        <span class="input-group-addon">{vtranslate('LBL_TO_DATE', $QUALIFIED_MODULE)}</span>
+                        <input type="date" class="form-control" id="exportDateEnd" value="{$SELECTED_DATE_END|escape:'html'}" />
+                    </div>
+                    <button class="btn btn-default" id="applyLoginHistoryFilterBtn" style="margin-left: 10px;">
+                        <i class="fa fa-filter"></i>&nbsp;&nbsp;{vtranslate('LBL_APPLY_FILTER', $QUALIFIED_MODULE)}
+                    </button>
                     <button class="btn btn-default" id="exportLoginHistoryBtn" style="margin-left: 10px;">
                         <i class="fa fa-download"></i>&nbsp;&nbsp;{vtranslate('LBL_EXPORT', $QUALIFIED_MODULE)}
                     </button>
                 </div>
-                <div class="col-md-6 pull-right">
+                <div class="col-md-4 pull-right">
                     {assign var=RECORD_COUNT value=$LISTVIEW_ENTRIES_COUNT}
                     {include file="Pagination.tpl"|vtemplate_path:$MODULE SHOWPAGEJUMP=true}
                 </div>

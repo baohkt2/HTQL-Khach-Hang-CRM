@@ -16,5 +16,8 @@ $languageStrings = array(
 	'LBL_LOGIN_TIME' => 'Sign-in Time',
 	'LBL_LOGGED_OUT_TIME' => 'Sign-out Time', 
 	'LBL_STATUS' => 'Status',
-	'LBL_SESSION_DURATION' => 'Session Duration'
+	'LBL_SESSION_DURATION' => 'Session Duration',
+	'LBL_FROM_DATE' => 'From',
+	'LBL_TO_DATE' => 'To',
+	'LBL_APPLY_FILTER' => 'Filter'
 );

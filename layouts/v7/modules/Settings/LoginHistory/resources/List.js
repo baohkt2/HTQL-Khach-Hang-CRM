@@ -13,7 +13,9 @@ Settings_Vtiger_List_Js(
   {
     registerFilterChangeEvent: function () {
       var thisInstance = this;
-      jQuery("#usersFilter").on("change", function (e) {
+      jQuery("#usersFilter")
+        .off("change.loginHistoryFilter")
+        .on("change.loginHistoryFilter", function (e) {
         jQuery("#pageNumber").val("1");
         jQuery("#pageToJump").val("1");
         jQuery("#orderBy").val("");
@@ -28,11 +30,19 @@ Settings_Vtiger_List_Js(
           page: 1,
           user_name: this.options[this.selectedIndex].getAttribute("name"),
         };
+        params = jQuery.extend(params, thisInstance.getDateFilterParams());
 
         //Make total number of pages as empty
         jQuery("#totalPageCount").text("");
         thisInstance.loadListViewRecords(params, value);
-      });
+        });
+    },
+
+    getDateFilterParams: function () {
+      return {
+        date_start: jQuery("#exportDateStart").val(),
+        date_end: jQuery("#exportDateEnd").val(),
+      };
     },
 
     getDefaultParams: function () {
@@ -49,6 +59,8 @@ Settings_Vtiger_List_Js(
         ),
         search_key: "user_name",
         search_value: jQuery("#usersFilter").val(),
+        date_start: jQuery("#exportDateStart").val(),
+        date_end: jQuery("#exportDateEnd").val(),
       };
 
       return params;
@@ -73,6 +85,8 @@ Settings_Vtiger_List_Js(
           );
           vtUtils.showSelect2ElementView(jQuery("#usersFilter"));
           thisInstance.registerFilterChangeEvent();
+          thisInstance.registerApplyFilterEvent();
+          thisInstance.registerExportEvent();
           thisInstance.updatePagination();
         } else {
           app.helper.showErrorNotification({ message: err.message });
@@ -94,8 +108,36 @@ Settings_Vtiger_List_Js(
         mode: "getPageCount",
         search_value: jQuery("#usersFilter").val(),
         search_key: "user_name",
+        date_start: jQuery("#exportDateStart").val(),
+        date_end: jQuery("#exportDateEnd").val(),
       };
       return pageJumpParams;
+    },
+
+    registerApplyFilterEvent: function () {
+      var thisInstance = this;
+      jQuery("#applyLoginHistoryFilterBtn")
+        .off("click.loginHistoryFilter")
+        .on("click.loginHistoryFilter", function () {
+          var selectedUser = jQuery("#usersFilter").val();
+          var params = {
+            module: app.getModuleName(),
+            parent: app.getParentModuleName(),
+            search_key: "user_name",
+            search_value: selectedUser,
+            page: 1,
+            user_name: jQuery("select[id=usersFilter] option:selected").attr(
+              "name",
+            ),
+          };
+
+          params = jQuery.extend(params, thisInstance.getDateFilterParams());
+
+          jQuery("#pageNumber").val("1");
+          jQuery("#pageToJump").val("1");
+          jQuery("#totalPageCount").text("");
+          thisInstance.loadListViewRecords(params, selectedUser);
+        });
     },
 
     pageJumpOnSubmit: function (element) {
@@ -185,19 +227,30 @@ Settings_Vtiger_List_Js(
     registerEvents: function () {
       this.initializePaginationEvents();
       this.registerFilterChangeEvent();
+      this.registerApplyFilterEvent();
       this.registerExportEvent();
     },
 
     registerExportEvent: function () {
-      jQuery("#exportLoginHistoryBtn").on("click", function () {
+      jQuery("#exportLoginHistoryBtn")
+        .off("click.loginHistoryExport")
+        .on("click.loginHistoryExport", function () {
         var url =
           "index.php?module=LoginHistory&parent=Settings&action=ExportData";
         var selectedUser = jQuery("#usersFilter").val();
         if (selectedUser) {
           url += "&user_name=" + encodeURIComponent(selectedUser);
         }
+        var dateStart = jQuery("#exportDateStart").val();
+        var dateEnd = jQuery("#exportDateEnd").val();
+        if (dateStart) {
+          url += "&date_start=" + encodeURIComponent(dateStart);
+        }
+        if (dateEnd) {
+          url += "&date_end=" + encodeURIComponent(dateEnd);
+        }
         window.location.href = url;
-      });
+        });
     },
   },
 );

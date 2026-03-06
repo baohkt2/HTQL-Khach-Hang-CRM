@@ -33,6 +33,15 @@ class Settings_LoginHistory_ExportData_Action extends Settings_Vtiger_Basic_Acti
             $listViewModel->set('search_value', $value);
         }
 
+        $dateStart = $request->get('date_start');
+        $dateEnd = $request->get('date_end');
+        if (!empty($dateStart)) {
+            $listViewModel->set('date_start', $dateStart);
+        }
+        if (!empty($dateEnd)) {
+            $listViewModel->set('date_end', $dateEnd);
+        }
+
         $listQuery = $listViewModel->getBasicListQuery();
         
         $db = PearDatabase::getInstance();

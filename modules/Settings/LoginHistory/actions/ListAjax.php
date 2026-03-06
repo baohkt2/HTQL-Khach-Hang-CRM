@@ -24,6 +24,15 @@ class Settings_LoginHistory_ListAjax_Action extends Settings_Vtiger_ListAjax_Act
 			$listViewModel->set('search_value', $value);
 		}
 
+		$dateStart = $request->get('date_start');
+		$dateEnd = $request->get('date_end');
+		if (!empty($dateStart)) {
+			$listViewModel->set('date_start', $dateStart);
+		}
+		if (!empty($dateEnd)) {
+			$listViewModel->set('date_end', $dateEnd);
+		}
+
 		return $listViewModel->getListViewCount();
     }
 }

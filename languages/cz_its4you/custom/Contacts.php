@@ -1,6 +1,5 @@
 <?php
 $languageStrings = array(
-'Gmobile'	=>	'Gmobile',
 'Đợt 4'	=>	'Đợt 4',
 'Đợt 5'	=>	'Đợt 5',
 'Đợt 6'	=>	'Đợt 6',
