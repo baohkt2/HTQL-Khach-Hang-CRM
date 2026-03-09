@@ -23,6 +23,10 @@ jQuery.Class("PDFMaker_FreeActions_Js",{
     getPDFSelectLanguage: function(container) {
         return container.find('#template_language').val();
     },
+    getPDFSelectedTemplate: function(container) {
+        var select = container.find('#pdf_template_select');
+        return select.length ? select.val() : '';
+    },
     getDefaultParams: function(viewtype,pdflanguage) {
 
         var params = {
@@ -178,9 +182,13 @@ jQuery.Class("PDFMaker_FreeActions_Js",{
 
         container.find('.PDFMakerDownloadPDF').on('click', function(){
             var pdflanguage = self.getPDFSelectLanguage(container);
+            var templateid = self.getPDFSelectedTemplate(container);
 
             var params = self.getDefaultParams('',pdflanguage);
             params["action"]  = 'CreatePDFFromTemplate';
+            if (templateid) {
+                params["templateid"] = templateid;
+            }
             var paramsUrl = jQuery.param(params);
             window.location.href = "index.php?" + paramsUrl;
 
@@ -230,16 +238,24 @@ jQuery.Class("PDFMaker_FreeActions_Js",{
                 
                 if(err === null){
                     if (response != ""){
-                        detailViewButtonContainerDiv.append(response);
-                        detailViewButtonContainerDiv.find('#template_language').select2();
+                        var moreDropdown = jQuery('.detailViewButtoncontainer .btn-group .dropdown-menu.dropdown-menu-right').first();
+                        if (moreDropdown.length > 0 && moreDropdown.find('.pdfmakerLegacyExportAction').length === 0) {
+                            var menuItem = jQuery(
+                                '<li class="pdfmakerLegacyExportAction">' +
+                                '<a href="javascript:void(0)">Export PDF</a>' +
+                                '</li>'
+                            );
+                            moreDropdown.append(menuItem);
 
-                        var pdfmakercontent = detailViewButtonContainerDiv.find('#PDFMakerContentDiv');
-                        PDFMaker_FreeActions_Js.registerPDFActionsButtons(pdfmakercontent);
-                        PDFMaker_FreeActions_Js.registerPDFSelectInput(pdfmakercontent);
-                        detailViewButtonContainerDiv.find('.selectPDFTemplates').on('click', function(){
-                            var pdflanguage = PDFMaker_FreeActions_Js.getPDFSelectLanguage(pdfmakercontent);
-                            PDFMaker_FreeActions_Js.showPDFPreviewModal(pdflanguage);
-                        });
+                            menuItem.find('a').on('click', function (e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                app.helper.showAlertBox({
+                                    title: 'Thong bao',
+                                    message: 'Tinh nang Export PDF dang duoc phat trien. Vui long quay lai sau.'
+                                });
+                            });
+                        }
                     }
                 }
             }

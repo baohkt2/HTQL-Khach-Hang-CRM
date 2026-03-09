@@ -537,6 +537,14 @@ $languageStrings = Array(
     "LBL_DISPLAY_CONDITIONS_NO" => "The template is not displayed for export when",
     "LBL_STYLES"=>"Styles",
     "LBL_INSTALL_STEP_1"=>"Welcome",
+
+    // CRUD enhancements
+    "LBL_TEMPLATE_NAME" => "Template Name",
+    "LBL_ENTER_TEMPLATE_NAME" => "Enter template name",
+    "LBL_SELECT_MODULE" => "Select Module",
+    "LBL_DELETE_CONFIRMATION" => "Are you sure you want to delete this template?",
+    "LBL_DELETE_SUCCESS" => "Template deleted successfully.",
+    "LBL_DELETE_FAILED" => "Failed to delete template.",
 );
 
 $jsLanguageStrings = array(
