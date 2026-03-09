@@ -3,14 +3,11 @@
  * Handles CKEditor initialization, field picker interactions,
  * and AJAX loading of module fields when target modules change.
  */
-jQuery.Class("PDFMaker2_Edit_Js", {}, {
+Vtiger_Edit_Js("PDFMaker2_Edit_Js", {}, {
     editorInstances: {},
 
-    init: function () {
-        this.registerEvents();
-    },
-
     registerEvents: function () {
+        this._super();
         var self = this;
         this.initCKEditors();
         this.registerModuleChange();
@@ -171,11 +168,5 @@ jQuery.Class("PDFMaker2_Edit_Js", {}, {
 
             return true;
         });
-    }
-});
-
-jQuery(document).ready(function () {
-    if (jQuery('#pdfmaker2EditForm').length > 0) {
-        var instance = new PDFMaker2_Edit_Js();
     }
 });

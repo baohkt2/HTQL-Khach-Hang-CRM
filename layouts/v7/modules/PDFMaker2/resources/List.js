@@ -2,15 +2,7 @@
  * PDFMaker2 — List View JS
  * Handles delete confirmation and row click navigation.
  */
-jQuery.Class("PDFMaker2_List_Js", {}, {
-    init: function () {
-        this.registerEvents();
-    },
-
-    registerEvents: function () {
-        this.registerDeleteAction();
-        this.registerRowClick();
-    },
+Vtiger_List_Js("PDFMaker2_List_Js", {}, {
 
     registerDeleteAction: function () {
         jQuery('.deleteTemplate').on('click', function (e) {
@@ -52,9 +44,11 @@ jQuery.Class("PDFMaker2_List_Js", {}, {
                 window.location.href = 'index.php?module=PDFMaker2&view=Edit&templateid=' + id;
             }
         });
-    }
-});
+    },
 
-jQuery(document).ready(function () {
-    var instance = new PDFMaker2_List_Js();
+    registerEvents: function () {
+        this._super();
+        this.registerDeleteAction();
+        this.registerRowClick();
+    }
 });

@@ -10,6 +10,16 @@ class PDFMaker2_List_View extends Vtiger_Index_View {
         return [];
     }
 
+    public function preProcessTplName(Vtiger_Request $request) {
+        return 'ListViewPreProcess.tpl';
+    }
+
+    public function postProcess(Vtiger_Request $request) {
+        $viewer = $this->getViewer($request);
+        $viewer->view('ListViewPostProcess.tpl', $request->getModule());
+        parent::postProcess($request);
+    }
+
     public function process(Vtiger_Request $request) {
         $viewer = $this->getViewer($request);
 

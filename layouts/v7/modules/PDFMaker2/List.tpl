@@ -14,18 +14,18 @@
     </div>
     <hr>
 
-    <div id="table-content" class="table-container">
-        <table id="listview-table" class="table listview-table">
+    <div id="table-content" class="table-container" >
+        <table id="listview-table" class="table listview-table" >
             <thead>
                 <tr class="listViewContentHeader">
-                    <th style="width:5%">#</th>
+                    <th style="width:5% !important;">#</th>
                     <th>{vtranslate('LBL_TEMPLATE_NAME', 'PDFMaker2')}</th>
                     <th>{vtranslate('LBL_DESCRIPTION', 'PDFMaker2')}</th>
-                    <th>{vtranslate('LBL_TARGET_MODULES', 'PDFMaker2')}</th>
+                    <th> {vtranslate('LBL_TARGET_MODULES', 'PDFMaker2')}</th>
                     <th>{vtranslate('LBL_FORMAT', 'PDFMaker2')}</th>
                     <th>{vtranslate('LBL_STATUS', 'PDFMaker2')}</th>
                     <th>{vtranslate('LBL_MODIFIED', 'PDFMaker2')}</th>
-                    <th style="width:8%">{vtranslate('LBL_ACTIONS', 'PDFMaker2')}</th>
+                    <th style="width:8% !important;">{vtranslate('LBL_ACTIONS', 'PDFMaker2')}</th>
                 </tr>
             </thead>
             <tbody>
