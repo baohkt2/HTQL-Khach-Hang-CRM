@@ -7,6 +7,11 @@
  * Portions created by vtiger are Copyright (C) vtiger.
  * All Rights Reserved.
  ************************************************************************************/
+// Load env.loader.php if not already loaded (for standalone cron scripts)
+if (!function_exists('env')) {
+	@include_once(dirname(__FILE__) . '/env.loader.php');
+}
+
 /* Performance paramters can be configured to fine tune vtiger CRM runtime */
 $PERFORMANCE_CONFIG = Array(
 	// Enable Vtiger Log Level for debugging only if requried 
@@ -46,7 +51,19 @@ $PERFORMANCE_CONFIG = Array(
 
 	// Session inactivity timeout (seconds) for Login History cleanup.
 	// Sessions with no activity for longer than this will be marked 'Session expired'.
-	// Default: 1800 (30 minutes)
-	'SESSION_INACTIVITY_TIMEOUT' => 1800,
+	// Read from .env SESSION_INACTIVITY_TIMEOUT, default: 1800 (30 minutes)
+	'SESSION_INACTIVITY_TIMEOUT' => function_exists('env') ? (int) env('SESSION_INACTIVITY_TIMEOUT', 1800) : 1800,
+
+	// PHP session garbage collection max lifetime (seconds).
+	// Read from .env SESSION_GC_MAXLIFETIME, default: 1440 (24 minutes)
+	'SESSION_GC_MAXLIFETIME' => function_exists('env') ? (int) env('SESSION_GC_MAXLIFETIME', 1440) : 1440,
+
+	// Client-side heartbeat interval (seconds, exported as JS config).
+	// Read from .env HEARTBEAT_INTERVAL, default: 300 (5 minutes)
+	'HEARTBEAT_INTERVAL' => function_exists('env') ? (int) env('HEARTBEAT_INTERVAL', 300) : 300,
+
+	// Client-side inactivity limit (seconds) after which heartbeat stops.
+	// Read from .env CLIENT_INACTIVITY_LIMIT, default: 1800 (30 minutes)
+	'CLIENT_INACTIVITY_LIMIT' => function_exists('env') ? (int) env('CLIENT_INACTIVITY_LIMIT', 1800) : 1800,
 );
 ?>
