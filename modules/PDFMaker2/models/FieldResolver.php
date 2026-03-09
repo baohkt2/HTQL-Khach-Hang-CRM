@@ -2,10 +2,29 @@
 /**
  * PDFMaker2 — FieldResolver Model
  * Resolves module fields and replaces $FIELD$ variables with actual record data.
+ * Supports related module field resolution inherited from original PDFMaker UIType mapping.
  */
 class PDFMaker2_FieldResolver_Model {
 
     private $db;
+
+    /**
+     * Map of UITypes to related module names.
+     * Inherited from original PDFMaker's Fields model.
+     */
+    private static $uitypeRelatedModuleMap = [
+        51 => ['Accounts'],
+        57 => ['Contacts'],
+        58 => ['Campaigns'],
+        59 => ['Products'],
+        73 => ['Accounts'],
+        75 => ['Vendors'],
+        76 => ['Potentials'],
+        78 => ['Quotes'],
+        80 => ['SalesOrder'],
+        81 => ['Vendors'],
+        68 => ['Accounts', 'Contacts'],
+    ];
 
     public function __construct() {
         $this->db = PearDatabase::getInstance();
@@ -13,7 +32,6 @@ class PDFMaker2_FieldResolver_Model {
 
     /**
      * Get all entity modules available in the system.
-     * Returns array of ['name' => 'ModuleName', 'label' => 'Translated Label']
      */
     public function getEntityModules() {
         $result = $this->db->pquery(
@@ -32,7 +50,7 @@ class PDFMaker2_FieldResolver_Model {
 
     /**
      * Get all fields for a module, organized by block.
-     * Returns structure suitable for field picker UI.
+     * Includes related module fields for template variable picker.
      */
     public function getFieldsForModule($moduleName) {
         $tabId = getTabId($moduleName);
@@ -51,6 +69,8 @@ class PDFMaker2_FieldResolver_Model {
         }
 
         $blocks = [];
+        $relatedModulesFound = [];
+
         while ($blockRow = $this->db->fetchByAssoc($blockResult)) {
             $blockLabel = $blockRow['blocklabel'];
             if (empty($blockLabel)) $blockLabel = 'LBL_BLOCK_' . $blockRow['blockid'];
@@ -58,7 +78,7 @@ class PDFMaker2_FieldResolver_Model {
             $fieldResult = $this->db->pquery(
                 "SELECT fieldid, fieldname, fieldlabel, uitype, columnname, tablename
                  FROM vtiger_field
-                 WHERE block = ? AND displaytype != 3 AND displaytype != 4 AND fieldlabel != 'Add Comment'
+                 WHERE block = ? AND (displaytype != 3 OR uitype = 55) AND displaytype != 4 AND fieldlabel != 'Add Comment'
                  ORDER BY sequence ASC",
                 [$blockRow['blockid']]
             );
@@ -72,12 +92,43 @@ class PDFMaker2_FieldResolver_Model {
                     'columnname' => $fieldRow['columnname'],
                     'variable' => '$' . strtoupper($moduleName) . '_' . strtoupper($fieldRow['columnname']) . '$',
                 ];
+
+                // Detect related modules
+                $uitype = (int)$fieldRow['uitype'];
+                if (isset(self::$uitypeRelatedModuleMap[$uitype])) {
+                    foreach (self::$uitypeRelatedModuleMap[$uitype] as $relMod) {
+                        $relatedModulesFound[$relMod] = true;
+                    }
+                } elseif ($uitype == 10) {
+                    // Dynamic related modules from vtiger_fieldmodulerel
+                    $relResult = $this->db->pquery(
+                        "SELECT relmodule FROM vtiger_fieldmodulerel WHERE fieldid = ?",
+                        [$fieldRow['fieldid']]
+                    );
+                    while ($relRow = $this->db->fetchByAssoc($relResult)) {
+                        $relatedModulesFound[$relRow['relmodule']] = true;
+                    }
+                } elseif ($uitype == 101 || $uitype == 52 || $uitype == 53) {
+                    $relatedModulesFound['Users'] = true;
+                }
             }
 
             if (!empty($fields)) {
                 $blocks[] = [
                     'label' => vtranslate($blockLabel, $moduleName),
                     'fields' => $fields,
+                ];
+            }
+        }
+
+        // Add related module fields
+        foreach ($relatedModulesFound as $relModuleName => $v) {
+            if ($relModuleName == $moduleName) continue;
+            $relFields = $this->getBasicFieldsForModule($relModuleName);
+            if (!empty($relFields)) {
+                $blocks[] = [
+                    'label' => vtranslate($relModuleName, $relModuleName) . ' (' . vtranslate('LBL_RELATED', 'PDFMaker2') . ')',
+                    'fields' => $relFields,
                 ];
             }
         }
@@ -95,6 +146,7 @@ class PDFMaker2_FieldResolver_Model {
                 ['fieldname' => 'company_phone', 'fieldlabel' => vtranslate('LBL_COMPANY_PHONE', 'PDFMaker2'), 'variable' => '$COMPANY_PHONE$'],
                 ['fieldname' => 'company_website', 'fieldlabel' => vtranslate('LBL_COMPANY_WEBSITE', 'PDFMaker2'), 'variable' => '$COMPANY_WEBSITE$'],
                 ['fieldname' => 'company_logo', 'fieldlabel' => vtranslate('LBL_COMPANY_LOGO', 'PDFMaker2'), 'variable' => '$COMPANY_LOGO$'],
+                ['fieldname' => 'page_number', 'fieldlabel' => vtranslate('LBL_PAGE_NUMBER', 'PDFMaker2'), 'variable' => '$PAGE_NUMBER$'],
             ]
         ];
 
@@ -102,7 +154,38 @@ class PDFMaker2_FieldResolver_Model {
     }
 
     /**
+     * Get basic fields for a related module (for field picker).
+     */
+    private function getBasicFieldsForModule($moduleName) {
+        $tabId = getTabId($moduleName);
+        if (!$tabId) return [];
+
+        $fieldResult = $this->db->pquery(
+            "SELECT f.fieldname, f.fieldlabel, f.uitype, f.columnname
+             FROM vtiger_field f
+             INNER JOIN vtiger_blocks b ON b.blockid = f.block
+             WHERE f.tabid = ? AND f.displaytype != 3 AND f.displaytype != 4
+             ORDER BY b.sequence ASC, f.sequence ASC",
+            [$tabId]
+        );
+
+        $fields = [];
+        while ($row = $this->db->fetchByAssoc($fieldResult)) {
+            $fields[] = [
+                'fieldname' => $row['fieldname'],
+                'fieldlabel' => vtranslate($row['fieldlabel'], $moduleName),
+                'uitype' => $row['uitype'],
+                'columnname' => $row['columnname'],
+                'variable' => '$' . strtoupper($moduleName) . '_' . strtoupper($row['columnname']) . '$',
+            ];
+        }
+        return $fields;
+    }
+
+    /**
      * Resolve all template variables with actual record data.
+     * Supports: main module fields, related module fields, system variables.
+     *
      * @param string $html Template HTML with $VARIABLES$
      * @param int $recordId CRM record ID
      * @param string $moduleName Module name
@@ -121,19 +204,43 @@ class PDFMaker2_FieldResolver_Model {
 
         // Build field map: columnname -> value, fieldname -> value
         $fieldMap = [];
+        $relatedRecordIds = []; // key: relatedModuleName, value: recordId
+
         $fieldResult = $this->db->pquery(
-            "SELECT fieldname, columnname, uitype, tablename FROM vtiger_field WHERE tabid = ?",
+            "SELECT fieldid, fieldname, columnname, uitype, tablename FROM vtiger_field WHERE tabid = ?",
             [$tabId]
         );
         while ($row = $this->db->fetchByAssoc($fieldResult)) {
             $rawValue = $focus->column_fields[$row['fieldname']] ?? '';
-            $displayValue = $this->formatFieldValue($rawValue, $row['uitype'], $row['fieldname'], $moduleName);
+            $uitype = (int)$row['uitype'];
+
+            // Track related record IDs for later resolution
+            if (!empty($rawValue) && is_numeric($rawValue)) {
+                if (isset(self::$uitypeRelatedModuleMap[$uitype])) {
+                    foreach (self::$uitypeRelatedModuleMap[$uitype] as $relMod) {
+                        $relatedRecordIds[$relMod] = (int)$rawValue;
+                    }
+                } elseif ($uitype == 10) {
+                    $relModule = getSalesEntityType($rawValue);
+                    if ($relModule) {
+                        $relatedRecordIds[$relModule] = (int)$rawValue;
+                    }
+                } elseif ($uitype == 53 || $uitype == 52 || $uitype == 101) {
+                    $relatedRecordIds['Users'] = (int)$rawValue;
+                }
+            }
+
+            $displayValue = $this->formatFieldValue($rawValue, $uitype, $row['fieldname'], $moduleName);
 
             $varKey = strtoupper($moduleName) . '_' . strtoupper($row['columnname']);
             $fieldMap[$varKey] = $displayValue;
-            // Also map by fieldname for convenience
             $varKey2 = strtoupper($moduleName) . '_' . strtoupper($row['fieldname']);
             $fieldMap[$varKey2] = $displayValue;
+        }
+
+        // Resolve related module fields
+        foreach ($relatedRecordIds as $relModuleName => $relRecordId) {
+            $this->resolveRelatedModuleFields($fieldMap, $relModuleName, $relRecordId);
         }
 
         // System variables
@@ -143,19 +250,20 @@ class PDFMaker2_FieldResolver_Model {
         $fieldMap['RECORD_ID'] = $recordId;
         $fieldMap['CURRENT_DATE'] = date('d/m/Y');
         $fieldMap['CURRENT_TIME'] = date('H:i:s');
-        $fieldMap['CURRENT_USER'] = $currentUser->get('first_name') . ' ' . $currentUser->get('last_name');
+        $fieldMap['CURRENT_USER'] = trim(($currentUser->get('first_name') ?? '') . ' ' . ($currentUser->get('last_name') ?? ''));
         $fieldMap['COMPANY_NAME'] = $companyDetails['organizationname'] ?? '';
         $fieldMap['COMPANY_ADDRESS'] = $companyDetails['address'] ?? '';
         $fieldMap['COMPANY_PHONE'] = $companyDetails['phone'] ?? '';
         $fieldMap['COMPANY_WEBSITE'] = $companyDetails['website'] ?? '';
         $fieldMap['COMPANY_LOGO'] = !empty($companyDetails['logoname'])
-            ? '<img src="test/logo/' . htmlspecialchars($companyDetails['logoname'], ENT_QUOTES, 'UTF-8') . '" />'
+            ? '<img src="test/logo/' . ($companyDetails['logoname']) . '" style="max-width:200px" />'
             : '';
         $fieldMap['COMPANY_CITY'] = $companyDetails['city'] ?? '';
         $fieldMap['COMPANY_STATE'] = $companyDetails['state'] ?? '';
         $fieldMap['COMPANY_ZIP'] = $companyDetails['code'] ?? '';
         $fieldMap['COMPANY_COUNTRY'] = $companyDetails['country'] ?? '';
         $fieldMap['COMPANY_FAX'] = $companyDetails['fax'] ?? '';
+        $fieldMap['PAGE_NUMBER'] = '{PAGENO}';
 
         // Replace all $VARIABLE$ in HTML
         $html = preg_replace_callback('/\$([A-Z0-9_]+)\$/', function ($matches) use ($fieldMap) {
@@ -164,6 +272,81 @@ class PDFMaker2_FieldResolver_Model {
         }, $html);
 
         return $html;
+    }
+
+    /**
+     * Resolve fields from a related module record and add to fieldMap.
+     */
+    private function resolveRelatedModuleFields(&$fieldMap, $relModuleName, $relRecordId) {
+        if (empty($relRecordId)) return;
+
+        try {
+            if ($relModuleName === 'Users') {
+                $this->resolveUserFields($fieldMap, $relRecordId);
+                return;
+            }
+
+            $relFocus = CRMEntity::getInstance($relModuleName);
+            foreach ($relFocus->column_fields as $key => $val) {
+                $relFocus->column_fields[$key] = '';
+            }
+            $relFocus->retrieve_entity_info($relRecordId, $relModuleName);
+            $relFocus->id = $relRecordId;
+
+            $relTabId = getTabId($relModuleName);
+            $fieldResult = $this->db->pquery(
+                "SELECT fieldname, columnname, uitype FROM vtiger_field WHERE tabid = ?",
+                [$relTabId]
+            );
+            while ($row = $this->db->fetchByAssoc($fieldResult)) {
+                $rawValue = $relFocus->column_fields[$row['fieldname']] ?? '';
+                $displayValue = $this->formatFieldValue($rawValue, (int)$row['uitype'], $row['fieldname'], $relModuleName);
+
+                $varKey = strtoupper($relModuleName) . '_' . strtoupper($row['columnname']);
+                if (!isset($fieldMap[$varKey])) {
+                    $fieldMap[$varKey] = $displayValue;
+                }
+                $varKey2 = strtoupper($relModuleName) . '_' . strtoupper($row['fieldname']);
+                if (!isset($fieldMap[$varKey2])) {
+                    $fieldMap[$varKey2] = $displayValue;
+                }
+            }
+        } catch (Exception $e) {
+            error_log("PDFMaker2: Error resolving related module $relModuleName record $relRecordId: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Resolve user fields (for assigned_user_id type fields).
+     */
+    private function resolveUserFields(&$fieldMap, $userId) {
+        $result = $this->db->pquery(
+            "SELECT first_name, last_name, email1, phone_mobile, phone_home, user_name, title, department
+             FROM vtiger_users WHERE id = ?",
+            [$userId]
+        );
+        if ($this->db->num_rows($result) > 0) {
+            $row = $this->db->fetchByAssoc($result);
+            // PearDatabase::fetchByAssoc already applies to_html encoding
+            $fieldMap['USERS_FIRST_NAME'] = $row['first_name'] ?? '';
+            $fieldMap['USERS_LAST_NAME'] = $row['last_name'] ?? '';
+            $fieldMap['USERS_EMAIL1'] = $row['email1'] ?? '';
+            $fieldMap['USERS_PHONE_MOBILE'] = $row['phone_mobile'] ?? '';
+            $fieldMap['USERS_PHONE_HOME'] = $row['phone_home'] ?? '';
+            $fieldMap['USERS_USER_NAME'] = $row['user_name'] ?? '';
+            $fieldMap['USERS_TITLE'] = $row['title'] ?? '';
+            $fieldMap['USERS_DEPARTMENT'] = $row['department'] ?? '';
+            $fieldMap['USERS_FULLNAME'] = trim($fieldMap['USERS_FIRST_NAME'] . ' ' . $fieldMap['USERS_LAST_NAME']);
+        } else {
+            // Check if it's a group
+            $grpResult = $this->db->pquery("SELECT groupname FROM vtiger_groups WHERE groupid = ?", [$userId]);
+            if ($this->db->num_rows($grpResult) > 0) {
+                // PearDatabase::query_result already applies to_html encoding
+                $groupName = $this->db->query_result($grpResult, 0, 'groupname');
+                $fieldMap['USERS_FULLNAME'] = $groupName;
+                $fieldMap['USERS_FIRST_NAME'] = $fieldMap['USERS_FULLNAME'];
+            }
+        }
     }
 
     /**
@@ -183,18 +366,28 @@ class PDFMaker2_FieldResolver_Model {
                     if ($dateObj) {
                         return $dateObj->format('d/m/Y');
                     }
-                    // Try datetime format
                     $dateObj = DateTime::createFromFormat('Y-m-d H:i:s', $value);
                     if ($dateObj) {
                         return $dateObj->format('d/m/Y H:i');
                     }
                 }
-                return $value;
+                return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 
             // Currency
             case 71:
             case 72:
                 return number_format((float)$value, 0, ',', '.');
+
+            // Numeric fields
+            case 7:
+            case 9:
+                if (is_numeric($value)) {
+                    if (floor($value) == $value) {
+                        return number_format((int)$value, 0, ',', '.');
+                    }
+                    return number_format((float)$value, 2, ',', '.');
+                }
+                return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 
             // Reference/Relation fields — resolve to entity name
             case 10:
@@ -202,18 +395,40 @@ class PDFMaker2_FieldResolver_Model {
             case 57:
             case 58:
             case 59:
+            case 68:
             case 73:
             case 75:
             case 76:
             case 78:
             case 80:
             case 81:
+                if (!empty($value) && is_numeric($value)) {
+                    $entityType = getSalesEntityType($value);
+                    if ($entityType) {
+                        $entityNames = getEntityName($entityType, [$value]);
+                        // getEntityName returns HTML-encoded values (via PearDatabase to_html)
+                        return $entityNames[$value] ?? htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+                    }
+                }
+                return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+
+            // User fields (Assigned To, etc.)
+            case 52:
+            case 53:
             case 101:
                 if (!empty($value) && is_numeric($value)) {
-                    $entityNames = getEntityName(getSalesEntityType($value), [$value]);
-                    return $entityNames[$value] ?? $value;
+                    $userName = getUserFullName($value);
+                    if (!empty($userName)) {
+                        // getUserFullName() already returns HTML-encoded string
+                        return $userName;
+                    }
+                    // Could be a group — query_result already applies to_html encoding
+                    $grpResult = $this->db->pquery("SELECT groupname FROM vtiger_groups WHERE groupid = ?", [$value]);
+                    if ($this->db->num_rows($grpResult) > 0) {
+                        return $this->db->query_result($grpResult, 0, 'groupname');
+                    }
                 }
-                return $value;
+                return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 
             // Checkbox
             case 56:
@@ -222,12 +437,71 @@ class PDFMaker2_FieldResolver_Model {
             // Picklist — translate
             case 15:
             case 16:
-            case 33:
                 return vtranslate($value, $moduleName);
+
+            // Multi-select picklist
+            case 33:
+                $values = explode(' |##| ', $value);
+                $translated = array_map(function($v) use ($moduleName) {
+                    return vtranslate(trim($v), $moduleName);
+                }, $values);
+                return implode(', ', $translated);
+
+            // Text area
+            case 19:
+            case 20:
+            case 21:
+                $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+                return nl2br($value);
+
+            // Email
+            case 13:
+                return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+
+            // URL
+            case 17:
+                return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+
+            // Phone
+            case 11:
+                return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+
+            // Image (e.g., contact image)
+            case 69:
+                return $this->getRecordImage($value, $fieldname);
 
             default:
                 return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
         }
+    }
+
+    /**
+     * Get record image (for uitype 69 fields).
+     */
+    private function getRecordImage($value, $fieldname) {
+        if (empty($value)) return '';
+        // For image fields, value is typically the record ID
+        // vtiger stores images via attachments
+        $result = $this->db->pquery(
+            "SELECT a.attachmentsid, a.path, a.name, a.storedname
+             FROM vtiger_attachments a
+             INNER JOIN vtiger_seattachmentsrel r ON r.attachmentsid = a.attachmentsid
+             WHERE r.crmid = ?
+             ORDER BY a.attachmentsid DESC LIMIT 1",
+            [$value]
+        );
+        if ($this->db->num_rows($result) > 0) {
+            $row = $this->db->fetchByAssoc($result);
+            // PearDatabase::fetchByAssoc already applies to_html encoding
+            $storedName = !empty($row['storedname']) ? $row['storedname'] : $row['name'];
+            $imgPath = $row['path'] . $row['attachmentsid'] . '_' . $storedName;
+            // Decode for file_exists check, re-encode for HTML output
+            $rawPath = html_entity_decode($imgPath, ENT_QUOTES, 'UTF-8');
+            if (file_exists($rawPath)) {
+                return '<img src="' . $imgPath . '" style="max-width:150px;max-height:150px" />';
+            }
+        }
+        return '';
     }
 
     /**

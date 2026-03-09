@@ -76,7 +76,6 @@ jQuery.Class("PDFMaker2_Edit_Js", {}, {
         var self = this;
         var params = {
             module: 'PDFMaker2',
-            parent: 'Settings',
             action: 'GetFields',
             target_module: moduleName
         };

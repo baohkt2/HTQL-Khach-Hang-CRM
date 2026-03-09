@@ -23,7 +23,6 @@ jQuery.Class("PDFMaker2_List_Js", {}, {
             }).then(function () {
                 var params = {
                     module: 'PDFMaker2',
-                    parent: 'Settings',
                     action: 'Delete',
                     templateid: templateId
                 };
@@ -50,7 +49,7 @@ jQuery.Class("PDFMaker2_List_Js", {}, {
             var row = jQuery(this).closest('tr');
             var id = row.data('id');
             if (id) {
-                window.location.href = 'index.php?module=PDFMaker2&parent=Settings&view=Edit&templateid=' + id;
+                window.location.href = 'index.php?module=PDFMaker2&view=Edit&templateid=' + id;
             }
         });
     }

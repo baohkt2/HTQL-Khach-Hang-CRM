@@ -65,6 +65,8 @@ $languageStrings = array(
     'LBL_COMPANY_PHONE' => 'Company Phone',
     'LBL_COMPANY_WEBSITE' => 'Company Website',
     'LBL_COMPANY_LOGO' => 'Company Logo',
+    'LBL_PAGE_NUMBER' => 'Page Number',
+    'LBL_RELATED' => 'Related',
 
     // Export PDF
     'LBL_EXPORT_PDF' => 'Export PDF',

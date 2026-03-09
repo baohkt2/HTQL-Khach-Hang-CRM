@@ -79,7 +79,12 @@ jQuery.Class("PDFMaker2_ExportPDF_Js", {}, {
         menuItem.find('.pdfmaker2ExportPDFAction').on('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            self.showFeatureInDevelopmentPopup();
+            var recordId = jQuery('#recordId').val() || app.getRecordId();
+            if (!recordId) {
+                app.helper.showErrorNotification({ message: 'Cannot determine record ID.' });
+                return;
+            }
+            self.showTemplateSelector(moduleName, [recordId], false);
         });
     },
 
@@ -167,7 +172,7 @@ jQuery.Class("PDFMaker2_ExportPDF_Js", {}, {
         }
 
         var menuItem = jQuery(
-            '<li class="pdfmaker2MassExportItem hide">' +
+            '<li class="pdfmaker2MassExportItem">' +
             '<a href="javascript:void(0)" class="pdfmaker2MassExportAction" id="' + moduleName + '_listView_massAction_PDFMaker2ExportPDF">' +
             '<i class="fa fa-file-pdf-o"></i>&nbsp;Export PDF' +
             '</a>' +
@@ -178,14 +183,15 @@ jQuery.Class("PDFMaker2_ExportPDF_Js", {}, {
         menuItem.find('.pdfmaker2MassExportAction').on('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            self.showFeatureInDevelopmentPopup();
-        });
-    },
-
-    showFeatureInDevelopmentPopup: function () {
-        app.helper.showAlertBox({
-            title: 'Thong bao',
-            message: 'Tinh nang Export PDF dang duoc phat trien. Vui long quay lai sau.'
+            var selectedIds = self.getSelectedRecordIds();
+            if (selectedIds.length === 0) {
+                app.helper.showAlertBox({
+                    title: 'Thông báo',
+                    message: 'Vui lòng chọn ít nhất một bản ghi để xuất PDF.'
+                });
+                return;
+            }
+            self.showTemplateSelector(moduleName, selectedIds, true);
         });
     },
 

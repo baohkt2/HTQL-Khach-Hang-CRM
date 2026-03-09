@@ -32,6 +32,14 @@ class PDFMaker2_Record_Model extends Vtiger_Base_Model {
         $instance = new self();
         $instance->setData($row);
 
+        // Undo PearDatabase to_html() encoding for fields that store raw HTML
+        foreach (['body', 'header', 'footer', 'template_name', 'description'] as $f) {
+            $val = $instance->get($f);
+            if ($val) {
+                $instance->set($f, decode_html($val));
+            }
+        }
+
         // Load assigned modules
         $modResult = $db->pquery(
             "SELECT module_name, is_default, sequence FROM vtiger_pdfmaker2_template_module_rel WHERE templateid = ? ORDER BY sequence",
@@ -60,6 +68,8 @@ class PDFMaker2_Record_Model extends Vtiger_Base_Model {
         );
         $templates = [];
         while ($row = $db->fetchByAssoc($result)) {
+            $row['template_name'] = decode_html($row['template_name']);
+            $row['description'] = decode_html($row['description']);
             $templates[] = $row;
         }
         return $templates;
@@ -86,6 +96,8 @@ class PDFMaker2_Record_Model extends Vtiger_Base_Model {
         );
         $templates = [];
         while ($row = $db->fetchByAssoc($result)) {
+            $row['template_name'] = decode_html($row['template_name']);
+            $row['description'] = decode_html($row['description'] ?? '');
             $templates[] = $row;
         }
         return ['records' => $templates, 'total' => $totalCount];

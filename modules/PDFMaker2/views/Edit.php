@@ -1,9 +1,13 @@
 <?php
 /**
- * PDFMaker2 — Edit View (Settings context)
+ * PDFMaker2 — Edit View (Tools app context)
  * Create or edit a PDF template.
  */
-class PDFMaker2_Edit_View extends Settings_Vtiger_Index_View {
+class PDFMaker2_Edit_View extends Vtiger_Index_View {
+
+    public function requiresPermission(Vtiger_Request $request) {
+        return [];
+    }
 
     public function process(Vtiger_Request $request) {
         $viewer = $this->getViewer($request);

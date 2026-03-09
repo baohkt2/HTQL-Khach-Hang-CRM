@@ -9,7 +9,7 @@
             <form name="EditTemplate" action="index.php" method="post" id="pdfmaker2EditForm" class="form-horizontal">
                 <input type="hidden" name="module" value="PDFMaker2">
                 <input type="hidden" name="action" value="Save">
-                <input type="hidden" name="parent" value="Settings">
+
                 {if $TEMPLATE_DATA}
                     <input type="hidden" name="templateid" value="{$TEMPLATE_DATA->get('templateid')}">
                 {/if}
@@ -178,7 +178,7 @@
                         <button type="submit" class="btn btn-success saveButton" id="pdfmaker2SaveBtn">
                             <i class="fa fa-check"></i>&nbsp;{vtranslate('LBL_SAVE', 'PDFMaker2')}
                         </button>&nbsp;&nbsp;
-                        <a class="cancelLink" href="index.php?module=PDFMaker2&parent=Settings&view=List">
+                        <a class="cancelLink" href="index.php?module=PDFMaker2&view=List">
                             {vtranslate('LBL_CANCEL', 'PDFMaker2')}
                         </a>
                     </div>

@@ -65,6 +65,8 @@ $languageStrings = array(
     'LBL_COMPANY_PHONE' => 'Số ĐT công ty',
     'LBL_COMPANY_WEBSITE' => 'Website công ty',
     'LBL_COMPANY_LOGO' => 'Logo công ty',
+    'LBL_PAGE_NUMBER' => 'Số trang',
+    'LBL_RELATED' => 'Liên kết',
 
     // Export PDF
     'LBL_EXPORT_PDF' => 'Xuất PDF',

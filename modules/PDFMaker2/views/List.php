@@ -1,12 +1,13 @@
 <?php
 /**
- * PDFMaker2 — List View (Settings context)
+ * PDFMaker2 — List View (Tools app context)
  * Displays all PDF templates in a management table.
  */
-class PDFMaker2_List_View extends Settings_Vtiger_Index_View {
+class PDFMaker2_List_View extends Vtiger_Index_View {
 
-    public function preProcess(Vtiger_Request $request, $display = true) {
-        parent::preProcess($request, $display);
+    public function requiresPermission(Vtiger_Request $request) {
+        // Non-entity module – skip default DetailView permission check
+        return [];
     }
 
     public function process(Vtiger_Request $request) {

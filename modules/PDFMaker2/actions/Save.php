@@ -28,8 +28,8 @@ class PDFMaker2_Save_Action extends Vtiger_Action_Controller {
         }
 
         $record->set('templateid', $templateId ?: null);
-        $record->set('template_name', $request->get('template_name'));
-        $record->set('description', $request->get('description'));
+        $record->set('template_name', $request->getRaw('template_name'));
+        $record->set('description', $request->getRaw('description'));
         $record->set('body', $request->getRaw('body')); // HTML content, raw
         $record->set('header', $request->getRaw('header'));
         $record->set('footer', $request->getRaw('footer'));
@@ -44,7 +44,7 @@ class PDFMaker2_Save_Action extends Vtiger_Action_Controller {
         $savedId = $record->save();
 
         // Redirect back to list
-        header('Location: index.php?module=PDFMaker2&parent=Settings&view=List');
+        header('Location: index.php?module=PDFMaker2&view=List');
         exit;
     }
 }

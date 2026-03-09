@@ -6,7 +6,7 @@
 <div class="col-sm-12 col-xs-12">
     <div class="clearfix">
         <div class="pull-right">
-            <a class="btn btn-success" href="index.php?module=PDFMaker2&parent=Settings&view=Edit">
+            <a class="btn btn-success" href="index.php?module=PDFMaker2&view=Edit">
                 <i class="fa fa-plus"></i>&nbsp;{vtranslate('LBL_NEW_TEMPLATE', 'PDFMaker2')}
             </a>
         </div>
@@ -34,7 +34,7 @@
                         <tr class="listViewEntries" data-id="{$TEMPLATE.templateid}">
                             <td>{$smarty.foreach.tplLoop.iteration + (($PAGE - 1) * 20)}</td>
                             <td>
-                                <a href="index.php?module=PDFMaker2&parent=Settings&view=Edit&templateid={$TEMPLATE.templateid}">
+                                <a href="index.php?module=PDFMaker2&view=Edit&templateid={$TEMPLATE.templateid}">
                                     <strong>{$TEMPLATE.template_name|escape:'html'}</strong>
                                 </a>
                             </td>
@@ -66,7 +66,7 @@
                                         </span>
                                         <ul class="dropdown-menu dropdown-menu-right">
                                             <li>
-                                                <a href="index.php?module=PDFMaker2&parent=Settings&view=Edit&templateid={$TEMPLATE.templateid}">
+                                                <a href="index.php?module=PDFMaker2&view=Edit&templateid={$TEMPLATE.templateid}">
                                                     <i class="fa fa-pencil"></i>&nbsp;{vtranslate('LBL_EDIT', 'PDFMaker2')}
                                                 </a>
                                             </li>
@@ -87,7 +87,7 @@
                             <div class="textAlignCenter" style="padding:30px">
                                 <i class="fa fa-file-pdf-o" style="font-size:48px;color:#ccc;margin-bottom:15px"></i><br>
                                 {vtranslate('LBL_NO_TEMPLATES', 'PDFMaker2')}<br><br>
-                                <a class="btn btn-success" href="index.php?module=PDFMaker2&parent=Settings&view=Edit">
+                                <a class="btn btn-success" href="index.php?module=PDFMaker2&view=Edit">
                                     <i class="fa fa-plus"></i>&nbsp;{vtranslate('LBL_CREATE_FIRST_TEMPLATE', 'PDFMaker2')}
                                 </a>
                             </div>
@@ -103,7 +103,7 @@
         <div class="textAlignCenter" style="margin-top:15px">
             {assign var=TOTAL_PAGES value=ceil($TOTAL_COUNT/20)}
             {if $PAGE > 1}
-                <a class="btn btn-default btn-sm" href="index.php?module=PDFMaker2&parent=Settings&view=List&page={$PAGE - 1}">
+                <a class="btn btn-default btn-sm" href="index.php?module=PDFMaker2&view=List&page={$PAGE - 1}">
                     <i class="fa fa-chevron-left"></i> {vtranslate('LBL_PREV', 'PDFMaker2')}
                 </a>
             {/if}
@@ -112,7 +112,7 @@
                 ({$TOTAL_COUNT} {vtranslate('LBL_TEMPLATES', 'PDFMaker2')})
             </span>
             {if $PAGE < $TOTAL_PAGES}
-                <a class="btn btn-default btn-sm" href="index.php?module=PDFMaker2&parent=Settings&view=List&page={$PAGE + 1}">
+                <a class="btn btn-default btn-sm" href="index.php?module=PDFMaker2&view=List&page={$PAGE + 1}">
                     {vtranslate('LBL_NEXT', 'PDFMaker2')} <i class="fa fa-chevron-right"></i>
                 </a>
             {/if}
