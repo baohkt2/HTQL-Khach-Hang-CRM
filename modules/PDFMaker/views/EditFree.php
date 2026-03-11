@@ -47,11 +47,41 @@ class PDFMaker_EditFree_View extends Vtiger_Index_View {
         $cu_model = Users_Record_Model::getCurrentUserModel();
 
         $templateid = $request->get('templateid');
-        $pdftemplateResult = $PDFMaker->GetEditViewData($templateid);
+        $isNew = (empty($templateid) || $templateid == '0');
+
+        if ($isNew) {
+            // New template mode
+            $pdftemplateResult = array(
+                'templateid' => 0,
+                'filename' => '',
+                'module' => 'Contacts',
+                'body' => '',
+                'description' => '',
+                'format' => 'A4',
+                'orientation' => 'portrait',
+                'margin_top' => 10,
+                'margin_bottom' => 10,
+                'margin_left' => 10,
+                'margin_right' => 10,
+                'header' => '',
+                'footer' => '',
+                'disp_header' => 3,
+                'disp_footer' => 7,
+                'decimal_point' => '.',
+                'decimals' => 2,
+                'thousands_separator' => ',',
+                'encoding' => 'auto',
+                'file_name' => '',
+            );
+            $select_module = $request->get('source_module') ?: 'Contacts';
+            $pdftemplateResult['module'] = $select_module;
+        } else {
+            $pdftemplateResult = $PDFMaker->GetEditViewData($templateid);
+            $select_module = $pdftemplateResult["module"];
+        }
 
         $viewer->assign("PDF_TEMPLATE_RESULT", $pdftemplateResult);
 
-        $select_module = $pdftemplateResult["module"];
         $select_format = $pdftemplateResult["format"];
         $select_orientation = $pdftemplateResult["orientation"];
 
@@ -59,10 +89,15 @@ class PDFMaker_EditFree_View extends Vtiger_Index_View {
         $disp_footer = $pdftemplateResult["disp_footer"];
         $viewer->assign("FILENAME", $pdftemplateResult["filename"]);
         $viewer->assign("DESCRIPTION", $pdftemplateResult["description"]);
-        $viewer->assign("EMODE", "edit");
-        $viewer->assign("TEMPLATEID", $templateid);
+        $viewer->assign("IS_NEW", $isNew);
+        $viewer->assign("EMODE", $isNew ? "create" : "edit");
+        $viewer->assign("TEMPLATEID", $isNew ? 0 : $templateid);
         $viewer->assign("MODULENAME", vtranslate($select_module,$select_module));
         $viewer->assign("SELECTMODULE", $select_module);
+
+        // Get all entity modules for module selector (used in both new and edit)
+        $allModules = $PDFMaker->GetAllEntityModules();
+        $viewer->assign("ALL_ENTITY_MODULES", $allModules);
 
         $viewer->assign("BODY", $pdftemplateResult["body"]);
        

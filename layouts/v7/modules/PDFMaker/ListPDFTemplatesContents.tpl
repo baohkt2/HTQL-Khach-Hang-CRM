@@ -12,6 +12,13 @@
     <input type="hidden" name="module" value="PDFMaker">
     <input type="hidden" name="parenttab" value="Tools">
     <input type="hidden" name="view" value="List">
+
+    <div style="margin-bottom:10px;">
+        <a class="btn btn-success" href="index.php?module=PDFMaker&view=EditFree&return_view=List&templateid=0">
+            <i class="fa fa-plus"></i>&nbsp;{vtranslate('LBL_ADD_TEMPLATE','PDFMaker')}
+        </a>
+    </div>
+
     <div id="table-content" class="table-container">
 
         <form name='list' id='listedit' action='' onsubmit="return false;">
@@ -19,6 +26,7 @@
                 <thead>
                 <tr class="listViewContentHeader">
                     <th></th>
+                    <th nowrap="nowrap">{vtranslate("LBL_TEMPLATE_NAME",'PDFMaker')}</th>
                     <th nowrap="nowrap"><a href="#" data-columnname="module" data-nextsortorderval="{$module_dir}" class="listViewContentHeaderValues">&nbsp;{vtranslate("LBL_MODULENAMES",$MODULE)}&nbsp;</a></th>
                     <th nowrap="nowrap"><a href="#" data-columnname="description" data-nextsortorderval="{$description_dir}" class="listViewContentHeaderValues">{vtranslate("LBL_DESCRIPTION",$MODULE)}&nbsp;</a></th>
                 </tr>
@@ -34,10 +42,12 @@
                                                 <ul class="dropdown-menu">
                                                     <li><a data-id="{$template.templateid}" href="index.php?module=PDFMaker&view=DetailFree&templateid={$template.templateid}&app={$SELECTED_MENU_CATEGORY}">{vtranslate('LBL_DETAILS', $MODULE)}</a></li>
                                                     {$template.edit}
+                                                    {$template.delete}
                                                 </ul>
                                         </span>
                             </div>
                         </td>
+                        <td class="listViewEntryValue"><strong>{$template.filename}</strong></td>
                         <td class="listViewEntryValue">{$template.module}</a></td>
                         <td class="listViewEntryValue">{$template.description}&nbsp;</td>
                     </tr>
@@ -49,3 +59,35 @@
 </div>
 <br>
 <div align="center" class="small" style="color: rgb(153, 153, 153);">{vtranslate("PDF_MAKER",$MODULE)} {$VERSION} {vtranslate("COPYRIGHT",$MODULE)}</div>
+
+<script>
+jQuery(document).ready(function() {
+    jQuery('.pdfmakerDeleteTemplate').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var templateId = jQuery(this).data('id');
+        app.helper.showConfirmationBox({
+            message: '{vtranslate("LBL_DELETE_CONFIRMATION","PDFMaker")}'
+        }).then(function() {
+            app.helper.showProgress();
+            app.request.post({
+                data: {
+                    module: 'PDFMaker',
+                    action: 'DeleteTemplate',
+                    templateid: templateId
+                }
+            }).then(function(err, data) {
+                app.helper.hideProgress();
+                if (err === null) {
+                    jQuery('tr[data-id="' + templateId + '"]').fadeOut(300, function() {
+                        jQuery(this).remove();
+                    });
+                    app.helper.showSuccessNotification({ message: '{vtranslate("LBL_DELETE_SUCCESS","PDFMaker")}' });
+                } else {
+                    app.helper.showErrorNotification({ message: '{vtranslate("LBL_DELETE_FAILED","PDFMaker")}' });
+                }
+            });
+        });
+    });
+});
+</script>

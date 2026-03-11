@@ -6,203 +6,173 @@
 * Portions created by vtiger are Copyright (C) vtiger.
 * All Rights Reserved.
 ************************************************************************************}
-
 {strip}
-    <div class="recentActivitiesContainer" id="updates">
-        <input type="hidden" id="updatesCurrentPage" value="{$PAGING_MODEL->get('page')}"/>
-        <div class='history'>
-            {if !empty($RECENT_ACTIVITIES)}
-                <ul class="updates_timeline">
-                    {foreach item=RECENT_ACTIVITY from=$RECENT_ACTIVITIES}
-                        {assign var=PROCEED value= TRUE}
-                        {if ($RECENT_ACTIVITY->isRelationLink()) or ($RECENT_ACTIVITY->isRelationUnLink())}
-                            {assign var=RELATION value=$RECENT_ACTIVITY->getRelationInstance()}
-                            {if !($RELATION->getLinkedRecord())}
-                                {assign var=PROCEED value= FALSE}
-                            {/if}
+<div class="recentActivitiesContainer" id="updates">
+    <input type="hidden" id="updatesCurrentPage" value="{$PAGING_MODEL->get('page')}"/>
+    <div class='history'>
+        {if !empty($RECENT_ACTIVITIES)}
+            <ul class="updates_timeline">
+                {foreach item=RECENT_ACTIVITY from=$RECENT_ACTIVITIES}
+                    {assign var=PROCEED value=TRUE}
+                    
+                    {* Kiểm tra logic Relation *}
+                    {if $RECENT_ACTIVITY->isRelationLink() or $RECENT_ACTIVITY->isRelationUnLink()}
+                        {assign var=RELATION value=$RECENT_ACTIVITY->getRelationInstance()}
+                        {if !($RELATION->getLinkedRecord())}
+                            {assign var=PROCEED value=FALSE}
                         {/if}
-                        {if $PROCEED}
-                            {if $RECENT_ACTIVITY->isCreate()}
-                                <li>
-                                    <time class="update_time cursorDefault">
-                                        {assign var=CREATED_TIME value=$RECENT_ACTIVITY->getParent()->get('createdtime')}
-                                        <small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($CREATED_TIME)}">
-                                            {$CREATED_TIME|date_format:'%H:%M, %d/%m/%Y'}
-                                        </small>
-                                    </time>
-                                    {assign var=USER_MODEL value=$RECENT_ACTIVITY->getModifiedBy()}
-                                    {assign var=IMAGE_DETAILS value=$USER_MODEL->getImageDetails()}
-                                    {if $IMAGE_DETAILS neq '' && $IMAGE_DETAILS[0] neq '' && $IMAGE_DETAILS[0].url eq ''}
-                                        <div class="update_icon bg-info">
-                                            <i class='update_image vicon-vtigeruser'></i>
-                                        </div>
-                                    {else}
-                                        {foreach item=IMAGE_INFO from=$IMAGE_DETAILS}
-                                            {if !empty($IMAGE_INFO.url)}
-                                                <div class="update_icon">
-                                                    <img class="update_image" src="{$IMAGE_INFO.url}" >
-                                                </div>
-                                            {/if}
-                                        {/foreach}
-                                    {/if}
-                                    <div class="update_info">
-                                        <h5>
-                                            <span class="field-name">{$RECENT_ACTIVITY->getModifiedBy()->getName()}</span> {vtranslate('LBL_CREATED', $MODULE_NAME)}
-                                        </h5>
-                                    </div>
-                                </li>
-                            {else if $RECENT_ACTIVITY->isUpdate()}
-                                <li>
-                                    <time class="update_time cursorDefault">
-                                        {assign var=ACTIVITY_TIME value=$RECENT_ACTIVITY->getActivityTime()}
-                                        <small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($ACTIVITY_TIME)}">
-                                            {$ACTIVITY_TIME|date_format:'%H:%M, %d/%m/%Y'}
-                                        </small>
-                                    </time>
-                                    {assign var=USER_MODEL value=$RECENT_ACTIVITY->getModifiedBy()}
-                                    {assign var=IMAGE_DETAILS value=$USER_MODEL->getImageDetails()}
-                                    {if $IMAGE_DETAILS neq '' && $IMAGE_DETAILS[0] neq '' && $IMAGE_DETAILS[0].url eq ''}
-                                        <div class="update_icon bg-info">
-                                            <i class='update_image vicon-vtigeruser'></i>
-                                        </div>
-                                    {else}
-                                        {foreach item=IMAGE_INFO from=$IMAGE_DETAILS}
-                                            {if !empty($IMAGE_INFO.url)}
-                                                <div class="update_icon">
-                                                    <img class="update_image" src="{$IMAGE_INFO.url}" >
-                                                </div>
-                                            {/if}
-                                        {/foreach}
-                                    {/if}
-                                    <div class="update_info">
-                                        <div> 
-                                            <h5>
-                                                <span class="field-name">{$RECENT_ACTIVITY->getModifiedBy()->getDisplayName()} </span> {vtranslate('LBL_UPDATED', $MODULE_NAME)}
-                                            </h5>
-                                        </div>
-                                        {foreach item=FIELDMODEL from=$RECENT_ACTIVITY->getFieldInstances()}
-                                            
-                                            {assign var=FIELD_NAME value=$FIELDMODEL->getFieldInstance()->getName()}
-                                            {assign var=FIELD_DATA_TYPE value=$FIELDMODEL->getFieldInstance()->getFieldDataType()}
-                                            {assign var=PRE_DISPLAY_VALUE value=$FIELDMODEL->getDisplayValue(decode_html($FIELDMODEL->get('prevalue')))}
-                                            {assign var=POST_DISPLAY_VALUE value=$FIELDMODEL->getDisplayValue(decode_html($FIELDMODEL->get('postvalue')))}
-                                            {assign var=TIME_PRE_DISPLAY_VALUE value=$FIELDMODEL->getDisplayValue(decode_html($FIELDMODEL->get('prevalue')))}
-                                            {assign var=TIME_POST_DISPLAY_VALUE value=$FIELDMODEL->getDisplayValue(decode_html($FIELDMODEL->get('postvalue')))}
-                                            
-                                            {if in_array($FIELD_NAME,array('time_start','time_end')) && in_array($MODULE_NAME,array('Events','Calendar'))}
-                                                {assign var=CALENDAR_RECORD_MODEL value =Vtiger_Record_Model::getInstanceById($RECORD_ID)}
-                                                {assign var=TIME_PRE_DISPLAY_VALUE value={Calendar_Time_UIType::getModTrackerDisplayValue($FIELD_NAME,$FIELDMODEL->get('prevalue'),$CALENDAR_RECORD_MODEL)}}
-                                                {assign var=TIME_POST_DISPLAY_VALUE value={Calendar_Time_UIType::getModTrackerDisplayValue($FIELD_NAME,$FIELDMODEL->get('postvalue'),$CALENDAR_RECORD_MODEL)}}
-                                                {assign var=PRE_DISPLAY_VALUE value=$TIME_PRE_DISPLAY_VALUE}
-                                                {assign var=POST_DISPLAY_VALUE value=$TIME_POST_DISPLAY_VALUE}
-                                            {/if}
-                                            {if isset($TIME_PRE_DISPLAY_VALUE)}
-                                                {assign var=PRE_DISPLAY_TITLE value=$TIME_PRE_DISPLAY_VALUE}
-
-                                            {else}
-                                                {assign var=PRE_DISPLAY_TITLE value=''}
-                                            {/if}
-                                            
-                                            
-                                            
-                                            {if $FIELDMODEL && $FIELDMODEL->getFieldInstance() && $FIELDMODEL->getFieldInstance()->isViewable() && $FIELDMODEL->getFieldInstance()->getDisplayType() neq '5'}
-                                                <div class='font-x-small updateInfoContainer textOverflowEllipsis'>
-                                                    <div class='update-name'><span class="field-name">{vtranslate($FIELDMODEL->getName(),$MODULE_NAME)}</span>
-                                                        {if $FIELDMODEL->get('prevalue') neq '' && $FIELDMODEL->get('postvalue') neq '' && !($FIELDMODEL->getFieldInstance()->getFieldDataType() eq 'reference' && ($FIELDMODEL->get('postvalue') eq '0' || $FIELDMODEL->get('prevalue') eq '0'))}
-                                                            <span> &nbsp;{vtranslate('LBL_CHANGED')}</span>
-                                                        </div>
-                                                        <div class='update-from'><span class="field-name">{vtranslate('LBL_FROM')}</span>&nbsp;
-                                                            <em style="white-space:pre-line;" title="{strip_tags({Vtiger_Util_Helper::toVtiger6SafeHTML($PRE_DISPLAY_TITLE)})}">{Vtiger_Util_Helper::toVtiger6SafeHTML($PRE_DISPLAY_VALUE)}</em>
-                                                        </div>
-                                                    {else if $FIELDMODEL->get('postvalue') eq '' || ($FIELDMODEL->getFieldInstance()->getFieldDataType() eq 'reference' && $FIELDMODEL->get('postvalue') eq '0')}
-                                                        &nbsp;(<del>{Vtiger_Util_Helper::toVtiger6SafeHTML($PRE_DISPLAY_VALUE)})</del> ) {vtranslate('LBL_IS_REMOVED')}</div>
-                                                    {else if $FIELDMODEL->get('postvalue') neq '' && !($FIELDMODEL->getFieldInstance()->getFieldDataType() eq 'reference' && $FIELDMODEL->get('postvalue') eq '0')}
-                                                    &nbsp;{vtranslate('LBL_UPDATED')}</div>
-                                                {else}
-                                                &nbsp;{vtranslate('LBL_CHANGED')}</div>
-                                            {/if}
-                                            {if $FIELDMODEL->get('postvalue') neq '' && !($FIELDMODEL->getFieldInstance()->getFieldDataType() eq 'reference' && $FIELDMODEL->get('postvalue') eq '0')}
-                                                <div class="update-to"><span class="field-name">{vtranslate('LBL_TO')}</span>&nbsp;<em style="white-space:pre-line;">{Vtiger_Util_Helper::toVtiger6SafeHTML($POST_DISPLAY_VALUE)}</em>
-                                                </div>
-                                            {/if}
-                                            </div>
-                                        {/if}
-                                    {/foreach}
-                                    </div>
-                                </li>
-
-                            {else if ($RECENT_ACTIVITY->isRelationLink() || $RECENT_ACTIVITY->isRelationUnLink())}
-                                {assign var=RELATED_MODULE value= $RELATION->getLinkedRecord()->getModuleName()}
-                                <li>
-                                    <time class="update_time cursorDefault">
-                                        {assign var=CHANGE_TIME value=$RELATION->get('changedon')}
-                                        <small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($CHANGE_TIME)}">
-                                            {$CHANGE_TIME|date_format:'%H:%M, %d/%m/%Y'} </small>
-                                    </time>
-									<div class="update_icon bg-info-{$RELATED_MODULE|strtolower}">
-										{if {$RELATED_MODULE|strtolower eq 'modcomments'}}
-											{assign var="VICON_MODULES" value="vicon-chat"}
-											<i class="update_image {$VICON_MODULES}"></i>
-										{else}
-											<span class="update_image">{Vtiger_Module_Model::getModuleIconPath($RELATED_MODULE)}</span>
-										{/if}
-									</div>
-                                    <div class="update_info">
-                                        <h5>
-                                            {assign var=RELATION value=$RECENT_ACTIVITY->getRelationInstance()}
-                                           <span class="field-name">
-                                                {vtranslate($RELATION->getLinkedRecord()->getModuleName(), $RELATION->getLinkedRecord()->getModuleName())}
-                                            </span>&nbsp; 
-                                            <span>
-                                                {if $RECENT_ACTIVITY->isRelationLink()}
-                                                    {vtranslate('LBL_LINKED', $MODULE_NAME)}
-                                                {else}
-                                                    {vtranslate('LBL_UNLINKED', $MODULE_NAME)}
-                                                {/if}
-                                            </span>
-                                        </h5>
-                                        <div class='font-x-small updateInfoContainer textOverflowEllipsis'>
-                                            <span>
-                                                {if $RELATION->getLinkedRecord()->getModuleName() eq 'Calendar'}
-                                                    {if isPermitted('Calendar', 'DetailView', $RELATION->getLinkedRecord()->getId()) eq 'yes'}
-                                                        {assign var=PERMITTED value=1}
-                                                    {else}
-                                                        {assign var=PERMITTED value=0}
-                                                    {/if}
-                                                {else}
-                                                    {assign var=PERMITTED value=1}
-                                                {/if}
-                                                {if $PERMITTED}
-                                                    {if $RELATED_MODULE eq 'ModComments'}
-                                                        {$RELATION->getLinkedRecord()->getName()}
-                                                    {else}
-                                                        {assign var=DETAILVIEW_URL value=$RELATION->getRecordDetailViewUrl()}
-                                                        {if $DETAILVIEW_URL}<a {if stripos($DETAILVIEW_URL, 'javascript:') === 0}onclick{else}href{/if}='{$DETAILVIEW_URL}'>{/if}
-                                                            <strong>{$RELATION->getLinkedRecord()->getName()}</strong>
-                                                            {if $DETAILVIEW_URL}</a>{/if}
-                                                        {/if}
-                                                    {/if}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </li>
-                            {else if $RECENT_ACTIVITY->isRestore()}
-                            {/if}
-                        {/if}
-                    {/foreach}
-                    {if $PAGING_MODEL->isNextPageExists()}
-                        <li id='more_button'>
-                            <div class='update_icon' id="moreLink">
-                                <button type="button" class="btn btn-success moreRecentUpdates">{vtranslate('LBL_MORE',$MODULE_NAME)}..</button>
-                            </div>
-                        </li>
                     {/if}
-                </ul>
-            {else}
-                <div class="summaryWidgetContainer">
-                    <p class="textAlignCenter">{vtranslate('LBL_NO_RECENT_UPDATES')}</p>
-                </div>
-            {/if}
-        </div>
+
+                    {if $PROCEED}
+                        {if $RECENT_ACTIVITY->isCreate() or $RECENT_ACTIVITY->isUpdate()}
+                            <li>
+                                {* Xử lý Thời gian *}
+                                {if $RECENT_ACTIVITY->isCreate()}
+                                    {assign var=TIME_DB value=$RECENT_ACTIVITY->getParent()->get('createdtime')}
+                                {else}
+                                    {assign var=TIME_DB value=$RECENT_ACTIVITY->getActivityTime()}
+                                {/if}
+                                
+                                <time class="update_time cursorDefault">
+                                    <small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($TIME_DB)}">
+                                        {Vtiger_Datetime_UIType::getDisplayDateTimeValue($TIME_DB)}
+                                    </small>
+                                </time>
+
+                                {* Xử lý Avatar/Icon người dùng *}
+                                {assign var=USER_MODEL value=$RECENT_ACTIVITY->getModifiedBy()}
+                                {assign var=IMAGE_DETAILS value=$USER_MODEL->getImageDetails()}
+                                
+                                <div class="update_icon {if empty($IMAGE_DETAILS) || empty($IMAGE_DETAILS[0].url)}bg-info{/if}">
+                                    {if !empty($IMAGE_DETAILS) && !empty($IMAGE_DETAILS[0].url)}
+                                        <img class="update_image" src="{$IMAGE_DETAILS[0].url}">
+                                    {else}
+                                        <i class='update_image vicon-vtigeruser'></i>
+                                    {/if}
+                                </div>
+
+                                <div class="update_info">
+                                    <h5>
+                                        <span class="field-name">{$USER_MODEL->getDisplayName()}</span> 
+                                        {if $RECENT_ACTIVITY->isCreate()}
+                                            {vtranslate('LBL_CREATED', $MODULE_NAME)}
+                                        {else}
+                                            {vtranslate('LBL_UPDATED', $MODULE_NAME)}
+                                        {/if}
+                                    </h5>
+
+                                    {* Chi tiết thay đổi trường (Chỉ dành cho Update) *}
+                                    {if $RECENT_ACTIVITY->isUpdate()}
+                                        {foreach item=FIELDMODEL from=$RECENT_ACTIVITY->getFieldInstances()}
+                                            {assign var=F_INSTANCE value=$FIELDMODEL->getFieldInstance()}
+                                            {if $F_INSTANCE && $F_INSTANCE->isViewable() && $F_INSTANCE->getDisplayType() neq '5'}
+                                                
+                                                {assign var=F_NAME value=$F_INSTANCE->getName()}
+                                                {assign var=PRE_VAL value=$FIELDMODEL->getDisplayValue(decode_html($FIELDMODEL->get('prevalue')))}
+                                                {assign var=POST_VAL value=$FIELDMODEL->getDisplayValue(decode_html($FIELDMODEL->get('postvalue')))}
+
+                                                {* Logic đặc biệt cho Calendar Time *}
+                                                {if in_array($F_NAME, ['time_start','time_end']) && in_array($MODULE_NAME, ['Events','Calendar'])}
+                                                    {assign var=CAL_REC value=Vtiger_Record_Model::getInstanceById($RECORD_ID)}
+                                                    {assign var=PRE_VAL value=Calendar_Time_UIType::getModTrackerDisplayValue($F_NAME, $FIELDMODEL->get('prevalue'), $CAL_REC)}
+                                                    {assign var=POST_VAL value=Calendar_Time_UIType::getModTrackerDisplayValue($F_NAME, $FIELDMODEL->get('postvalue'), $CAL_REC)}
+                                                {/if}
+
+                                                <div class='font-x-small updateInfoContainer textOverflowEllipsis'>
+                                                    <div class='update-name'>
+                                                        <span class="field-name">{vtranslate($F_NAME, $MODULE_NAME)}</span>
+                                                        
+                                                        {if $FIELDMODEL->get('prevalue') neq '' && $FIELDMODEL->get('postvalue') neq ''}
+                                                            <span> &nbsp;{vtranslate('LBL_CHANGED')}</span>
+                                                            </div> {* Đóng update-name *}
+                                                            <div class='update-from'>
+                                                                <span class="field-name">{vtranslate('LBL_FROM')}</span>&nbsp;
+                                                                <em style="white-space:pre-line;" title="{strip_tags($PRE_VAL)}">{$PRE_VAL}</em>
+                                                            </div>
+                                                        {elseif $FIELDMODEL->get('postvalue') eq ''}
+                                                            &nbsp;(<del>{$PRE_VAL}</del>) {vtranslate('LBL_IS_REMOVED')}</div>
+                                                        {else}
+                                                            &nbsp;{vtranslate('LBL_UPDATED')}</div>
+                                                        {/if}
+
+                                                        {if $FIELDMODEL->get('postvalue') neq ''}
+                                                            <div class="update-to">
+                                                                <span class="field-name">{vtranslate('LBL_TO')}</span>&nbsp;
+                                                                <em style="white-space:pre-line;">{$POST_VAL}</em>
+                                                            </div>
+                                                        {/if}
+                                                </div>
+                                            {/if}
+                                        {/foreach}
+                                    {/if}
+                                </div>
+                            </li>
+
+                        {elseif $RECENT_ACTIVITY->isRelationLink() || $RECENT_ACTIVITY->isRelationUnLink()}
+                            {assign var=RELATED_MODULE value=$RELATION->getLinkedRecord()->getModuleName()}
+                            <li>
+                                <time class="update_time cursorDefault">
+                                    {assign var=CHANGE_TIME_DB value=$RELATION->get('changedon')}
+                                    <small title="{Vtiger_Util_Helper::formatDateTimeIntoDayString($CHANGE_TIME_DB)}">
+                                        {Vtiger_Datetime_UIType::getDisplayDateTimeValue($CHANGE_TIME_DB)}
+                                    </small>
+                                </time>
+
+                                <div class="update_icon bg-info-{$RELATED_MODULE|strtolower}">
+                                    {if $RELATED_MODULE|strtolower eq 'modcomments'}
+                                        <i class="update_image vicon-chat"></i>
+                                    {else}
+                                        <span class="update_image">{Vtiger_Module_Model::getModuleIconPath($RELATED_MODULE)}</span>
+                                    {/if}
+                                </div>
+
+                                <div class="update_info">
+                                    <h5>
+                                        <span class="field-name">{vtranslate($RELATED_MODULE, $RELATED_MODULE)}</span>&nbsp;
+                                        <span>
+                                            {if $RECENT_ACTIVITY->isRelationLink()}
+                                                {vtranslate('LBL_LINKED', $MODULE_NAME)}
+                                            {else}
+                                                {vtranslate('LBL_UNLINKED', $MODULE_NAME)}
+                                            {/if}
+                                        </span>
+                                    </h5>
+                                    <div class='font-x-small updateInfoContainer textOverflowEllipsis'>
+                                        {assign var=PERMITTED value=1}
+                                        {if $RELATED_MODULE eq 'Calendar' && isPermitted('Calendar', 'DetailView', $RELATION->getLinkedRecord()->getId()) neq 'yes'}
+                                            {assign var=PERMITTED value=0}
+                                        {/if}
+
+                                        {if $PERMITTED}
+                                            {if $RELATED_MODULE eq 'ModComments'}
+                                                {$RELATION->getLinkedRecord()->getName()}
+                                            {else}
+                                                {assign var=URL value=$RELATION->getRecordDetailViewUrl()}
+                                                {if $URL}<a {if stripos($URL, 'javascript:') === 0}onclick{else}href{/if}='{$URL}'>{/if}
+                                                    <strong>{$RELATION->getLinkedRecord()->getName()}</strong>
+                                                {if $URL}</a>{/if}
+                                            {/if}
+                                        {/if}
+                                    </div>
+                                </div>
+                            </li>
+                        {/if}
+                    {/if}
+                {/foreach}
+
+                {if $PAGING_MODEL->isNextPageExists()}
+                    <li id='more_button'>
+                        <div class='update_icon' id="moreLink">
+                            <button type="button" class="btn btn-success moreRecentUpdates">{vtranslate('LBL_MORE',$MODULE_NAME)}..</button>
+                        </div>
+                    </li>
+                {/if}
+            </ul>
+        {else}
+            <div class="summaryWidgetContainer">
+                <p class="textAlignCenter">{vtranslate('LBL_NO_RECENT_UPDATES')}</p>
+            </div>
+        {/if}
     </div>
+</div>
 {/strip}

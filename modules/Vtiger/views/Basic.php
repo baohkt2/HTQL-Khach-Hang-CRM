@@ -89,6 +89,21 @@ abstract class Vtiger_Basic_View extends Vtiger_Footer_View {
 		$viewer->assign('ANNOUNCEMENT', $this->getAnnouncement());
 		$viewer->assign('SEARCHABLE_MODULES', Vtiger_Module_Model::getSearchableModules());
 
+		@include_once('config.performance.php');
+		global $PERFORMANCE_CONFIG;
+		$heartbeatInterval = 300;
+		$clientInactivityLimit = 900;
+		if (isset($PERFORMANCE_CONFIG['HEARTBEAT_INTERVAL']) && (int) $PERFORMANCE_CONFIG['HEARTBEAT_INTERVAL'] > 0) {
+			$heartbeatInterval = (int) $PERFORMANCE_CONFIG['HEARTBEAT_INTERVAL'];
+		}
+		if (isset($PERFORMANCE_CONFIG['CLIENT_INACTIVITY_LIMIT']) && (int) $PERFORMANCE_CONFIG['CLIENT_INACTIVITY_LIMIT'] > 0) {
+			$clientInactivityLimit = (int) $PERFORMANCE_CONFIG['CLIENT_INACTIVITY_LIMIT'];
+		}
+		$viewer->assign('SESSION_TRACKER_CONFIG', array(
+			'heartbeatIntervalMs' => $heartbeatInterval * 1000,
+			'inactivityLimitMs' => $clientInactivityLimit * 1000,
+		));
+
 		$inventoryModules = getInventoryModules();
 		$viewer->assign('INVENTORY_MODULES',  $inventoryModules);
 		if($display) {

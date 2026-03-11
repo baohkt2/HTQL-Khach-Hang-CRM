@@ -1,74 +1,150 @@
 /**
- * Session Activity Tracker v2
- * - Server heartbeat every 5 min to keep session alive & update ActivityTracker
- * - Only marks "Signed off" on actual tab close (beforeunload)
- * - No false "inactive" logouts
+ * Session Activity Tracker
+ * - Server heartbeat keeps authenticated sessions alive while the user is active.
+ * - If the browser tab stays idle for too long, trigger a real sign off.
  */
 (function() {
     'use strict';
-    
+
+    var trackerConfig = window.CUSC_SESSION_TRACKER_CONFIG || {};
+
     var SessionTracker = {
-        HEARTBEAT_INTERVAL: 5 * 60 * 1000, // 5 minutes
+        HEARTBEAT_INTERVAL: Number(trackerConfig.heartbeatIntervalMs) > 0 ? Number(trackerConfig.heartbeatIntervalMs) : 5 * 60 * 1000,
+        INACTIVITY_LIMIT: Number(trackerConfig.inactivityLimitMs) > 0 ? Number(trackerConfig.inactivityLimitMs) : 15 * 60 * 1000,
         lastActivityTime: Date.now(),
         heartbeatTimer: null,
-        
+        inactivityTimer: null,
+        isLoggingOut: false,
+
         init: function() {
+            this.registerActivity();
             this.setupActivityListeners();
+            this.setupPageStateListeners();
             this.startServerHeartbeat();
+            this.resetInactivityTimer();
             this.setupBeforeUnload();
         },
-        
-        /** Track user activity (mouse, keyboard, touch) */
+
         setupActivityListeners: function() {
             var self = this;
-            var events = ['mousedown', 'keypress', 'scroll', 'touchstart', 'click'];
-            
-            events.forEach(function(event) {
-                document.addEventListener(event, function() {
-                    self.lastActivityTime = Date.now();
+            var events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+
+            events.forEach(function(eventName) {
+                document.addEventListener(eventName, function() {
+                    self.registerActivity();
                 }, true);
             });
         },
-        
-        /**
-         * Send a lightweight ping to the server every 5 minutes.
-         * This keeps the PHP session file alive (prevents sessionclean from
-         * deleting it) AND keeps ActivityTracker.logout_time up-to-date.
-         * Only pings if the user was active in the last 30 minutes AND
-         * the tab is visible (avoids keeping forgotten tabs alive forever).
-         */
+
+        setupPageStateListeners: function() {
+            var self = this;
+
+            document.addEventListener('visibilitychange', function() {
+                self.checkInactivity();
+            });
+
+            window.addEventListener('focus', function() {
+                self.checkInactivity();
+            });
+
+            window.addEventListener('pageshow', function() {
+                self.checkInactivity();
+            });
+        },
+
+        registerActivity: function() {
+            if (this.isLoggingOut) {
+                return;
+            }
+
+            this.lastActivityTime = Date.now();
+            this.resetInactivityTimer();
+        },
+
+        resetInactivityTimer: function() {
+            var self = this;
+            var remainingMs;
+
+            if (this.inactivityTimer) {
+                clearTimeout(this.inactivityTimer);
+            }
+
+            remainingMs = this.INACTIVITY_LIMIT - (Date.now() - this.lastActivityTime);
+            if (remainingMs <= 0) {
+                this.handleInactivityLogout();
+                return;
+            }
+
+            this.inactivityTimer = window.setTimeout(function() {
+                self.handleInactivityLogout();
+            }, remainingMs);
+        },
+
+        isInactive: function() {
+            return (Date.now() - this.lastActivityTime) >= this.INACTIVITY_LIMIT;
+        },
+
+        checkInactivity: function() {
+            if (this.isLoggingOut) {
+                return true;
+            }
+
+            if (this.isInactive()) {
+                this.handleInactivityLogout();
+                return true;
+            }
+
+            this.resetInactivityTimer();
+            return false;
+        },
+
         startServerHeartbeat: function() {
             var self = this;
-            
-            this.heartbeatTimer = setInterval(function() {
-                var inactiveMs = Date.now() - self.lastActivityTime;
-                var thirtyMinutes = 30 * 60 * 1000;
-                
-                // Only ping if user was active recently and tab is visible
-                if (inactiveMs < thirtyMinutes && !document.hidden) {
+
+            this.heartbeatTimer = window.setInterval(function() {
+                if (self.isLoggingOut || self.checkInactivity()) {
+                    return;
+                }
+
+                if (!document.hidden) {
                     self.sendHeartbeat();
                 }
             }, this.HEARTBEAT_INTERVAL);
         },
-        
-        /** Ping the server to touch the session */
+
         sendHeartbeat: function() {
             var xhr = new XMLHttpRequest();
             xhr.open('POST', 'index.php', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.send('module=Users&action=AutoLogout&reason=heartbeat');
         },
-        
-        /** Only fire AutoLogout (Signed off) when tab is actually closing */
+
         setupBeforeUnload: function() {
             var self = this;
-            
+
             window.addEventListener('beforeunload', function() {
-                self.sendLogout('beforeunload');
+                if (!self.isLoggingOut) {
+                    self.sendLogout('beforeunload');
+                }
             });
         },
-        
-        /** Send logout beacon (reliable even during page unload) */
+
+        handleInactivityLogout: function() {
+            var self = this;
+
+            if (this.isLoggingOut) {
+                return;
+            }
+
+            this.isLoggingOut = true;
+            this.destroy();
+            this.sendLogout('inactive');
+
+            window.setTimeout(function() {
+                window.location.href = 'index.php?module=Users&action=Logout&autoLogout=1';
+            }, 150);
+        },
+
         sendLogout: function(reason) {
             if (navigator.sendBeacon) {
                 var formData = new FormData();
@@ -76,22 +152,28 @@
                 formData.append('action', 'AutoLogout');
                 formData.append('reason', reason);
                 navigator.sendBeacon('index.php', formData);
-            } else {
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', 'index.php?module=Users&action=AutoLogout', false);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.send('reason=' + reason);
+                return;
             }
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'index.php?module=Users&action=AutoLogout', reason === 'beforeunload' ? false : true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send('reason=' + encodeURIComponent(reason));
         },
-        
+
         destroy: function() {
             if (this.heartbeatTimer) {
                 clearInterval(this.heartbeatTimer);
+                this.heartbeatTimer = null;
+            }
+
+            if (this.inactivityTimer) {
+                clearTimeout(this.inactivityTimer);
+                this.inactivityTimer = null;
             }
         }
     };
-    
-    // Initialize when DOM is ready
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             SessionTracker.init();
@@ -99,7 +181,6 @@
     } else {
         SessionTracker.init();
     }
-    
+
     window.SessionTracker = SessionTracker;
-    
 })();

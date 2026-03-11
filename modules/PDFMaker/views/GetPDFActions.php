@@ -50,6 +50,18 @@ class PDFMaker_GetPDFActions_View extends Vtiger_BasicAjax_View {
                     $template_languages = $PDFMakerModel->GetAvailableLanguages();
                     $viewer->assign('TEMPLATE_LANGUAGES', $template_languages);
 
+                    // Query available templates for this module
+                    $db = PearDatabase::getInstance();
+                    $templateResult = $db->pquery(
+                        "SELECT templateid, filename FROM vtiger_pdfmaker WHERE module=? AND deleted=0 ORDER BY templateid",
+                        array($source_module)
+                    );
+                    $templates = array();
+                    while ($row = $db->fetchByAssoc($templateResult)) {
+                        $templates[$row['templateid']] = $row['filename'];
+                    }
+                    $viewer->assign('PDF_TEMPLATES', $templates);
+
                     $tpl_name = "GetPDFActions";
                     if ($request->has('mode') && !$request->isEmpty('mode')) {
                         $mode = $request->get('mode');

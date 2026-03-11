@@ -12,7 +12,7 @@ class PDFMaker_checkGenerate_Model extends Vtiger_Module_Model {
     
     protected $print = false;
     protected $PDFMakerModuleModel = false;
-    protected $PDFAttributes = array('record','mode','language','source_module');
+    protected $PDFAttributes = array('record','mode','language','source_module','templateid');
     
     // constructor of PDFMaker class
     function __construct() {
@@ -74,7 +74,8 @@ class PDFMaker_checkGenerate_Model extends Vtiger_Module_Model {
 
         $mpdf = "";
 
-        $name = $PDFMaker->GetPreparedMPDF($mpdf, $record, $relmodule, $language);
+        $templateid = $this->get('templateid');
+        $name = $PDFMaker->GetPreparedMPDF($mpdf, $record, $relmodule, $language, $templateid);
 
         if ($request->has('print') && !$request->isEmpty('print')) {
             if ($request->get('print') == "true") {

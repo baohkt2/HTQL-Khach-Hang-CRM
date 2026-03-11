@@ -1,6 +1,6 @@
 <?php
 /*+**********************************************************************************
- * Auto Logout Handler - Update logout time when browser tab closes or user is idle.
+ * Auto Logout Handler - Update logout time when browser tab closes, idles, or sends heartbeat.
  * Called by SessionTracker.js via navigator.sendBeacon().
  ************************************************************************************/
 
@@ -46,8 +46,8 @@ class Users_AutoLogout_Action extends Vtiger_Action_Controller {
             }
             
             if ($loginId) {
-                if ($reason === 'beforeunload') {
-                    // ACTUAL tab close → mark as Signed off definitively
+                if ($reason === 'beforeunload' || $reason === 'inactive') {
+                    // Browser tab closed or client-side inactivity timeout elapsed.
                     $adb->pquery(
                         "UPDATE vtiger_loginhistory SET logout_time = ?, status = 'Signed off' 
                          WHERE login_id = ? AND status IN ('Signed in','Signed off')",
