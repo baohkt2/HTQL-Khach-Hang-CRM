@@ -116,6 +116,13 @@
 								</div>
 							</div>
 
+							<div class="form-group">
+								<div>
+									<input type="checkbox" name="export_row_number" value="1" id="export_row_number" />
+									<label style="font-weight:normal" for="export_row_number">&nbsp;&nbsp;{vtranslate('LBL_EXPORT_ROW_NUMBER', 'Vtiger')}</label>
+								</div>
+							</div>
+
 							<div>
 								<label class="filterHeaders">{vtranslate('LBL_CHOOSE_FILTER_CONDITIONS', 'Vtiger')} :</label>
 								<div class="js-custom-export-filter-wrapper">

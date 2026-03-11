@@ -83,6 +83,14 @@
 											<label style="font-weight:normal" for="fields_all">&nbsp;&nbsp;{vtranslate('LBL_EXPORT_FIELDS_ALL_COLUMNS', 'Vtiger')}</label>
 										</div>
 									</div>
+
+									<br><div><b>{vtranslate('LBL_EXPORT_OPTIONS', 'Vtiger')}</b></div><br>
+									<div style="margin-left: 50px;">
+										<div>
+											<input type="checkbox" name="export_row_number" value="1" id="export_row_number" />
+											<label style="font-weight:normal" for="export_row_number">&nbsp;&nbsp;{vtranslate('LBL_EXPORT_ROW_NUMBER', 'Vtiger')}</label>
+										</div>
+									</div>
 							{/if}
 
 							<br><div><b>{vtranslate('LBL_EXPORT_DATA',$MODULE)}</b></div><br>

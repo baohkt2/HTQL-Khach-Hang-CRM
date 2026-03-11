@@ -560,6 +560,9 @@ $languageStrings = array(
 	'LBL_EXPORT_FIELDS' => 'Export Field',
 	'LBL_EXPORT_FIELDS_BASED_ON_LIST' => 'Based on list',
 	'LBL_EXPORT_FIELDS_ALL_COLUMNS' => 'All columns',
+	'LBL_EXPORT_OPTIONS' => 'Options',
+	'LBL_EXPORT_ROW_NUMBER' => 'Add row number (STT)',
+	'LBL_EXPORT_STT' => 'STT',
 	'LBL_EXPORT_DATA' => 'Export Data',
 
 	'LBL_CUSTOMIZE' => 'Customize',

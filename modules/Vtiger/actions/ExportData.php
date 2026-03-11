@@ -61,6 +61,15 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 			$entries[] = $this->getRowValuesInHeaderOrder($sanitizedRow);
 		}
 
+		$addRowNumber = $request->get('export_row_number');
+		if ($addRowNumber == '1') {
+			array_unshift($translatedHeaders, 'STT');
+			foreach ($entries as $index => &$row) {
+				array_unshift($row, $index + 1);
+			}
+			unset($row);
+		}
+
 		$this->output($request, $translatedHeaders, $entries);
 	}
 

@@ -49,6 +49,12 @@
                                 <div class="span3"><input type="radio" name="export_fields_mode" value="all" /></div>
                             </div>
                         </div>
+                        <div class="row-fluid" style="height:30px">
+                            <div class="span6 textAlignRight row-fluid">
+                                <div class="span8">{vtranslate('LBL_EXPORT_ROW_NUMBER', 'Vtiger')}&nbsp;</div>
+                                <div class="span3"><input type="checkbox" name="export_row_number" value="1" /></div>
+                            </div>
+                        </div>
                         <br>
                         <div class="row-fluid">
                             <div class="row-fluid" style="height:30px">
