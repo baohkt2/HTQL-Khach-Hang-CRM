@@ -91,6 +91,27 @@
 											<label style="font-weight:normal" for="export_row_number">&nbsp;&nbsp;{vtranslate('LBL_EXPORT_ROW_NUMBER', 'Vtiger')}</label>
 										</div>
 									</div>
+									<div id="signatureSection" style="display:none;">
+										<br><div><b>{vtranslate('LBL_EXPORT_SIGNATURE', 'Vtiger')}</b></div><br>
+										<div class="js-signature-section" style="margin-left: 20px;">
+											<div class="js-signature-blocks" style="display:flex;flex-wrap:wrap;gap:10px;">
+												<div class="js-signature-block" style="flex:1;min-width:200px;">
+													<textarea name="signature_blocks[]" class="form-control" rows="7" style="font-size:12px;"></textarea>
+													<button type="button" class="btn btn-xs btn-danger js-remove-signature-block" style="margin-top:4px;">{vtranslate('LBL_EXPORT_REMOVE_BLOCK', 'Vtiger')}</button>
+												</div>
+												<div class="js-signature-block" style="flex:1;min-width:200px;">
+													<textarea name="signature_blocks[]" class="form-control" rows="7" style="font-size:12px;"></textarea>
+													<button type="button" class="btn btn-xs btn-danger js-remove-signature-block" style="margin-top:4px;">{vtranslate('LBL_EXPORT_REMOVE_BLOCK', 'Vtiger')}</button>
+												</div>
+											</div>
+											<div style="margin-top:8px;">
+												<button type="button" class="btn btn-xs btn-default js-add-signature-block"><i class="fa fa-plus"></i>&nbsp;{vtranslate('LBL_EXPORT_ADD_SIGNATURE_BLOCK', 'Vtiger')}</button>
+											</div>
+											<div style="margin-top:6px;font-size:11px;color:#888;">
+												{vtranslate('LBL_EXPORT_SIGNATURE_PLACEHOLDERS', 'Vtiger')}
+											</div>
+										</div>
+									</div>
 							{/if}
 
 							<br><div><b>{vtranslate('LBL_EXPORT_DATA',$MODULE)}</b></div><br>
@@ -148,3 +169,37 @@
 		</form>
 	</div>
 {/strip}
+{literal}
+<script>
+jQuery(function($) {
+	var defaultBlock1 = "Ngày {current_date}\nNGƯỜI LẬP\n\n\n\n{user_name}";
+	var defaultBlock2 = "Ngày .../.../...\nBP ĐÀO TẠO\n\n\n\nTrương Xuân Việt";
+	var $sigTextareas = $('#signatureSection .js-signature-blocks textarea');
+	if ($sigTextareas.length >= 2) {
+		$sigTextareas.eq(0).val(defaultBlock1);
+		$sigTextareas.eq(1).val(defaultBlock2);
+	}
+
+	$('input[name="export_format"]').on('change', function() {
+		var val = $('input[name="export_format"]:checked').val();
+		if (val === 'xls' || val === 'xlsx') {
+			$('#signatureSection').show();
+		} else {
+			$('#signatureSection').hide();
+		}
+	});
+
+	$(document).on('click', '#signatureSection .js-add-signature-block', function() {
+		var html = '<div class="js-signature-block" style="flex:1;min-width:200px;">' +
+			'<textarea name="signature_blocks[]" class="form-control" rows="7" style="font-size:12px;"></textarea>' +
+			'<button type="button" class="btn btn-xs btn-danger js-remove-signature-block" style="margin-top:4px;">Xóa</button>' +
+			'</div>';
+		$('#signatureSection .js-signature-blocks').append(html);
+	});
+
+	$(document).on('click', '#signatureSection .js-remove-signature-block', function() {
+		$(this).closest('.js-signature-block').remove();
+	});
+});
+</script>
+{/literal}

@@ -563,6 +563,10 @@ $languageStrings = array(
 	'LBL_EXPORT_OPTIONS' => 'Options',
 	'LBL_EXPORT_ROW_NUMBER' => 'Add row number (STT)',
 	'LBL_EXPORT_STT' => 'STT',
+	'LBL_EXPORT_SIGNATURE' => 'Signature',
+	'LBL_EXPORT_ADD_SIGNATURE_BLOCK' => 'Add signature block',
+	'LBL_EXPORT_REMOVE_BLOCK' => 'Remove',
+	'LBL_EXPORT_SIGNATURE_PLACEHOLDERS' => 'Placeholders: {current_date} = current date, {user_name} = your name',
 	'LBL_EXPORT_DATA' => 'Export Data',
 
 	'LBL_CUSTOMIZE' => 'Customize',

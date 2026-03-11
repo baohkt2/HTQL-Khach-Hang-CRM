@@ -334,52 +334,88 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 				$rowCount++;
 			}
 
-			$footerStyles = array(
-				'font' => array('bold' => true),
-				'alignment' => array(
-					'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
-					'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
-					'wrap' => true,
-				),
-			);
-			$footerRow = $rowCount + 2;
-			$exportUserName = trim($currentUser->get('first_name').' '.$currentUser->get('last_name'));
-			if ($exportUserName === '') {
-				$exportUserName = trim((string) $currentUser->get('user_name'));
-			}
-			$field1Text = 'Ngày '.date('d/m/Y')."\nNGƯỜI LẬP\n\n\n\n".$exportUserName;
-			$field2Text = "Ngày .../.../...\nBP ĐÀO TẠO\n\n\n\nTrương Xuân Việt";
-
-			if ($totalColumns >= 5) {
-				$field1StartColumn = 1;
-				$field1EndColumn = 2;
-				$field2StartColumn = $totalColumns - 3;
-				$field2EndColumn = $totalColumns - 2;
-			} else if ($totalColumns == 1) {
-				$field1StartColumn = 0;
-				$field1EndColumn = 0;
-				$field2StartColumn = -1;
-				$field2EndColumn = -1;
-			} else {
-				$field1StartColumn = 0;
-				$field1EndColumn = 0;
-				$field2StartColumn = ($totalColumns > 2) ? ($totalColumns - 2) : ($totalColumns - 1);
-				$field2EndColumn = $field2StartColumn;
+			// Auto-fit column widths
+			for ($i = 0; $i < count($headers); $i++) {
+				$colLetter = PHPExcel_Cell::stringFromColumnIndex($i);
+				$worksheet->getColumnDimension($colLetter)->setAutoSize(true);
 			}
 
-			$worksheet->setCellValueExplicitByColumnAndRow($field1StartColumn, $footerRow, $field1Text, PHPExcel_Cell_DataType::TYPE_STRING);
-			if ($field1EndColumn > $field1StartColumn) {
-				$worksheet->mergeCellsByColumnAndRow($field1StartColumn, $footerRow, $field1EndColumn, $footerRow);
-			}
-			$worksheet->getStyleByColumnAndRow($field1StartColumn, $footerRow)->applyFromArray($footerStyles);
-			$worksheet->getRowDimension($footerRow)->setRowHeight(110);
-
-			if ($field2StartColumn >= 0) {
-				$worksheet->setCellValueExplicitByColumnAndRow($field2StartColumn, $footerRow, $field2Text, PHPExcel_Cell_DataType::TYPE_STRING);
-				if ($field2EndColumn > $field2StartColumn) {
-					$worksheet->mergeCellsByColumnAndRow($field2StartColumn, $footerRow, $field2EndColumn, $footerRow);
+			// Dynamic signature blocks
+			$signatureBlocks = $request->get('signature_blocks');
+			if (!empty($signatureBlocks) && is_array($signatureBlocks)) {
+				$exportUserName = trim($currentUser->get('first_name').' '.$currentUser->get('last_name'));
+				if ($exportUserName === '') {
+					$exportUserName = trim((string) $currentUser->get('user_name'));
 				}
-				$worksheet->getStyleByColumnAndRow($field2StartColumn, $footerRow)->applyFromArray($footerStyles);
+
+				$processedBlocks = array();
+				foreach ($signatureBlocks as $blockText) {
+					$blockText = trim($blockText);
+					if ($blockText === '') continue;
+					$blockText = str_replace('{current_date}', date('d/m/Y'), $blockText);
+					$blockText = str_replace('{user_name}', $exportUserName, $blockText);
+					$processedBlocks[] = $blockText;
+				}
+
+				if (!empty($processedBlocks)) {
+					$footerStyles = array(
+						'font' => array('bold' => true),
+						'alignment' => array(
+							'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+							'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER,
+							'wrap' => true,
+						),
+					);
+					$footerRow = $rowCount + 2;
+					$blockCount = count($processedBlocks);
+
+					if ($blockCount == 1) {
+						if ($totalColumns >= 3) {
+							$mid = floor($totalColumns / 2);
+							$positions = array(array($mid - 1, $mid));
+						} else {
+							$positions = array(array(0, max(0, $totalColumns - 1)));
+						}
+					} elseif ($blockCount == 2) {
+						if ($totalColumns >= 5) {
+							$positions = array(
+								array(1, 2),
+								array($totalColumns - 3, $totalColumns - 2),
+							);
+						} elseif ($totalColumns == 1) {
+							$positions = array(array(0, 0));
+						} else {
+							$rightCol = ($totalColumns > 2) ? ($totalColumns - 2) : ($totalColumns - 1);
+							$positions = array(
+								array(0, 0),
+								array($rightCol, $rightCol),
+							);
+						}
+					} else {
+						$positions = array();
+						$colsPerBlock = max(1, floor($totalColumns / $blockCount));
+						for ($bi = 0; $bi < $blockCount; $bi++) {
+							$start = $bi * $colsPerBlock;
+							$end = min($start + $colsPerBlock - 1, $totalColumns - 1);
+							if ($bi == $blockCount - 1) $end = $totalColumns - 1;
+							$positions[] = array($start, $end);
+						}
+					}
+
+					foreach ($processedBlocks as $bi => $blockText) {
+						if (!isset($positions[$bi])) break;
+						list($startCol, $endCol) = $positions[$bi];
+						if ($startCol > $totalColumns - 1) continue;
+						$endCol = min($endCol, $totalColumns - 1);
+						$worksheet->setCellValueExplicitByColumnAndRow($startCol, $footerRow, $blockText, PHPExcel_Cell_DataType::TYPE_STRING);
+						if ($endCol > $startCol) {
+							$worksheet->mergeCellsByColumnAndRow($startCol, $footerRow, $endCol, $footerRow);
+						}
+						$worksheet->getStyleByColumnAndRow($startCol, $footerRow)->applyFromArray($footerStyles);
+					}
+
+					$worksheet->getRowDimension($footerRow)->setRowHeight(110);
+				}
 			}
 
 			if ($exportFormat === 'xlsx' && !class_exists('ZipArchive')) {
@@ -495,8 +531,8 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 							$displayValue = $v;
 						}
 					}
-					if(!empty($parent_module) && !empty($displayValue)){
-						$value = $parent_module."::::".$displayValue;
+					if(!empty($displayValue)){
+						$value = $displayValue;
 					}else{
 						$value = "";
 					}
