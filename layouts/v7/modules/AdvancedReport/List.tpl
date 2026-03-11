@@ -93,7 +93,7 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>{vtranslate('LBL_QUERY_CONFIG_JSON', $MODULE_NAME)}</label>
-                                <textarea id="customQueryConfig" class="form-control" rows="8" placeholder='{"literal_json": "example"}'></textarea>
+                                <textarea id="customQueryConfig" class="form-control" rows="8" placeholder='{literal}{"tables":["vtiger_campaign"],"fields":["campaignname"],"filters":[]}{/literal}'></textarea>
                                 <p class="help-block">{vtranslate('LBL_QUERY_CONFIG_HELP', $MODULE_NAME)}</p>
                             </div>
                         </div>
@@ -210,6 +210,9 @@
                 <div class="panel-heading">
                     <h4 class="panel-title">
                         <i class="fa fa-bookmark"></i> {vtranslate('LBL_SAVED_REPORTS', $MODULE_NAME)}
+                        <button id="btnNewTemplate" class="btn btn-sm btn-success pull-right" style="margin-top:-4px">
+                            <i class="fa fa-plus"></i> {vtranslate('LBL_NEW_TEMPLATE', $MODULE_NAME)}
+                        </button>
                     </h4>
                 </div>
                 <div class="panel-body">
@@ -228,13 +231,16 @@
                             {foreach from=$SAVED_CONFIGS item=config name=configLoop}
                             <tr data-config-id="{$config.id}">
                                 <td>{$smarty.foreach.configLoop.iteration}</td>
-                                <td>{$config.name|escape:'html'}</td>
-                                <td>{$config.description|escape:'html'}</td>
-                                <td><span class="label label-info">{$config.report_type|escape:'html'}</span></td>
+                                <td>{$config.name}</td>
+                                <td>{$config.description}</td>
+                                <td><span class="label label-info">{$config.report_type}</span></td>
                                 <td>{$config.modified_time}</td>
                                 <td>
                                     <button class="btn btn-xs btn-primary btnLoadConfig" data-id="{$config.id}" title="{vtranslate('LBL_LOAD', $MODULE_NAME)}">
                                         <i class="fa fa-folder-open"></i>
+                                    </button>
+                                    <button class="btn btn-xs btn-warning btnEditConfig" data-id="{$config.id}" title="{vtranslate('LBL_EDIT', $MODULE_NAME)}">
+                                        <i class="fa fa-pencil"></i>
                                     </button>
                                     <button class="btn btn-xs btn-success btnRunSavedConfig" data-id="{$config.id}" title="{vtranslate('LBL_RUN', $MODULE_NAME)}">
                                         <i class="fa fa-play"></i>
@@ -279,6 +285,55 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">{vtranslate('LBL_CANCEL', $MODULE_NAME)}</button>
                 <button type="button" class="btn btn-primary" id="btnDoSaveConfig">{vtranslate('LBL_SAVE', $MODULE_NAME)}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{* ── Create Template Modal ── *}
+<div class="modal fade" id="createTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-plus-circle"></i> {vtranslate('LBL_CREATE_TEMPLATE', $MODULE_NAME)}</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>{vtranslate('LBL_NAME', $MODULE_NAME)} *</label>
+                            <input type="text" id="tplName" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>{vtranslate('LBL_REPORT_TYPE', $MODULE_NAME)}</label>
+                            <select id="tplReportType" class="form-control">
+                                <option value="campaign_contact_stats">{vtranslate('LBL_CAMPAIGN_CONTACT_STATS', $MODULE_NAME)}</option>
+                                <option value="campaign_account_breakdown">{vtranslate('LBL_CAMPAIGN_ACCOUNT_BREAKDOWN', $MODULE_NAME)}</option>
+                                <option value="campaign_followup_stats">{vtranslate('LBL_CAMPAIGN_FOLLOWUP_STATS', $MODULE_NAME)}</option>
+                                <option value="organization_group_export">{vtranslate('LBL_ORGANIZATION_GROUP_EXPORT', $MODULE_NAME)}</option>
+                                <option value="custom">{vtranslate('LBL_CUSTOM_QUERY', $MODULE_NAME)}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{vtranslate('LBL_DESCRIPTION', $MODULE_NAME)}</label>
+                    <textarea id="tplDescription" class="form-control" rows="2"></textarea>
+                </div>
+                <div id="tplCustomConfigGroup" style="display:none">
+                    <div class="form-group">
+                        <label>{vtranslate('LBL_QUERY_CONFIG_JSON', $MODULE_NAME)}</label>
+                        <textarea id="tplConfigJson" class="form-control" rows="12" style="font-family:monospace;font-size:12px"></textarea>
+                        <p class="help-block">{vtranslate('LBL_TEMPLATE_CONFIG_HELP', $MODULE_NAME)}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">{vtranslate('LBL_CANCEL', $MODULE_NAME)}</button>
+                <button type="button" class="btn btn-success" id="btnDoCreateTemplate"><i class="fa fa-plus"></i> {vtranslate('LBL_CREATE', $MODULE_NAME)}</button>
             </div>
         </div>
     </div>

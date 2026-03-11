@@ -8,10 +8,7 @@
 class AdvancedReport_Generate_Action extends Vtiger_Action_Controller {
 
     public function requiresPermission(\Vtiger_Request $request) {
-        $permissions = parent::requiresPermission($request);
-        // Require Reports module access
-        $permissions[] = array('module_parameter' => 'module', 'action' => 'DetailView');
-        return $permissions;
+        return array();
     }
 
     public function checkPermission(Vtiger_Request $request) {

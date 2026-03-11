@@ -2,20 +2,15 @@
  * AdvancedReport - Frontend Controller
  * Handles UI interactions, AJAX calls, and report preview/export
  */
-Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
+Vtiger.Class('AdvancedReport_List_Js', {}, {
 
     currentReportConfig: null,
     currentReportResult: null,
 
     init: function() {
-        this._super();
     },
 
-    /**
-     * Register all event handlers
-     */
     registerEvents: function() {
-        this._super();
         var self = this;
 
         // Report type change
@@ -31,7 +26,11 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         jQuery('#btnSaveConfig').on('click', function() { self.showSaveModal(); });
         jQuery('#btnDoSaveConfig').on('click', function() { self.saveConfig(); });
 
-        // Saved configs actions
+        // Create new template
+        jQuery('#btnNewTemplate').on('click', function() { self.showNewTemplateModal(); });
+        jQuery('#btnDoCreateTemplate').on('click', function() { self.createTemplate(); });
+
+        // Saved configs actions (delegated)
         jQuery(document).on('click', '.btnLoadConfig', function() {
             self.loadConfig(jQuery(this).data('id'));
         });
@@ -41,34 +40,32 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         jQuery(document).on('click', '.btnDeleteConfig', function() {
             self.deleteConfig(jQuery(this).data('id'));
         });
+        jQuery(document).on('click', '.btnEditConfig', function() {
+            self.editConfig(jQuery(this).data('id'));
+        });
 
         // Initialize select2
         jQuery('.select2').each(function() {
             jQuery(this).select2({width: '100%'});
         });
+
+        // Template modal: report type toggle
+        jQuery('#tplReportType').on('change', function() { self.onTemplateTypeChange(); });
     },
 
-    /**
-     * Handle report type selection change
-     */
     onReportTypeChange: function() {
         var type = jQuery('#reportType').val();
         var campaignTypes = ['campaign_contact_stats', 'campaign_account_breakdown', 'campaign_followup_stats'];
 
-        // Toggle filters visibility
         jQuery('#campaignFilterGroup, #dateFilterGroup, #dateToGroup').toggle(campaignTypes.indexOf(type) !== -1);
         jQuery('#followupOptions').toggle(type === 'campaign_followup_stats');
         jQuery('#customQueryGroup').toggle(type === 'custom');
 
-        // Enable/disable buttons
         var hasType = type !== '';
         jQuery('#btnGenerateReport').prop('disabled', !hasType);
         jQuery('#btnExportExcel, #btnSaveConfig').prop('disabled', !hasType);
     },
 
-    /**
-     * Build report config from form values
-     */
     buildReportConfig: function() {
         var type = jQuery('#reportType').val();
         var config = { report_type: type };
@@ -78,10 +75,8 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
             if (campaignIds && campaignIds.length) {
                 config.campaign_id = campaignIds;
             }
-
             var dateFrom = jQuery('#dateFrom').val();
             if (dateFrom) config.date_from = dateFrom;
-
             var dateTo = jQuery('#dateTo').val();
             if (dateTo) config.date_to = dateTo;
 
@@ -93,11 +88,16 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
                 }
             }
         } else {
+            var raw = jQuery('#customQueryConfig').val();
+            if (!raw || !raw.trim()) {
+                app.helper.showErrorNotification({message: 'Vui lòng nhập cấu hình JSON'});
+                return null;
+            }
             try {
-                var customConfig = JSON.parse(jQuery('#customQueryConfig').val());
+                var customConfig = JSON.parse(raw);
                 config = jQuery.extend(config, customConfig);
             } catch (e) {
-                app.helper.showErrorNotification({message: 'Invalid JSON config: ' + e.message});
+                app.helper.showErrorNotification({message: 'JSON không hợp lệ: ' + e.message});
                 return null;
             }
         }
@@ -106,9 +106,6 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         return config;
     },
 
-    /**
-     * Generate report (preview)
-     */
     generateReport: function() {
         var self = this;
         var config = this.buildReportConfig();
@@ -129,7 +126,7 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
 
             if (err || !data || !data.success) {
                 app.helper.showErrorNotification({
-                    message: (err ? err : (data ? data.error : 'Unknown error'))
+                    message: (err ? err : (data ? data.error : 'Có lỗi xảy ra'))
                 });
                 return;
             }
@@ -144,10 +141,8 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         });
     },
 
-    /**
-     * Render report data in preview table
-     */
     renderPreview: function(result) {
+        var self = this;
         var $head = jQuery('#reportPreviewHead');
         var $body = jQuery('#reportPreviewBody');
         var $foot = jQuery('#reportPreviewFoot');
@@ -156,7 +151,6 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         var data = result.data;
         var summary = result.summary || {};
 
-        // Clear
         $head.empty();
         $body.empty();
         $foot.empty();
@@ -198,9 +192,6 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         jQuery('#reportPreviewPanel').show();
     },
 
-    /**
-     * Export report to Excel
-     */
     exportReport: function() {
         var config = this.currentReportConfig || this.buildReportConfig();
         if (!config) return;
@@ -217,14 +208,9 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
             show_summary: jQuery('#exportShowSummary').is(':checked') ? '1' : '0'
         };
 
-        // Build download URL
-        var url = 'index.php?' + jQuery.param(params);
-        window.location.href = url;
+        window.location.href = 'index.php?' + jQuery.param(params);
     },
 
-    /**
-     * Show save config modal
-     */
     showSaveModal: function() {
         jQuery('#saveConfigId').val('');
         jQuery('#saveConfigName').val('');
@@ -232,9 +218,6 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         jQuery('#saveConfigModal').modal('show');
     },
 
-    /**
-     * Save report configuration
-     */
     saveConfig: function() {
         var self = this;
         var name = jQuery('#saveConfigName').val();
@@ -259,20 +242,14 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         app.request.post({data: params}).then(function(err, data) {
             jQuery('#saveConfigModal').modal('hide');
             if (err || !data || !data.success) {
-                app.helper.showErrorNotification({
-                    message: (err ? err : 'Lỗi lưu cấu hình')
-                });
+                app.helper.showErrorNotification({message: (err ? err : 'Lỗi lưu cấu hình')});
                 return;
             }
             app.helper.showSuccessNotification({message: 'Đã lưu cấu hình báo cáo'});
-            // Reload page to refresh saved list
             window.location.reload();
         });
     },
 
-    /**
-     * Load a saved config into the form
-     */
     loadConfig: function(configId) {
         var self = this;
         var params = {
@@ -288,9 +265,8 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
                 return;
             }
             var saved = data.config;
-            var config = saved.config || JSON.parse(saved.config_json || '{}');
+            var config = saved.config || {};
 
-            // Set form values
             jQuery('#reportType').val(config.report_type || 'custom').trigger('change');
 
             if (config.campaign_id) {
@@ -309,9 +285,41 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         });
     },
 
-    /**
-     * Run a saved config directly
-     */
+    editConfig: function(configId) {
+        var self = this;
+        var params = {
+            module: 'AdvancedReport',
+            action: 'SaveConfig',
+            mode: 'load',
+            config_id: configId
+        };
+
+        app.request.post({data: params}).then(function(err, data) {
+            if (err || !data || !data.success) {
+                app.helper.showErrorNotification({message: 'Lỗi tải cấu hình'});
+                return;
+            }
+            var saved = data.config;
+
+            // Pre-fill save modal for editing
+            jQuery('#saveConfigId').val(saved.id);
+            jQuery('#saveConfigName').val(saved.name || '');
+            jQuery('#saveConfigDescription').val(saved.description || '');
+
+            // Also load into the form
+            var config = saved.config || {};
+            jQuery('#reportType').val(config.report_type || 'custom').trigger('change');
+            if (config.campaign_id) {
+                jQuery('#campaignFilter').val(config.campaign_id).trigger('change');
+            }
+            if (config.report_type === 'custom') {
+                jQuery('#customQueryConfig').val(JSON.stringify(config, null, 2));
+            }
+
+            jQuery('#saveConfigModal').modal('show');
+        });
+    },
+
     runSavedConfig: function(configId) {
         var self = this;
         jQuery('#reportLoading').removeClass('hide');
@@ -328,7 +336,7 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
 
             if (err || !data || !data.success) {
                 app.helper.showErrorNotification({
-                    message: (err ? err : (data ? data.error : 'Unknown error'))
+                    message: (err ? err : (data ? data.error : 'Có lỗi xảy ra'))
                 });
                 return;
             }
@@ -344,9 +352,6 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         });
     },
 
-    /**
-     * Delete a saved config
-     */
     deleteConfig: function(configId) {
         if (!confirm('Bạn có chắc chắn muốn xóa cấu hình này?')) return;
 
@@ -369,9 +374,84 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         });
     },
 
-    /**
-     * Escape HTML to prevent XSS
-     */
+    // ── New Template Creation ──
+
+    showNewTemplateModal: function() {
+        jQuery('#tplName').val('');
+        jQuery('#tplDescription').val('');
+        jQuery('#tplReportType').val('campaign_contact_stats');
+        this.onTemplateTypeChange();
+        jQuery('#tplConfigJson').val('');
+        jQuery('#createTemplateModal').modal('show');
+    },
+
+    onTemplateTypeChange: function() {
+        var type = jQuery('#tplReportType').val();
+        jQuery('#tplCustomConfigGroup').toggle(type === 'custom');
+
+        // Provide sample JSON for custom type
+        if (type === 'custom' && !jQuery('#tplConfigJson').val()) {
+            var sample = {
+                "primary_module": "Campaigns",
+                "select_fields": ["campaignname", "campaignstatus"],
+                "related_modules": [{
+                    "module": "Contacts",
+                    "relation": "campaign_contact",
+                    "fields": ["firstname", "lastname"],
+                    "aggregates": [{"field": "contactid", "function": "COUNT", "alias": "total", "distinct": true}]
+                }],
+                "filters": [],
+                "group_by": ["campaignname", "campaignstatus"],
+                "order_by": [{"field": "campaignname", "direction": "ASC"}]
+            };
+            jQuery('#tplConfigJson').val(JSON.stringify(sample, null, 2));
+        }
+    },
+
+    createTemplate: function() {
+        var self = this;
+        var name = jQuery('#tplName').val();
+        if (!name) {
+            app.helper.showErrorNotification({message: 'Vui lòng nhập tên mẫu báo cáo'});
+            return;
+        }
+
+        var type = jQuery('#tplReportType').val();
+        var config = { report_type: type };
+
+        if (type === 'custom') {
+            var raw = jQuery('#tplConfigJson').val();
+            if (raw && raw.trim()) {
+                try {
+                    var parsed = JSON.parse(raw);
+                    config = jQuery.extend(config, parsed);
+                } catch (e) {
+                    app.helper.showErrorNotification({message: 'JSON không hợp lệ: ' + e.message});
+                    return;
+                }
+            }
+        }
+
+        var params = {
+            module: 'AdvancedReport',
+            action: 'SaveConfig',
+            mode: 'save',
+            name: name,
+            description: jQuery('#tplDescription').val(),
+            config: JSON.stringify(config)
+        };
+
+        app.request.post({data: params}).then(function(err, data) {
+            jQuery('#createTemplateModal').modal('hide');
+            if (err || !data || !data.success) {
+                app.helper.showErrorNotification({message: (err ? err : 'Lỗi tạo mẫu báo cáo')});
+                return;
+            }
+            app.helper.showSuccessNotification({message: 'Đã tạo mẫu báo cáo mới'});
+            window.location.reload();
+        });
+    },
+
     escapeHtml: function(text) {
         if (text === null || text === undefined) return '';
         var div = document.createElement('div');
@@ -379,13 +459,3 @@ Vtiger.Class('AdvancedReport_AdvancedReport_Js', {}, {
         return div.innerHTML;
     }
 });
-
-// Make escapeHtml available as static too
-var self = {
-    escapeHtml: function(text) {
-        if (text === null || text === undefined) return '';
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(String(text)));
-        return div.innerHTML;
-    }
-};

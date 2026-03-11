@@ -69,6 +69,13 @@ $languageStrings = array(
     'LBL_QUERY_CONFIG_JSON' => 'Cấu hình truy vấn (JSON)',
     'LBL_QUERY_CONFIG_HELP' => 'Nhập cấu hình JSON để tạo truy vấn tùy chỉnh. Xem tài liệu để biết cấu trúc.',
     
+    // Template management
+    'LBL_NEW_TEMPLATE' => 'Tạo Mẫu Mới',
+    'LBL_CREATE_TEMPLATE' => 'Tạo Mẫu Báo Cáo',
+    'LBL_EDIT' => 'Sửa',
+    'LBL_CREATE' => 'Tạo',
+    'LBL_TEMPLATE_CONFIG_HELP' => 'Nhập JSON cấu hình truy vấn. Hỗ trợ: primary_module, select_fields, related_modules, filters, group_by, order_by, limit.',
+    
     // Permission
     'LBL_PERMISSION_DENIED' => 'Bạn không có quyền truy cập',
 );

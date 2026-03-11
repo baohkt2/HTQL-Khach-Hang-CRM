@@ -387,7 +387,8 @@ class AdvancedReport_ReportEngine_Model {
             throw new \InvalidArgumentException("Report config not found: $id");
         }
         $row = $this->db->fetchByAssoc($result);
-        $row['config'] = json_decode($row['config_json'], true);
+        $rawJson = decode_html($row['config_json']);
+        $row['config'] = json_decode($rawJson, true);
         return $row;
     }
 
@@ -405,7 +406,13 @@ class AdvancedReport_ReportEngine_Model {
         $sql .= " ORDER BY modified_time DESC";
         
         $result = $this->db->pquery($sql, $params);
-        return $this->fetchAll($result);
+        $rows = $this->fetchAll($result);
+        foreach ($rows as &$row) {
+            $row['name'] = decode_html($row['name']);
+            $row['description'] = decode_html($row['description']);
+        }
+        unset($row);
+        return $rows;
     }
 
     /**

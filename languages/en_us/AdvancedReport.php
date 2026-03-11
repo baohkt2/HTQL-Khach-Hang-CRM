@@ -61,5 +61,12 @@ $languageStrings = array(
     'LBL_QUERY_CONFIG_JSON' => 'Query Configuration (JSON)',
     'LBL_QUERY_CONFIG_HELP' => 'Enter JSON configuration to build a custom query. See documentation for structure.',
     
+    // Template management
+    'LBL_NEW_TEMPLATE' => 'New Template',
+    'LBL_CREATE_TEMPLATE' => 'Create Report Template',
+    'LBL_EDIT' => 'Edit',
+    'LBL_CREATE' => 'Create',
+    'LBL_TEMPLATE_CONFIG_HELP' => 'Enter JSON query configuration. Supports: primary_module, select_fields, related_modules, filters, group_by, order_by, limit.',
+    
     'LBL_PERMISSION_DENIED' => 'Permission Denied',
 );
