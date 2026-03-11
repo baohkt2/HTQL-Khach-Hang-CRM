@@ -48,10 +48,10 @@ class PDFMaker2_PDFRenderer_Model {
         }
 
         $mpdf = new mPDF(
-            '',
+            'utf-8',
             $format,
-            '',
-            '',
+            0,
+            'timesnewroman',
             $template->get('margin_left') ?: 10,
             $template->get('margin_right') ?: 10,
             $template->get('margin_top') ?: 10,
@@ -63,6 +63,8 @@ class PDFMaker2_PDFRenderer_Model {
 
         $mpdf->SetDisplayMode('fullpage');
         $mpdf->autoScriptToLang = true;
+        $mpdf->autoLangToFont = false;
+        $mpdf->useSubstitutions = true;
 
         if (!empty($headerHtml)) {
             @$mpdf->SetHTMLHeader($headerHtml);
@@ -145,15 +147,18 @@ class PDFMaker2_PDFRenderer_Model {
                     $format .= '-L';
                 }
 
-                $mpdf = new mPDF('', $format, '', '',
+                $mpdf = new mPDF('utf-8', $format, 0, 'timesnewroman',
                     $template->get('margin_left') ?: 10,
                     $template->get('margin_right') ?: 10,
-                    0, 0,
                     $template->get('margin_top') ?: 10,
                     $template->get('margin_bottom') ?: 10,
+                    9,
+                    9,
                     $orientCode
                 );
                 $mpdf->autoScriptToLang = true;
+                $mpdf->autoLangToFont = false;
+                $mpdf->useSubstitutions = true;
 
                 if (!empty($headerHtml)) @$mpdf->SetHTMLHeader($headerHtml);
                 if (!empty($footerHtml)) @$mpdf->SetHTMLFooter($footerHtml);

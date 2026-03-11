@@ -25,18 +25,28 @@ Vtiger_Edit_Js("PDFMaker2_Edit_Js", {}, {
         var editorIds = ['pdfmaker2Header', 'pdfmaker2Body', 'pdfmaker2Footer'];
         var editorConfig = {
             toolbar: [
-                { name: 'document', items: ['Source'] },
+                { name: 'document', items: ['Source', '-', 'Preview', '-', 'Templates'] },
                 { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo'] },
-                { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'] },
-                { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
-                { name: 'insert', items: ['Table', 'HorizontalRule', 'SpecialChar', 'Image'] },
+                { name: 'editing', items: ['Find', 'Replace', '-', 'SelectAll'] },
+                { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat'] },
+                '/',
+                { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'] },
+                { name: 'links', items: ['Link', 'Unlink'] },
+                { name: 'insert', items: ['Image', 'Table', 'HorizontalRule', 'SpecialChar', 'PageBreak'] },
+                '/',
                 { name: 'styles', items: ['Styles', 'Format', 'Font', 'FontSize'] },
-                { name: 'colors', items: ['TextColor', 'BGColor'] }
+                { name: 'colors', items: ['TextColor', 'BGColor'] },
+                { name: 'tools', items: ['Maximize', 'ShowBlocks'] }
             ],
+            extraPlugins: 'find,pagebreak,preview,div,showblocks,liststyle,tabletools,tableresize,templates',
             allowedContent: true,
-            height: 120,
+            height: 150,
             removePlugins: 'elementspath',
-            resize_enabled: true
+            resize_enabled: true,
+            font_names: 'Times New Roman/Times New Roman,serif;Arial/Arial,Helvetica,sans-serif;Courier New/Courier New,Courier,monospace;Georgia/Georgia,serif;Tahoma/Tahoma,Geneva,sans-serif;Verdana/Verdana,Geneva,sans-serif;Roboto/Roboto,sans-serif',
+            font_defaultLabel: 'Times New Roman',
+            fontSize_sizes: '8/8px;9/9px;10/10px;11/11px;12/12px;13/13px;14/14px;16/16px;18/18px;20/20px;22/22px;24/24px;26/26px;28/28px;36/36px;48/48px;72/72px',
+            contentsCss: ['body { font-family: Times New Roman, serif; font-size: 13px; }']
         };
 
         editorIds.forEach(function (id) {

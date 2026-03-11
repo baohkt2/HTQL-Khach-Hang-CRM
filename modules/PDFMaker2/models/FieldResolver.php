@@ -383,9 +383,9 @@ class PDFMaker2_FieldResolver_Model {
             case 9:
                 if (is_numeric($value)) {
                     if (floor($value) == $value) {
-                        return number_format((int)$value, 0, ',', '.');
+                        return (string)(int)$value;
                     }
-                    return number_format((float)$value, 2, ',', '.');
+                    return rtrim(rtrim(number_format((float)$value, 6, '.', ''), '0'), '.');
                 }
                 return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 

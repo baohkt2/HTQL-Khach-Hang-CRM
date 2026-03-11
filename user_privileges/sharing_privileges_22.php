@@ -18,9 +18,9 @@ $Accounts_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
 
 $Accounts_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
 
-$Contacts_share_read_permission=array('ROLE'=>array('H7'=>array(1,11,),),'GROUP'=>array());
+$Contacts_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
 
-$Contacts_share_write_permission=array('ROLE'=>array('H7'=>array(1,11,),),'GROUP'=>array());
+$Contacts_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
 
 $Accounts_Potentials_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
 
