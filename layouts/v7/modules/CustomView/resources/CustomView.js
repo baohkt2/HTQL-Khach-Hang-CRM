@@ -231,7 +231,7 @@ jQuery.Class(
     registerSelect2ElementForColumnsSelection: function () {
       var selectElement = this.getColumnSelectElement();
       vtUtils.showSelect2ElementView(selectElement, {
-        maximumSelectionSize: 40,
+        maximumSelectionSize: 50,
       });
     },
 
@@ -249,7 +249,25 @@ jQuery.Class(
           submitHandler: function (form) {
             var form = jQuery(form);
             var selectElement = form.find("#viewColumnsSelect");
-            // Mandatory field validation removed - users can freely choose any columns
+            var mandatoryFieldsList = JSON.parse(
+              jQuery("#mandatoryFieldsList").val(),
+            );
+            var selectedOptions = selectElement.val();
+            var mandatoryFieldsMissing = true;
+            for (var i = 0; i < selectedOptions.length; i++) {
+              if (
+                jQuery.inArray(selectedOptions[i], mandatoryFieldsList) >= 0
+              ) {
+                mandatoryFieldsMissing = false;
+                break;
+              }
+            }
+            if (mandatoryFieldsMissing) {
+              app.helper.showErrorNotification({
+                message: "Select atleast one mandatory value.",
+              });
+              return false;
+            }
             //handled advanced filters saved values.
             var advfilterlist = self.advanceFilterInstance.getValues();
             jQuery("#advfilterlist").val(JSON.stringify(advfilterlist));

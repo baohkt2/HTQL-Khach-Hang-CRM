@@ -25,10 +25,12 @@ class Settings_Workflows_ValidateExpression_Action extends Settings_Vtiger_Basic
 	}
 
 	public function ForTaskEdit(Vtiger_Request $request) {
+		require_once 'modules/com_vtiger_workflow/VTWorkflowUtils.php';
 		require_once 'modules/com_vtiger_workflow/expression_engine/include.inc';
 
 		$result = new Vtiger_Response();
 		$fieldMapping = Zend_Json::decode($request->getRaw('field_value_mapping'));
+		$fieldMapping = VTWorkflowUtils::decodeUnicodeEscapes($fieldMapping);
 		if (empty($fieldMapping)) {
 			$fieldMapping = array();
 		}
@@ -49,6 +51,7 @@ class Settings_Workflows_ValidateExpression_Action extends Settings_Vtiger_Basic
 	}
 
 	public function ForWorkflowEdit(Vtiger_Request $request) {
+		require_once 'modules/com_vtiger_workflow/VTWorkflowUtils.php';
 		require_once 'modules/com_vtiger_workflow/expression_engine/include.inc';
 
 		$result = new Vtiger_Response();
@@ -61,6 +64,7 @@ class Settings_Workflows_ValidateExpression_Action extends Settings_Vtiger_Basic
 		}
 
 		$conditions = $request->get('conditions');
+		$conditions = VTWorkflowUtils::decodeUnicodeEscapes($conditions);
 
 		foreach ($conditions as $info) {
 			foreach ($info['columns'] as $conditionRow) {

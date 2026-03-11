@@ -10,6 +10,16 @@
 
 class Vtiger_MassDelete_Action extends Vtiger_Mass_Action {
 
+	private function hasActiveDeleteWorkflow($moduleName) {
+		$db = PearDatabase::getInstance();
+		$result = $db->pquery(
+			'SELECT 1 FROM com_vtiger_workflows WHERE module_name = ? AND execution_condition = ? AND status = ? LIMIT 1',
+			array($moduleName, 5, 1)
+		);
+
+		return $result && $db->num_rows($result) > 0;
+	}
+
 	public function requiresPermission(\Vtiger_Request $request) {
 		$permissions = parent::requiresPermission($request);
 		$permissions[] = array('module_parameter' => 'module', 'action' => 'Delete');
@@ -35,12 +45,13 @@ class Vtiger_MassDelete_Action extends Vtiger_Mass_Action {
 		}
 
 		$cvId = $request->get('viewname');
+		$hasActiveDeleteWorkflow = $this->hasActiveDeleteWorkflow($moduleName);
 
-		// Use bulk save mode to skip per-record event handlers (beforedelete/afterdelete)
-		// This dramatically speeds up mass deletion and prevents timeouts
+		// Keep per-record delete events enabled when the module has active ON_DELETE workflows.
+		// Otherwise, retain the bulk optimization for large deletions.
 		global $VTIGER_BULK_SAVE_MODE;
 		$previousBulkSaveMode = $VTIGER_BULK_SAVE_MODE;
-		$VTIGER_BULK_SAVE_MODE = true;
+		$VTIGER_BULK_SAVE_MODE = $hasActiveDeleteWorkflow ? false : true;
 
 		// Extend time limit for large batch deletions
 		if (function_exists('set_time_limit')) {

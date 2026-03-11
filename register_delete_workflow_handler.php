@@ -1,6 +1,6 @@
 <?php
 /*+**********************************************************************************
- * This script registers the VTDeleteEventHandler for vtiger.entity.afterdelete event
+ * This script registers the VTDeleteEventHandler for vtiger.entity.beforedelete event
  * Run this file once to enable ON_DELETE workflow functionality
  * 
  * Usage: php register_delete_workflow_handler.php
@@ -11,12 +11,12 @@ require_once('include/events/include.inc');
 
 global $adb;
 
-echo "Registering VTDeleteEventHandler for vtiger.entity.afterdelete event...\n";
+echo "Registering VTDeleteEventHandler for vtiger.entity.beforedelete event...\n";
 
 $em = new VTEventsManager($adb);
 
 // Check if handler already exists
-$checkQuery = "SELECT * FROM vtiger_eventhandlers WHERE event_name = 'vtiger.entity.afterdelete' AND handler_class = 'VTDeleteEventHandler'";
+$checkQuery = "SELECT * FROM vtiger_eventhandlers WHERE event_name = 'vtiger.entity.beforedelete' AND handler_class = 'VTDeleteEventHandler'";
 $result = $adb->query($checkQuery);
 
 if ($adb->num_rows($result) > 0) {
@@ -24,7 +24,7 @@ if ($adb->num_rows($result) > 0) {
 } else {
     // Register the handler
     $em->registerHandler(
-        'vtiger.entity.afterdelete', 
+        'vtiger.entity.beforedelete', 
         'modules/com_vtiger_workflow/VTDeleteEventHandler.inc', 
         'VTDeleteEventHandler'
     );

@@ -392,6 +392,19 @@ function isPermitted($module,$actionname,$record_id='')
 			}
 		}
 
+		// --- BYPASS RECORD SHARING FOR SHARED CUSTOMVIEWS ---
+		$cvId = isset($_REQUEST['viewname']) ? $_REQUEST['viewname'] : (isset($_REQUEST['cvid']) ? $_REQUEST['cvid'] : (isset($_REQUEST['return_viewname']) ? $_REQUEST['return_viewname'] : ''));
+		if(!empty($cvId) && is_numeric($cvId)) {
+			require_once 'modules/CustomView/CustomView.php';
+			$customView = new CustomView($module);
+			$isShared = $customView->isPermittedCustomView($cvId, 'List', $module);
+			if($isShared == 'yes') {
+				// Allow read/write if they have access to the view
+				return "yes";
+			}
+		}
+		// ----------------------------------------------------
+
 		//Retreiving the RecordOwnerId
 		$recOwnType='';
 		$recOwnId='';

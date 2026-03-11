@@ -451,14 +451,6 @@ $languageStrings = array(
 	'LBL_EMAIL_DETAILS' => 'Chi tiết Email ',
 	'LBL_EMAIL_CONTENT' => 'Nội dung email',
 	'Quotes' => 'Mẫu Aptech v2',
-
-	// CRUD enhancements
-	'LBL_TEMPLATE_NAME' => 'Tên Template',
-	'LBL_ENTER_TEMPLATE_NAME' => 'Nhập tên template',
-	'LBL_SELECT_MODULE' => 'Chọn Module',
-	'LBL_DELETE_CONFIRMATION' => 'Bạn có chắc chắn muốn xóa template này?',
-	'LBL_DELETE_SUCCESS' => 'Đã xóa template thành công.',
-	'LBL_DELETE_FAILED' => 'Xóa template thất bại.',
 );
 $jsLanguageStrings = array(
 	'LBL_MISSING_FIELDS' => 'Thiếu trường bắt buộc:',

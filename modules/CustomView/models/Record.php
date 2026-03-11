@@ -605,6 +605,8 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 	public function saveShareTasks($shareTasks) {
 		$db = PearDatabase::getInstance();
 		$cvId = $this->getId();
+		$previousMembers = $this->getShareTaskMembersFromDb($cvId);
+		$currentMembers = array();
 
 		// Delete existing share tasks
 		$db->pquery('DELETE FROM vtiger_cv_share_tasks WHERE cvid = ?', array($cvId));
@@ -619,17 +621,11 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 					$description = html_entity_decode($description, ENT_QUOTES, 'UTF-8');
 				}
 
-				// members should be stored as clean JSON string
-				if (is_array($members)) {
-					// Decode any HTML entities in member IDs
-					$cleanMembers = array();
-					foreach ($members as $m) {
-						$cleanMembers[] = html_entity_decode($m, ENT_QUOTES, 'UTF-8');
-					}
-					$members = json_encode($cleanMembers);
-				} else if (is_string($members)) {
-					$members = html_entity_decode($members, ENT_QUOTES, 'UTF-8');
+				$cleanMembers = $this->normalizeQualifiedMembers($members);
+				if (!empty($cleanMembers)) {
+					$currentMembers = array_values(array_unique(array_merge($currentMembers, $cleanMembers)));
 				}
+				$members = json_encode($cleanMembers);
 
 				if (!empty($members) && $members !== '[]') {
 					$sql = 'INSERT INTO vtiger_cv_share_tasks (cvid, members, task_description) VALUES (?, ?, ?)';
@@ -637,6 +633,206 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 				}
 			}
 		}
+
+		$this->syncDefaultShareMembersByDiff($cvId, $previousMembers, $currentMembers);
+	}
+
+	private function getShareTaskMembersFromDb($cvId) {
+		$db = PearDatabase::getInstance();
+		if (empty($cvId)) {
+			return array();
+		}
+
+		$result = $db->pquery('SELECT members FROM vtiger_cv_share_tasks WHERE cvid = ?', array($cvId));
+		$members = array();
+		$rows = $db->num_rows($result);
+		for ($i = 0; $i < $rows; $i++) {
+			$rowMembers = $db->query_result($result, $i, 'members');
+			$normalized = $this->normalizeQualifiedMembers($rowMembers);
+			if (!empty($normalized)) {
+				$members = array_values(array_unique(array_merge($members, $normalized)));
+			}
+		}
+
+		return $members;
+	}
+
+	private function normalizeQualifiedMembers($members) {
+		if (is_string($members)) {
+			$members = html_entity_decode($members, ENT_QUOTES, 'UTF-8');
+			$decoded = json_decode($members, true);
+			if (is_array($decoded)) {
+				$members = $decoded;
+			} else {
+				$members = array($members);
+			}
+		}
+
+		if (!is_array($members)) {
+			return array();
+		}
+
+		$normalizedMembers = array();
+		foreach ($members as $memberId) {
+			$cleanMemberId = trim(html_entity_decode($memberId, ENT_QUOTES, 'UTF-8'));
+			if ($cleanMemberId !== '' && !in_array($cleanMemberId, $normalizedMembers)) {
+				$normalizedMembers[] = $cleanMemberId;
+			}
+		}
+
+		return $normalizedMembers;
+	}
+
+	private function syncDefaultShareMembersByDiff($cvId, $previousMembers, $currentMembers) {
+		$previousMembers = is_array($previousMembers) ? array_values(array_unique($previousMembers)) : array();
+		$currentMembers = is_array($currentMembers) ? array_values(array_unique($currentMembers)) : array();
+
+		$removedMembers = array_values(array_diff($previousMembers, $currentMembers));
+		$addedMembers = array_values(array_diff($currentMembers, $previousMembers));
+
+		foreach ($removedMembers as $memberId) {
+			$this->applyDefaultShareMemberMutation($cvId, $memberId, 'delete');
+		}
+
+		foreach ($addedMembers as $memberId) {
+			$this->applyDefaultShareMemberMutation($cvId, $memberId, 'insert');
+		}
+
+		// Safety reconciliation for historical inconsistent data in vtiger_cv2* tables.
+		$this->reconcileDefaultShareMembers($cvId, $currentMembers);
+	}
+
+	private function reconcileDefaultShareMembers($cvId, $currentMembers) {
+		$db = PearDatabase::getInstance();
+		$memberBuckets = $this->buildMemberBuckets($currentMembers);
+
+		$map = array(
+			'vtiger_cv2users' => array('column' => 'userid', 'target' => $memberBuckets['users']),
+			'vtiger_cv2group' => array('column' => 'groupid', 'target' => $memberBuckets['groups']),
+			'vtiger_cv2role' => array('column' => 'roleid', 'target' => $memberBuckets['roles']),
+			'vtiger_cv2rs' => array('column' => 'rsid', 'target' => $memberBuckets['roleAndSubordinates']),
+		);
+
+		foreach ($map as $tableName => $tableInfo) {
+			$columnName = $tableInfo['column'];
+			$targetIds = $tableInfo['target'];
+
+			$result = $db->pquery('SELECT ' . $columnName . ' FROM ' . $tableName . ' WHERE cvid = ?', array($cvId));
+			$existingIds = array();
+			$rows = $db->num_rows($result);
+			for ($i = 0; $i < $rows; $i++) {
+				$existingIds[] = (string) $db->query_result($result, $i, $columnName);
+			}
+
+			$targetAsString = array_map('strval', $targetIds);
+			$toDelete = array_diff($existingIds, $targetAsString);
+			$toInsert = array_diff($targetAsString, $existingIds);
+
+			if (!empty($toDelete)) {
+				$db->pquery('DELETE FROM ' . $tableName . ' WHERE cvid = ? AND ' . $columnName . ' IN (' . generateQuestionMarks($toDelete) . ')', array($cvId, array_values($toDelete)));
+			}
+
+			if (!empty($toInsert)) {
+				foreach ($toInsert as $memberId) {
+					$db->pquery('INSERT INTO ' . $tableName . ' (' . $columnName . ', cvid) VALUES (?, ?)', array($memberId, $cvId));
+				}
+			}
+		}
+	}
+
+	private function buildMemberBuckets($qualifiedMembers) {
+		$buckets = array(
+			'users' => array(),
+			'groups' => array(),
+			'roles' => array(),
+			'roleAndSubordinates' => array(),
+		);
+
+		if (!is_array($qualifiedMembers)) {
+			return $buckets;
+		}
+
+		foreach ($qualifiedMembers as $qualifiedMemberId) {
+			if (empty($qualifiedMemberId) || $qualifiedMemberId === 'All::Users') {
+				continue;
+			}
+
+			$idComponents = Settings_Groups_Member_Model::getIdComponentsFromQualifiedId($qualifiedMemberId);
+			if (!$idComponents || php7_count($idComponents) != 2) {
+				continue;
+			}
+
+			$memberType = $idComponents[0];
+			$memberId = (string) $idComponents[1];
+
+			if ($memberType == Settings_Groups_Member_Model::MEMBER_TYPE_USERS) {
+				if (!in_array($memberId, $buckets['users'])) {
+					$buckets['users'][] = $memberId;
+				}
+			} else if ($memberType == Settings_Groups_Member_Model::MEMBER_TYPE_GROUPS) {
+				if (!in_array($memberId, $buckets['groups'])) {
+					$buckets['groups'][] = $memberId;
+				}
+			} else if ($memberType == Settings_Groups_Member_Model::MEMBER_TYPE_ROLES) {
+				if (!in_array($memberId, $buckets['roles'])) {
+					$buckets['roles'][] = $memberId;
+				}
+			} else if ($memberType == Settings_Groups_Member_Model::MEMBER_TYPE_ROLE_AND_SUBORDINATES) {
+				if (!in_array($memberId, $buckets['roleAndSubordinates'])) {
+					$buckets['roleAndSubordinates'][] = $memberId;
+				}
+			}
+		}
+
+		return $buckets;
+	}
+
+	private function applyDefaultShareMemberMutation($cvId, $qualifiedMemberId, $operation) {
+		$db = PearDatabase::getInstance();
+
+		if (empty($qualifiedMemberId) || $qualifiedMemberId === 'All::Users') {
+			return;
+		}
+
+		$idComponents = Settings_Groups_Member_Model::getIdComponentsFromQualifiedId($qualifiedMemberId);
+		if (!$idComponents || php7_count($idComponents) != 2) {
+			return;
+		}
+
+		$memberType = $idComponents[0];
+		$memberId = $idComponents[1];
+		$tableName = '';
+		$columnName = '';
+
+		if ($memberType == Settings_Groups_Member_Model::MEMBER_TYPE_USERS) {
+			$tableName = 'vtiger_cv2users';
+			$columnName = 'userid';
+		} else if ($memberType == Settings_Groups_Member_Model::MEMBER_TYPE_GROUPS) {
+			$tableName = 'vtiger_cv2group';
+			$columnName = 'groupid';
+		} else if ($memberType == Settings_Groups_Member_Model::MEMBER_TYPE_ROLES) {
+			$tableName = 'vtiger_cv2role';
+			$columnName = 'roleid';
+		} else if ($memberType == Settings_Groups_Member_Model::MEMBER_TYPE_ROLE_AND_SUBORDINATES) {
+			$tableName = 'vtiger_cv2rs';
+			$columnName = 'rsid';
+		}
+
+		if (empty($tableName) || empty($columnName)) {
+			return;
+		}
+
+		if ($operation === 'delete') {
+			$db->pquery('DELETE FROM ' . $tableName . ' WHERE cvid = ? AND ' . $columnName . ' = ?', array($cvId, $memberId));
+			return;
+		}
+
+		$existsResult = $db->pquery('SELECT 1 FROM ' . $tableName . ' WHERE cvid = ? AND ' . $columnName . ' = ? LIMIT 1', array($cvId, $memberId));
+		if ($existsResult && $db->num_rows($existsResult) > 0) {
+			return;
+		}
+
+		$db->pquery('INSERT INTO ' . $tableName . ' (' . $columnName . ', cvid) VALUES (?, ?)', array($memberId, $cvId));
 	}
 
 	/**

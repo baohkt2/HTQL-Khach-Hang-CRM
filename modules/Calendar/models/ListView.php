@@ -62,6 +62,12 @@ class Calendar_ListView_Model extends Vtiger_ListView_Model {
 					'linkurl' => 'javascript:Vtiger_List_Js.triggerExportAction("'.$moduleModel->getExportUrl().'")',
 					'linkicon' => ''
 				);
+			$advancedLinks[] = array(
+					'linktype' => 'LISTVIEW',
+					'linklabel' => 'LBL_CUSTOM_EXPORT',
+					'linkurl' => 'javascript:Vtiger_List_Js.triggerExportAction("'.$moduleModel->getCustomExportUrl().'")',
+					'linkicon' => ''
+				);
 		}
 		return $advancedLinks;
 	}

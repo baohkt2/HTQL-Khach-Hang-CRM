@@ -255,7 +255,7 @@ Vtiger.Class(
         app.request.post({ data: params }).then(function (err, res) {
           app.helper.showModal(res);
           jQuery(".filePreview .preview-area").height(
-            jQuery(window).height() - 143
+            jQuery(window).height() - 143,
           );
         });
       }
@@ -280,7 +280,7 @@ Vtiger.Class(
       this.addModuleSpecificComponent(
         "Index",
         "Vtiger",
-        app.getParentModuleName()
+        app.getParentModuleName(),
       );
     },
     getListViewContainer: function () {
@@ -351,7 +351,7 @@ Vtiger.Class(
           listSelectParams["module"] = app.getModuleName();
           listSelectParams["action"] = "MassDelete";
           listSelectParams["search_params"] = JSON.stringify(
-            listInstance.getListSearchParams()
+            listInstance.getListSearchParams(),
           );
           app.helper.showProgress();
           app.request
@@ -390,13 +390,14 @@ Vtiger.Class(
       postData = jQuery.extend(postData, params);
       var listSelectAllParams = listInstance.getListSelectAllParams(true);
       listSelectAllParams["search_params"] = JSON.stringify(
-        listInstance.getListSearchParams()
+        listInstance.getListSearchParams(),
       );
       postData = jQuery.extend(postData, listSelectAllParams);
 
       app.helper.showProgress();
       app.request.get({ data: postData }).then(function (error, data) {
         app.helper.loadPageContentOverlay(data).then(function (container) {
+          listInstance.initializeCustomExportOverlay(container);
           container.find("form#exportForm").on("submit", function () {
             jQuery(this)
               .find('button[type="submit"]')
@@ -406,6 +407,438 @@ Vtiger.Class(
         });
         app.helper.hideProgress();
       });
+    },
+    initializeCustomExportOverlay: function (container) {
+      var thisInstance = this;
+      var form = container.find("#customExportForm");
+      if (!form.length) {
+        return;
+      }
+
+      var columnSelectElement = form.find("#viewColumnsSelect");
+      var advanceFilterInstance = new Vtiger_AdvanceFilter_Js(
+        form.find(".filterConditionsDiv").first(),
+      );
+
+      vtUtils.showSelect2ElementView(columnSelectElement, {
+        maximumSelectionSize: 50,
+      });
+      form.data("customExportState", {
+        advanceFilterInstance: advanceFilterInstance,
+        savedFormats: thisInstance.getCustomExportSavedFormats(form),
+        selectedFormatId: "",
+      });
+      thisInstance.arrangeCustomExportChoices(form);
+      thisInstance.makeCustomExportColumnsSortable(form);
+      thisInstance.registerCustomExportFormatEvents(form);
+      thisInstance.renderCustomExportFormatsDropdown(form);
+
+      form.vtValidate({
+        submitHandler: function (formElement) {
+          var formObject = jQuery(formElement);
+          var selectedColumns =
+            thisInstance.getCustomExportSelectedColumns(formObject);
+          if (!selectedColumns.length) {
+            app.helper.showErrorNotification({
+              message: app.vtranslate("JS_PLEASE_SELECT_ATLEAST_ONE_OPTION"),
+            });
+            return false;
+          }
+
+          var fileNameElement = formObject.find("#filename");
+          var fileName = jQuery.trim(fileNameElement.val());
+          fileName = fileName.replace(/\.xlsx$/i, "");
+          fileNameElement.val(fileName);
+
+          thisInstance.serializeCustomExportForm(formObject, selectedColumns);
+          thisInstance
+            .saveCustomExportFormatIfNeeded(formObject)
+            .then(function (shouldSubmit) {
+              if (!shouldSubmit) {
+                return;
+              }
+
+              formObject
+                .find('button[type="submit"]')
+                .attr("disabled", "disabled");
+              app.helper.hidePageContentOverlay();
+              formElement.submit();
+            });
+          return false;
+        },
+      });
+    },
+    getCustomExportSavedFormats: function (form) {
+      var savedFormats = form.find("#savedCustomExportFormats").val() || "[]";
+
+      try {
+        savedFormats = JSON.parse(savedFormats);
+      } catch (error) {
+        savedFormats = [];
+      }
+
+      return jQuery.isArray(savedFormats) ? savedFormats : [];
+    },
+    getCustomExportState: function (form) {
+      return form.data("customExportState") || {};
+    },
+    serializeCustomExportForm: function (form, selectedColumns) {
+      var state = this.getCustomExportState(form);
+      var advanceFilterInstance = state.advanceFilterInstance;
+      var filterValues = advanceFilterInstance
+        ? advanceFilterInstance.getValues()
+        : {};
+
+      form
+        .find('input[name="columnslist"]')
+        .val(JSON.stringify(selectedColumns || []));
+      form.find("#advfilterlist").val(JSON.stringify(filterValues || {}));
+    },
+    saveCustomExportFormatIfNeeded: function (form) {
+      var thisInstance = this;
+      var deferred = jQuery.Deferred();
+      var saveFormatCheckbox = form.find("#saveCustomExportFormat");
+      if (!saveFormatCheckbox.is(":checked")) {
+        deferred.resolve(true);
+        return deferred.promise();
+      }
+
+      var formatNameElement = form.find("#customExportFormatName");
+      var formatName = jQuery.trim(formatNameElement.val());
+      if (!formatName) {
+        app.helper.showErrorNotification({
+          message: app.vtranslate("LBL_CUSTOM_EXPORT_FORMAT_NAME_REQUIRED"),
+        });
+        deferred.resolve(false);
+        return deferred.promise();
+      }
+
+      var selectedColumns = this.getCustomExportSelectedColumns(form);
+      var params = {
+        module: this.getModuleName(),
+        action: "SaveCustomExportFormat",
+        source_module: this.getModuleName(),
+        selected_format_id: form.find("#selectedCustomExportFormatId").val(),
+        format_name: formatName,
+        filename: jQuery.trim(form.find("#filename").val()),
+        export_title: jQuery.trim(form.find("#exportTitle").val()),
+        columnslist: JSON.stringify(selectedColumns),
+        advfilterlist: form.find("#advfilterlist").val(),
+      };
+
+      app.helper.showProgress();
+      app.request.post({ data: params }).then(function (err, res) {
+        app.helper.hideProgress();
+        if (err) {
+          app.helper.showErrorNotification({ message: err });
+          deferred.resolve(false);
+          return;
+        }
+
+        var state = form.data("customExportState") || {};
+        state.savedFormats = thisInstance.mergeCustomExportFormat(
+          state.savedFormats || [],
+          res.format,
+        );
+        state.selectedFormatId = String(res.format.id || "");
+        form.data("customExportState", state);
+        form.find("#selectedCustomExportFormatId").val(state.selectedFormatId);
+        thisInstance.renderCustomExportFormatsDropdown(form);
+        thisInstance.updateSelectedCustomExportFormatButton(form, res.format);
+        app.helper.showSuccessNotification({ message: res.message });
+        deferred.resolve(true);
+      });
+
+      return deferred.promise();
+    },
+    mergeCustomExportFormat: function (savedFormats, newFormat) {
+      var mergedFormats = [];
+      var matched = false;
+
+      jQuery.each(savedFormats || [], function (index, formatInfo) {
+        if (String(formatInfo.id) === String(newFormat.id)) {
+          mergedFormats.push(newFormat);
+          matched = true;
+          return;
+        }
+        mergedFormats.push(formatInfo);
+      });
+
+      if (!matched) {
+        mergedFormats.push(newFormat);
+      }
+
+      mergedFormats.sort(function (left, right) {
+        return String(left.format_name || "").localeCompare(
+          String(right.format_name || ""),
+        );
+      });
+
+      return mergedFormats;
+    },
+    registerCustomExportFormatEvents: function (form) {
+      var thisInstance = this;
+
+      form.on("change", "#saveCustomExportFormat", function (event) {
+        thisInstance.toggleCustomExportFormatName(
+          form,
+          jQuery(event.currentTarget).is(":checked"),
+        );
+      });
+
+      form.on("click", ".js-select-custom-export-format", function (event) {
+        event.preventDefault();
+        var currentTarget = jQuery(event.currentTarget);
+        var formatId = currentTarget.data("formatId");
+        var state = thisInstance.getCustomExportState(form);
+        var savedFormat = null;
+
+        jQuery.each(state.savedFormats || [], function (index, formatInfo) {
+          if (String(formatInfo.id) === String(formatId)) {
+            savedFormat = formatInfo;
+            return false;
+          }
+        });
+
+        if (!savedFormat) {
+          return;
+        }
+
+        thisInstance.applyCustomExportFormat(form, savedFormat);
+      });
+
+      form.on("click", ".js-delete-custom-export-format", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        var currentTarget = jQuery(event.currentTarget);
+        thisInstance.deleteCustomExportFormat(
+          form,
+          currentTarget.data("formatId"),
+        );
+      });
+    },
+    toggleCustomExportFormatName: function (form, isEnabled) {
+      var formatNameElement = form.find("#customExportFormatName");
+      formatNameElement.prop("disabled", !isEnabled);
+      if (isEnabled) {
+        formatNameElement.trigger("focus");
+      }
+    },
+    renderCustomExportFormatsDropdown: function (form) {
+      var state = this.getCustomExportState(form);
+      var savedFormats = state.savedFormats || [];
+      var dropdownButton = form.find(".js-saved-export-format-button");
+      var dropdownMenu = form.find(".js-saved-export-format-menu");
+
+      dropdownMenu.empty();
+      if (!savedFormats.length) {
+        dropdownButton.addClass("disabled").prop("disabled", true);
+        dropdownMenu.append(
+          jQuery("<li />")
+            .addClass("disabled")
+            .append(
+              jQuery("<a />", {
+                href: "javascript:void(0)",
+                text: app.vtranslate("LBL_CUSTOM_EXPORT_NO_SAVED_FORMATS"),
+              }),
+            ),
+        );
+        this.updateSelectedCustomExportFormatButton(form, null);
+        return;
+      }
+
+      dropdownButton.removeClass("disabled").prop("disabled", false);
+      jQuery.each(savedFormats, function (index, formatInfo) {
+        var itemContainer = jQuery("<div />", {
+          class: "clearfix",
+          style:
+            "display:flex;align-items:center;justify-content:space-between;padding:0 10px;gap:8px;",
+        });
+        var selectLink = jQuery("<a />", {
+          href: "javascript:void(0)",
+          class: "js-select-custom-export-format",
+          text: formatInfo.format_name,
+          style:
+            "flex:1;min-width:0;padding:8px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;",
+        }).attr("data-format-id", formatInfo.id);
+        var deleteButton = jQuery("<button />", {
+          type: "button",
+          class: "btn btn-link btn-xs js-delete-custom-export-format",
+          title: app.vtranslate("LBL_DELETE"),
+          style: "padding:0;color:#a94442;",
+        })
+          .attr("data-format-id", formatInfo.id)
+          .append(
+            jQuery("<i />", {
+              class: "fa fa-trash",
+            }),
+          );
+
+        itemContainer.append(selectLink).append(deleteButton);
+        dropdownMenu.append(jQuery("<li />").append(itemContainer));
+      });
+
+      this.updateSelectedCustomExportFormatButton(form, null);
+    },
+    deleteCustomExportFormat: function (form, formatId) {
+      var thisInstance = this;
+      var message = app.vtranslate("LBL_CUSTOM_EXPORT_DELETE_FORMAT_CONFIRM");
+
+      app.helper.showConfirmationBox({ message: message }).then(function () {
+        app.helper.showProgress();
+        app.request
+          .post({
+            data: {
+              module: thisInstance.getModuleName(),
+              action: "DeleteCustomExportFormat",
+              source_module: thisInstance.getModuleName(),
+              record: formatId,
+            },
+          })
+          .then(function (err, res) {
+            app.helper.hideProgress();
+            if (err) {
+              app.helper.showErrorNotification({ message: err });
+              return;
+            }
+
+            var state = thisInstance.getCustomExportState(form);
+            var remainingFormats = [];
+            jQuery.each(state.savedFormats || [], function (index, formatInfo) {
+              if (String(formatInfo.id) !== String(formatId)) {
+                remainingFormats.push(formatInfo);
+              }
+            });
+
+            state.savedFormats = remainingFormats;
+            if (String(state.selectedFormatId) === String(formatId)) {
+              state.selectedFormatId = "";
+              form.find("#selectedCustomExportFormatId").val("");
+            }
+            form.data("customExportState", state);
+            thisInstance.renderCustomExportFormatsDropdown(form);
+            app.helper.showSuccessNotification({ message: res.message });
+          });
+      });
+    },
+    updateSelectedCustomExportFormatButton: function (form, formatInfo) {
+      var buttonLabel = form.find(".js-saved-export-format-button-label");
+      var state = this.getCustomExportState(form);
+
+      if (!formatInfo && state.selectedFormatId) {
+        jQuery.each(state.savedFormats || [], function (index, savedFormat) {
+          if (String(savedFormat.id) === String(state.selectedFormatId)) {
+            formatInfo = savedFormat;
+            return false;
+          }
+        });
+      }
+
+      buttonLabel.text(
+        formatInfo && formatInfo.format_name
+          ? formatInfo.format_name
+          : app.vtranslate("LBL_SELECT_SAVED_EXPORT_FORMAT"),
+      );
+    },
+    applyCustomExportFormat: function (form, formatInfo) {
+      var thisInstance = this;
+      var state = this.getCustomExportState(form);
+      state.selectedFormatId = String(formatInfo.id || "");
+      form.data("customExportState", state);
+      form.find("#selectedCustomExportFormatId").val(state.selectedFormatId);
+      form.find("#filename").val(formatInfo.filename || "");
+      form.find("#exportTitle").val(formatInfo.export_title || "");
+      form.find("#customExportFormatName").val(formatInfo.format_name || "");
+      thisInstance.updateSelectedCustomExportFormatButton(form, formatInfo);
+      thisInstance.setCustomExportSelectedColumns(
+        form,
+        formatInfo.columnslist || [],
+      );
+      thisInstance.loadCustomExportFilter(form, formatInfo.advfilterlist || {});
+    },
+    setCustomExportSelectedColumns: function (form, columnsList) {
+      var selectElement = form.find("#viewColumnsSelect");
+      selectElement.val(columnsList).trigger("change");
+      form.find('input[name="columnslist"]').val(JSON.stringify(columnsList));
+      this.arrangeCustomExportChoices(form);
+      this.makeCustomExportColumnsSortable(form);
+    },
+    loadCustomExportFilter: function (form, filterValues) {
+      var thisInstance = this;
+      var wrapper = form.find(".js-custom-export-filter-wrapper");
+      form.find("#advfilterlist").val(JSON.stringify(filterValues || {}));
+      var params = {
+        module: this.getModuleName(),
+        view: "CustomExportFilter",
+        source_module: this.getModuleName(),
+        advfilterlist: JSON.stringify(filterValues || {}),
+      };
+
+      app.helper.showProgress();
+      app.request.post({ data: params }).then(function (err, html) {
+        app.helper.hideProgress();
+        if (err) {
+          app.helper.showErrorNotification({ message: err });
+          return;
+        }
+
+        wrapper.html(html);
+        var state = thisInstance.getCustomExportState(form);
+        state.advanceFilterInstance = new Vtiger_AdvanceFilter_Js(
+          wrapper.find(".filterConditionsDiv").first(),
+        );
+        form.data("customExportState", state);
+        form.find("#advfilterlist").val(JSON.stringify(filterValues || {}));
+      });
+    },
+    arrangeCustomExportChoices: function (form) {
+      var selectedOrder = JSON.parse(
+        form.find('input[name="columnslist"]').val() || "[]",
+      );
+      var select2Element = form.find("#s2id_viewColumnsSelect");
+      var choicesContainer = select2Element.find("ul.select2-choices");
+      var choicesList = choicesContainer.find("li.select2-search-choice");
+      var selectedOptions = form.find("#viewColumnsSelect option:selected");
+
+      for (var index = selectedOrder.length; index > 0; index--) {
+        var selectedValue = selectedOrder[index - 1].replace("'", "&#39;");
+        var option = selectedOptions.filter('[value="' + selectedValue + '"]');
+        choicesList.each(function (choiceListIndex, element) {
+          var liElement = jQuery(element);
+          if (liElement.find("div").text() == option.text()) {
+            choicesContainer.prepend(liElement);
+            return false;
+          }
+        });
+      }
+    },
+    makeCustomExportColumnsSortable: function (form) {
+      var choicesElement = form.find(
+        "#s2id_viewColumnsSelect ul.select2-choices",
+      );
+      if (!choicesElement.length || !choicesElement.sortable) {
+        return;
+      }
+      choicesElement.sortable({
+        containment: choicesElement,
+      });
+    },
+    getCustomExportSelectedColumns: function (form) {
+      var selectedValues = [];
+      var selectedOptions = form.find("#viewColumnsSelect option:selected");
+      form
+        .find("#s2id_viewColumnsSelect li.select2-search-choice div")
+        .each(function (index, element) {
+          var chosenOption = jQuery(element);
+          selectedOptions.each(function (optionIndex, domOption) {
+            var option = jQuery(domOption);
+            if (option.text() == chosenOption.text()) {
+              selectedValues.push(option.val());
+              return false;
+            }
+          });
+        });
+      return selectedValues;
     },
     registerListViewSort: function () {
       var listViewContainer = this.getListViewContainer();
@@ -425,7 +858,7 @@ Vtiger.Class(
           listViewContainer.find('[name="orderBy"]').val(fieldName);
           var cvId = thisInstance.getCurrentCvId();
           thisInstance.loadListViewRecords();
-        }
+        },
       );
     },
     // To clear sorting information before changing Custom View
@@ -467,7 +900,7 @@ Vtiger.Class(
       }
       if (typeof urlParams.search_params == "undefined") {
         urlParams.search_params = JSON.stringify(
-          this.getListSearchParams(false)
+          this.getListSearchParams(false),
         );
       }
       urlParams = jQuery.extend(defParams, urlParams);
@@ -546,7 +979,7 @@ Vtiger.Class(
 
       if (listViewPageDiv.find("#currentTagParams").val()) {
         currentTagParams = JSON.parse(
-          listViewPageDiv.find("#currentTagParams").val()
+          listViewPageDiv.find("#currentTagParams").val(),
         );
       }
 
@@ -583,7 +1016,7 @@ Vtiger.Class(
       var currentSearchParams = new Array();
       if (listViewPageDiv.find("#currentSearchParams").val()) {
         currentSearchParams = JSON.parse(
-          listViewPageDiv.find("#currentSearchParams").val()
+          listViewPageDiv.find("#currentSearchParams").val(),
         );
       }
 
@@ -851,7 +1284,7 @@ Vtiger.Class(
 
         var fieldObject = new Vtiger_Field_Js.getInstance(
           fieldData,
-          moduleName
+          moduleName,
         );
         var fieldModel = fieldObject.getUiTypeModel();
 
@@ -864,7 +1297,7 @@ Vtiger.Class(
           if (value !== 0) {
             jQuery('input[name="' + fieldName + '"]', editElement).prop(
               "value",
-              jQuery.trim(valueElement.text())
+              jQuery.trim(valueElement.text()),
             );
           }
         }
@@ -921,7 +1354,7 @@ Vtiger.Class(
             }
             var targetPickList = jQuery(
               '[name="' + targetPickListName + '"]',
-              container
+              container,
             );
             if (targetPickList.length <= 0) {
               return;
@@ -965,7 +1398,7 @@ Vtiger.Class(
               .html(targetOptions)
               .val(targetPickListSelectedValue)
               .trigger("change");
-          }
+          },
         );
       });
 
@@ -984,7 +1417,7 @@ Vtiger.Class(
         var fieldName = tdElement.data("name");
         values[fieldName] = thisInstance.getInlineEditedFieldValue(
           tdElement,
-          newValueElement
+          newValueElement,
         );
       }
 
@@ -1020,7 +1453,7 @@ Vtiger.Class(
                 //Register Event to show quick preview for reference field.
                 app.event.trigger(
                   "onclick.referenceField.quickPreview",
-                  currentTrElement
+                  currentTrElement,
                 );
               });
             } else {
@@ -1091,7 +1524,7 @@ Vtiger.Class(
       } else if (fieldType === "multipicklist") {
         var selectedOptions = jQuery(
           ".inputElement.select2",
-          fieldElement
+          fieldElement,
         ).find(":selected");
         value = [];
         for (var i = 0; i < selectedOptions.length; i++) {
@@ -1157,7 +1590,7 @@ Vtiger.Class(
         function (error) {
           //TODO : Handle error
           aDeferred.reject();
-        }
+        },
       );
       return aDeferred.promise();
     },
@@ -1169,7 +1602,7 @@ Vtiger.Class(
       var params = {};
       var referenceModuleElement = jQuery(
         'input[name="referenceModule"]',
-        tdElement
+        tdElement,
       ).length
         ? jQuery('input[name="referenceModule"]', tdElement)
         : jQuery("input.referenceModule", tdElement);
@@ -1196,7 +1629,7 @@ Vtiger.Class(
               "timer",
               setTimeout(function () {
                 window.location = href;
-              }, 500)
+              }, 500),
             );
           }
           e.preventDefault();
@@ -1310,7 +1743,7 @@ Vtiger.Class(
           tableContainer.height(tableContainer.height() + 28);
           tableContainer.perfectScrollbar("update");
           thisInstance.registerInlineSaveOnEnterEvent(editedRow);
-        }
+        },
       );
 
       var isOwnerChanged = false;
@@ -1328,7 +1761,7 @@ Vtiger.Class(
         });
         app.helper.showVerticalScroll(
           container.find(".modal-body .datacontent"),
-          params
+          params,
         );
         var editInstance = Vtiger_Edit_Js.getInstance();
         editInstance.registerBasicEvents(container);
@@ -1425,7 +1858,7 @@ Vtiger.Class(
             jQuery("#deSelectAllMsgDiv").trigger("click");
           },
 
-          function (textStatus, errorThrown) {}
+          function (textStatus, errorThrown) {},
         );
       });
 
@@ -1460,7 +1893,7 @@ Vtiger.Class(
             .find('[data-trigger="listSearch"]')
             .removeClass("hide")
             .trigger("click");
-        }
+        },
       );
 
       //floatThead change event object has undefined keyCode, using keyup instead
@@ -1497,7 +1930,7 @@ Vtiger.Class(
           var element = jQuery(e.currentTarget);
           var parentElement = element.closest("tr");
           var searchTriggerElement = parentElement.find(
-            '[data-trigger="listSearch"]'
+            '[data-trigger="listSearch"]',
           );
           searchTriggerElement.trigger("click");
           thisInstance.prevSearchValues[fieldName] = searchValue;
@@ -1524,12 +1957,12 @@ Vtiger.Class(
       listViewPageDiv.on(
         "keyup",
         ".listSearchContributor",
-        listSearchContributorChangeHandler
+        listSearchContributorChangeHandler,
       );
       listViewPageDiv.on(
         "change",
         "select",
-        listSearchContributorChangeHandler
+        listSearchContributorChangeHandler,
       );
       listViewPageDiv.on("datepicker-change", ".dateField", function (e) {
         var element = jQuery(e.currentTarget);
@@ -1551,11 +1984,11 @@ Vtiger.Class(
       };
 
       var formInputFields = jQuery("#massEdit :input").not(
-        "[id^=include_in_mass_edit_]"
+        "[id^=include_in_mass_edit_]",
       );
       formInputFields.on(
         Vtiger_Edit_Js.referenceSelectionEvent,
-        autoIncludeFieldsInMassEditCallback
+        autoIncludeFieldsInMassEditCallback,
       );
       formInputFields.change(autoIncludeFieldsInMassEditCallback);
     },
@@ -1615,7 +2048,7 @@ Vtiger.Class(
         app.helper.hideProgress();
         app.helper.showAlertBox({
           message: app.vtranslate(
-            "NONE_OF_THE_FIELD_VALUES_ARE_CHANGED_IN_MASS_EDIT"
+            "NONE_OF_THE_FIELD_VALUES_ARE_CHANGED_IN_MASS_EDIT",
           ),
         });
       }
@@ -1660,7 +2093,7 @@ Vtiger.Class(
                 jQuery(
                   '.listViewEntriesCheckBox[value="' +
                     excludedRecordIdValue +
-                    '"]'
+                    '"]',
                 ).prop("checked", false);
                 jQuery(".listViewEntriesMainCheckBox").prop("checked", false);
               }
@@ -1678,7 +2111,7 @@ Vtiger.Class(
                 jQuery(
                   '.listViewEntriesCheckBox[value="' +
                     selectedRecordIdValue +
-                    '"]'
+                    '"]',
                 ).prop("checked", true);
               }
             }
@@ -2258,7 +2691,7 @@ Vtiger.Class(
         totalNumberOfRecords +
         "  ";
       var listViewEntriesCount = parseInt(
-        jQuery("#noOfEntries", listViewContainer).val()
+        jQuery("#noOfEntries", listViewContainer).val(),
       );
 
       if (listViewEntriesCount !== 0) {
@@ -2316,7 +2749,7 @@ Vtiger.Class(
       vtigerInstance.showQuickPreviewForId(
         recordId,
         self.getModuleName(),
-        appName
+        appName,
       );
     },
     registerDynamicListHeaders: function () {
@@ -2353,12 +2786,12 @@ Vtiger.Class(
           } else {
             var index = app.helper.array_search(
               $(this).val(),
-              listHeaderFields
+              listHeaderFields,
             );
             delete listHeaderFields[index];
           }
           listHeaderFieldEle.val(JSON.stringify(listHeaderFields));
-        }
+        },
       );
 
       jQuery("#updateListing").on("click", function (e, params) {
@@ -2384,25 +2817,25 @@ Vtiger.Class(
       var listViewContainer = this.getListViewContainer();
       var previousPageExist = jQuery(
         "#previousPageExist",
-        listViewContainer
+        listViewContainer,
       ).val();
       var nextPageExist = jQuery("#nextPageExist", listViewContainer).val();
       var previousPageButton = jQuery("#PreviousPageButton", listViewContainer);
       var nextPageButton = jQuery("#NextPageButton", listViewContainer);
       var pageJumpButton = jQuery("#PageJump", listViewContainer);
       var listViewEntriesCount = parseInt(
-        jQuery("#noOfEntries", listViewContainer).val()
+        jQuery("#noOfEntries", listViewContainer).val(),
       );
       var pageStartRange = parseInt(
-        jQuery("#pageStartRange", listViewContainer).val()
+        jQuery("#pageStartRange", listViewContainer).val(),
       );
       var pageEndRange = parseInt(
-        jQuery("#pageEndRange", listViewContainer).val()
+        jQuery("#pageEndRange", listViewContainer).val(),
       );
       var pages = jQuery("#totalPageCount", listViewContainer).text();
       var totalNumberOfRecords = jQuery(
         ".totalNumberOfRecords",
-        listViewContainer
+        listViewContainer,
       );
       var pageNumbersTextElem = jQuery(".pageNumbersText", listViewContainer);
       var currentPageNumber = jQuery("#pageNumber", listViewContainer).val();
@@ -2496,7 +2929,7 @@ Vtiger.Class(
             // Remove spinning animation
             icon.removeClass("fa-spin");
             button.prop("disabled", false);
-          }
+          },
         );
       });
     },
@@ -2534,21 +2967,21 @@ Vtiger.Class(
         paginationObj.pageJumpButtonClickEventName,
         function (event, currentEle) {
           thisInstance.pageJump();
-        }
+        },
       );
 
       app.event.on(
         paginationObj.totalNumOfRecordsButtonClickEventName,
         function (event, currentEle) {
           thisInstance.totalNumOfRecords(currentEle);
-        }
+        },
       );
 
       app.event.on(
         paginationObj.pageJumpSubmitButtonClickEvent,
         function (event, currentEle) {
           thisInstance.pageJumpOnSubmit(currentEle);
-        }
+        },
       );
 
       // Register reload button click event
@@ -2652,7 +3085,7 @@ Vtiger.Class(
       recordParams.search_params = JSON.stringify(this.getListSearchParams());
       recordParams = jQuery.extend(
         recordParams,
-        this.getListSelectAllParams(false)
+        this.getListSelectAllParams(false),
       );
 
       app.event.one(
@@ -2669,7 +3102,7 @@ Vtiger.Class(
             self.addToExistingTagSelector(newTagEle.clone(true));
           }
           app.helper.showSuccessNotification({ message: "" });
-        }
+        },
       );
 
       app.event.trigger("Request.MassTag.show", container, recordParams);
@@ -2677,7 +3110,7 @@ Vtiger.Class(
     massRemoveTag: function (tagId) {
       var self = this;
       var tagElement = jQuery("#listViewTagContainer").find(
-        '[data-id="' + tagId + '"]'
+        '[data-id="' + tagId + '"]',
       );
       var tagName = tagElement.find(".tagLabel").text();
       var message = app.vtranslate("JS_REMOVE_MASS_TAG_WARNING", tagName);
@@ -2688,7 +3121,7 @@ Vtiger.Class(
         deleteParams.search_params = JSON.stringify(self.getListSearchParams());
         deleteParams = jQuery.extend(
           deleteParams,
-          self.getListSelectAllParams(false)
+          self.getListSelectAllParams(false),
         );
         deleteParams.viewname = cvId;
 
@@ -2769,7 +3202,7 @@ Vtiger.Class(
         .removeAttr("disabled");
       jQuery(".btn-group.listViewActionsContainer").find("li").addClass("hide");
       var selectFreeRecords = jQuery(
-        ".btn-group.listViewActionsContainer"
+        ".btn-group.listViewActionsContainer",
       ).find("li.selectFreeRecords");
       selectFreeRecords.removeClass("hide");
       if (selectFreeRecords.length == 0) {
@@ -2814,11 +3247,11 @@ Vtiger.Class(
         var callback = function (container) {
           var selectedFieldsList = jQuery("#selectedFieldsList");
           var selectedFieldsListContainer = container.find(
-            ".selectedFieldsListContainer"
+            ".selectedFieldsListContainer",
           );
           var availFieldsList = jQuery("#avialFieldsList");
           var availFieldsListContainer = container.find(
-            ".avialFieldsListContainer"
+            ".avialFieldsListContainer",
           );
 
           //register ui events
@@ -2877,7 +3310,7 @@ Vtiger.Class(
               if (params && params.autoIconChangeForOthers) {
                 return true;
               }
-            }
+            },
           );
 
           //remove selected field event
@@ -2894,7 +3327,7 @@ Vtiger.Class(
             var targetFieldEle = availFieldsListContainer.find(
               '.item[data-cv-columnname="' +
                 sourceFieldEle.attr("data-cv-columnname") +
-                '"]'
+                '"]',
             );
             targetFieldEle.removeClass("hide");
             sourceFieldEle.remove();
@@ -2922,15 +3355,15 @@ Vtiger.Class(
             targetFieldEle.removeClass("hide item-dummy").addClass("item");
             targetFieldEle.attr(
               "data-cv-columnname",
-              sourceFieldEle.attr("data-cv-columnname")
+              sourceFieldEle.attr("data-cv-columnname"),
             );
             targetFieldEle.attr(
               "data-columnname",
-              sourceFieldEle.attr("data-columnname")
+              sourceFieldEle.attr("data-columnname"),
             );
             targetFieldEle.attr(
               "data-field-id",
-              sourceFieldEle.attr("data-field-id")
+              sourceFieldEle.attr("data-field-id"),
             );
             targetFieldEle.attr("data-is-fixed", "0");
             targetFieldEle
@@ -3206,7 +3639,7 @@ Vtiger.Class(
         });
 
         jQuery(
-          ".floatThead-floatContainer table thead .searchRow .fixed-column"
+          ".floatThead-floatContainer table thead .searchRow .fixed-column",
         ).css({
           position: "sticky",
           left: "0px",
@@ -3222,7 +3655,7 @@ Vtiger.Class(
         // Fix scrollbar z-index to appear above fixed columns
         setTimeout(function () {
           jQuery(
-            ".ps-scrollbar-x, .ps-scrollbar-x-rail, .ps-scrollbar-y, .ps-scrollbar-y-rail"
+            ".ps-scrollbar-x, .ps-scrollbar-x-rail, .ps-scrollbar-y, .ps-scrollbar-y-rail",
           ).css({
             "z-index": "1001",
           });
@@ -3243,7 +3676,7 @@ Vtiger.Class(
         ".listSearchContributor",
         function () {
           thisInstance.reflowList($table);
-        }
+        },
       );
     },
     registerDropdownPosition: function (container) {
@@ -3424,7 +3857,7 @@ Vtiger.Class(
 
       return count;
     },
-  }
+  },
 );
 
 // Test fixed columns on document ready

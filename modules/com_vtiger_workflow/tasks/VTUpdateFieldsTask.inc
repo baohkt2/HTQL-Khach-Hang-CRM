@@ -41,6 +41,7 @@ class VTUpdateFieldsTask extends VTTask {
 		$fieldValueMapping = array();
 		if (!empty($this->field_value_mapping)) {
 			$fieldValueMapping = Zend_Json::decode($this->field_value_mapping);
+			$fieldValueMapping = VTWorkflowUtils::decodeUnicodeEscapes($fieldValueMapping);
 		}
 
 		$referenceFieldFocus = array();
@@ -49,7 +50,7 @@ class VTUpdateFieldsTask extends VTTask {
 			$focus = CRMEntity::getInstance($moduleName);
 			$focus->id = $recordId;
 			$focus->mode = 'edit';
-			$focus->retrieve_entity_info($recordId, $moduleName);
+			$focus->retrieve_entity_info($recordId, $moduleName, !isRecordExists($recordId));
 			$focus->clearSingletonSaveFields();
 
 			$util->loggedInUser();

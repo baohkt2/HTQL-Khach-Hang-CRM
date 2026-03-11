@@ -52,33 +52,6 @@
                                         {********************************************* PROPERTIES DIV*************************************************}
                                         <div id="properties_div">
                                             <br>
-                                            {* Template name *}
-                                            <div class="form-group">
-                                                <label class="control-label fieldLabel col-sm-3" style="font-weight: normal">
-                                                    {vtranslate('LBL_TEMPLATE_NAME','PDFMaker')}:
-                                                </label>
-                                                <div class="controls col-sm-9">
-                                                    <input type="text" name="template_filename" id="template_filename" class="form-control"
-                                                        value="{$FILENAME|escape:'html'}" placeholder="{vtranslate('LBL_ENTER_TEMPLATE_NAME','PDFMaker')}" required>
-                                                </div>
-                                            </div>
-                                            {* Module selector *}
-                                            <div class="form-group">
-                                                <label class="control-label fieldLabel col-sm-3" style="font-weight: normal">
-                                                    {vtranslate('LBL_SELECT_MODULE','PDFMaker')}:
-                                                </label>
-                                                <div class="controls col-sm-9">
-                                                    <select name="modulename" id="modulename" class="select2 form-control" {if $EMODE eq 'edit'}disabled{/if}>
-                                                        {foreach item=EMOD from=$ALL_ENTITY_MODULES}
-                                                            <option value="{$EMOD.name}" {if $EMOD.name eq $SELECTMODULE}selected{/if}>{$EMOD.label}</option>
-                                                        {/foreach}
-                                                    </select>
-                                                    {if $EMODE eq 'edit'}
-                                                        <input type="hidden" name="modulename" value="{$SELECTMODULE}">
-                                                    {/if}
-                                                </div>
-                                            </div>
-                                            <hr style="margin:5px 0">
                                             {* pdf source module and its available fields *}
                                             <div class="form-group">
                                                 <label class="control-label fieldLabel col-sm-3" style="font-weight: normal">
@@ -86,6 +59,7 @@
                                                 </label>
                                                 <div class="controls col-sm-9">
                                                     <div class="input-group">
+                                                        <input type="hidden" name="modulename" id="modulename" value="{$SELECTMODULE}">
                                                         <select name="modulefields" id="modulefields" class="select2 form-control">
                                                             <option value="">{vtranslate('LBL_SELECT_MODULE_FIELD',$MODULE)}</option>
                                                         </select>

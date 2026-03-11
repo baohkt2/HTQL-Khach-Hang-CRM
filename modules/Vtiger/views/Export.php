@@ -21,6 +21,7 @@ class Vtiger_Export_View extends Vtiger_Index_View {
 		$viewer = $this->getViewer($request);
 
 		$source_module = $request->getModule();
+		$isCustomExportView = ($request->get('view') === 'CustomExport');
 		$viewId = $request->get('viewname');
 		$selectedIds = $request->get('selected_ids');
 		$excludedIds = $request->get('excluded_ids');
@@ -38,6 +39,8 @@ class Vtiger_Export_View extends Vtiger_Index_View {
 		$viewer->assign('ORDER_BY', $orderBy);
 		$viewer->assign('SORT_ORDER', $sortOrder);
 		$viewer->assign('TAG_PARAMS', $tagParams);
+		$viewer->assign('EXPORT_TITLE_LABEL', $isCustomExportView ? 'LBL_CUSTOM_EXPORT_RECORDS' : 'LBL_EXPORT_RECORDS');
+		$viewer->assign('EXPORT_ACTION_LABEL', $isCustomExportView ? 'LBL_CUSTOM_EXPORT' : 'LBL_EXPORT');
 
          // for the option of selecting currency while exporting inventory module records
         if(in_array($source_module, Vtiger_Functions::getLineItemFieldModules())){
@@ -54,7 +57,15 @@ class Vtiger_Export_View extends Vtiger_Index_View {
 		}
 		$viewer->assign('SUPPORTED_FILE_TYPES', array('csv', 'ics'));
 		$viewer->assign('SEARCH_PARAMS', $request->get('search_params'));
-		$viewer->view('Export.tpl', $source_module);
+
+		if ($isCustomExportView) {
+			$this->assignCustomExportViewerData($viewer, $source_module);
+			$viewer->assign('TEMPLATE_NAME', 'CustomExport.tpl');
+		} else {
+			$viewer->assign('TEMPLATE_NAME', 'Export.tpl');
+		}
+
+		$viewer->view($viewer->getTemplateVars('TEMPLATE_NAME'), $source_module);
 	}
 
 	function getHeaderScripts(Vtiger_Request $request) {
@@ -74,5 +85,45 @@ class Vtiger_Export_View extends Vtiger_Index_View {
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
 		$headerScriptInstances = array_merge($headerScriptInstances, $jsScriptInstances);
 		return $headerScriptInstances;
+	}
+
+	protected function assignCustomExportViewerData($viewer, $sourceModule, $advanceCriteria = array()) {
+		$moduleModel = Vtiger_Module_Model::getInstance($sourceModule);
+		$recordStructureInstance = Vtiger_RecordStructure_Model::getInstanceForModule($moduleModel, Vtiger_RecordStructure_Model::RECORD_STRUCTURE_MODE_FILTER);
+		$recordStructure = $recordStructureInstance->getStructure();
+
+		if (in_array($sourceModule, getInventoryModules())) {
+			$itemsBlock = 'LBL_ITEM_DETAILS';
+			unset($recordStructure[$itemsBlock]);
+		}
+
+		$customViewModel = new CustomView_Record_Model();
+		$customViewModel->setModule($sourceModule);
+
+		if ($sourceModule == 'Calendar') {
+			$advanceFilterOpsByFieldType = Calendar_Field_Model::getAdvancedFilterOpsByFieldType();
+			$relatedModuleModel = Vtiger_Module_Model::getInstance('Events');
+			$relatedRecordStructureInstance = Vtiger_RecordStructure_Model::getInstanceForModule($relatedModuleModel, Vtiger_RecordStructure_Model::RECORD_STRUCTURE_MODE_FILTER);
+			$viewer->assign('EVENT_RECORD_STRUCTURE', $relatedRecordStructureInstance->getStructure());
+		} else {
+			$advanceFilterOpsByFieldType = Vtiger_Field_Model::getAdvancedFilterOpsByFieldType();
+		}
+
+		$dateFilters = Vtiger_Field_Model::getDateFilterTypes();
+		foreach ($dateFilters as $comparatorKey => $comparatorInfo) {
+			$comparatorInfo['startdate'] = DateTimeField::convertToUserFormat($comparatorInfo['startdate']);
+			$comparatorInfo['enddate'] = DateTimeField::convertToUserFormat($comparatorInfo['enddate']);
+			$comparatorInfo['label'] = vtranslate($comparatorInfo['label'], 'Vtiger');
+			$dateFilters[$comparatorKey] = $comparatorInfo;
+		}
+
+		$viewer->assign('MODULE_MODEL', $moduleModel);
+		$viewer->assign('CUSTOMVIEW_MODEL', $customViewModel);
+		$viewer->assign('RECORD_STRUCTURE', $recordStructure);
+		$viewer->assign('ADVANCE_CRITERIA', is_array($advanceCriteria) ? $advanceCriteria : array());
+		$viewer->assign('ADVANCED_FILTER_OPTIONS', Vtiger_Field_Model::getAdvancedFilterOptions());
+		$viewer->assign('ADVANCED_FILTER_OPTIONS_BY_TYPE', $advanceFilterOpsByFieldType);
+		$viewer->assign('DATE_FILTERS', $dateFilters);
+		$viewer->assign('SAVED_EXPORT_FORMATS', Vtiger_CustomExportFormat_Model::getAllByModuleForCurrentUser($sourceModule));
 	}
 }

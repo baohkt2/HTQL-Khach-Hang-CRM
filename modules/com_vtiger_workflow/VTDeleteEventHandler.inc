@@ -25,10 +25,49 @@ require_once 'include/Webservices/EntityMeta.php';
 require_once 'include/Webservices/VtigerWebserviceObject.php';
 require_once('VTWorkflowUtils.php');
 
+class VTDeletedWorkflowEntity {
+	private $data;
+	private $moduleName;
+
+	public function __construct($data, $moduleName) {
+		$this->data = $data;
+		$this->moduleName = $moduleName;
+	}
+
+	public function getData() {
+		return $this->data;
+	}
+
+	public function getId() {
+		return isset($this->data['id']) ? $this->data['id'] : null;
+	}
+
+	public function getModuleName() {
+		return $this->moduleName;
+	}
+
+	public function get($fieldName) {
+		return isset($this->data[$fieldName]) ? $this->data[$fieldName] : null;
+	}
+
+	public function set($fieldName, $value) {
+		$this->data[$fieldName] = $value;
+	}
+
+	public function isNew() {
+		return false;
+	}
+}
+
 /**
  * VTDeleteEventHandler - Handles workflow execution when records are deleted
  */
 class VTDeleteEventHandler extends VTEventHandler {
+	private function logDebug($message) {
+		$logFile = 'logs/delete_workflow_debug.log';
+		$timestamp = date('Y-m-d H:i:s');
+		file_put_contents($logFile, '[' . $timestamp . '] ' . $message . PHP_EOL, FILE_APPEND);
+	}
 	
 	/**
 	 * Execute workflows with ON_DELETE execution condition
@@ -40,29 +79,44 @@ class VTDeleteEventHandler extends VTEventHandler {
 		global $adb;
 		
 		$entityCache = new VTEntityCache($user);
+		$deletedEntity = null;
+
+		try {
+			$wsModuleName = $util->toWSModuleName($entityData);
+			$this->logDebug('Event=' . $eventName . ' record=' . $entityData->getId() . ' module=' . $wsModuleName);
+			$moduleHandler = vtws_getModuleHandlerFromName($wsModuleName, $user);
+			$sanitizedData = DataTransform::filterAndSanitize($entityData->getData(), $moduleHandler->getMeta());
+			$deletedEntity = new VTDeletedWorkflowEntity($sanitizedData, $wsModuleName);
+			VTEntityCache::setCachedEntity($deletedEntity->getId(), $deletedEntity);
 		
-		$wsModuleName = $util->toWSModuleName($entityData);
-		$wsId = vtws_getWebserviceEntityId($wsModuleName, $entityData->getId());
-		$entityData = $entityCache->forId($wsId);
+			// Get workflows for this module with ON_DELETE execution condition
+			$wfs = new VTWorkflowManager($adb);
+			$workflows = $wfs->getWorkflowsForModule($deletedEntity->getModuleName());
+			$this->logDebug('Loaded ' . count($workflows) . ' workflows for module=' . $deletedEntity->getModuleName() . ' wsid=' . $deletedEntity->getId());
 		
-		// Get workflows for this module with ON_DELETE execution condition
-		$wfs = new VTWorkflowManager($adb);
-		$workflows = $wfs->getWorkflowsForModule($entityData->getModuleName());
-		
-		foreach ($workflows as $workflow) {
-			if (!is_a($workflow, 'Workflow'))
-				continue;
-			
-			// Only execute workflows with ON_DELETE execution condition
-			if ($workflow->executionCondition == VTWorkflowManager::$ON_DELETE) {
-				// Evaluate conditions and execute tasks
-				if ($workflow->evaluate($entityCache, $entityData->getId())) {
-					$workflow->performTasks($entityData);
+			foreach ($workflows as $workflow) {
+				if (!is_a($workflow, 'Workflow')) {
+					continue;
+				}
+				
+				if ($workflow->executionCondition == VTWorkflowManager::$ON_DELETE) {
+					$matched = $workflow->evaluate($entityCache, $deletedEntity->getId());
+					$this->logDebug('Workflow ' . $workflow->id . ' matched=' . ($matched ? 'true' : 'false'));
+					if ($matched) {
+						$workflow->performTasks($deletedEntity);
+						$this->logDebug('Workflow ' . $workflow->id . ' tasks executed');
+					}
 				}
 			}
+		} catch (Exception $e) {
+			$this->logDebug('Error record=' . $entityData->getId() . ' message=' . $e->getMessage());
+			error_log('VTDeleteEventHandler failed for record ' . $entityData->getId() . ': ' . $e->getMessage());
+		} finally {
+			if ($deletedEntity && $deletedEntity->getId()) {
+				VTEntityCache::unsetCachedEntity($deletedEntity->getId());
+			}
+			$util->revertUser();
 		}
-		
-		$util->revertUser();
 	}
 }
 ?>

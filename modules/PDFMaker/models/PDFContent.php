@@ -39,9 +39,8 @@ class PDFMaker_PDFContent_Model extends PDFMaker_PDFContentUtils_Model {
     private static $inventory_id_array = Array("PurchaseOrder" => "purchaseorderid","SalesOrder" => "salesorderid","Quotes" => "quoteid","Invoice" => "invoiceid","Issuecards" => "issuecardid","Receiptcards" => "receiptcardid","Creditnote" => "creditnote_id","StornoInvoice" => "stornoinvoice_id");
     private static $org_colsOLD = array("organizationname" => "NAME","address" => "ADDRESS","city" => "CITY","state" => "STATE","code" => "ZIP","country" => "COUNTRY","phone" => "PHONE","fax" => "FAX","website" => "WEBSITE","logo" => "LOGO");
     public static $bridge2mpdf = array();
-    private static $templateid;
 
-    function __construct($l_module, $l_focus, $l_language, $l_templateid = null){
+    function __construct($l_module, $l_focus, $l_language){
 
         parent::__construct();
 
@@ -61,7 +60,6 @@ class PDFMaker_PDFContent_Model extends PDFMaker_PDFContentUtils_Model {
         self::$module = $l_module;
         self::$focus = $l_focus;
         self::$language = $l_language;
-        self::$templateid = $l_templateid;
 
         $current_user = Users_Record_Model::getCurrentUserModel();
         $current_user->set('language',$l_language);
@@ -83,11 +81,7 @@ class PDFMaker_PDFContent_Model extends PDFMaker_PDFContentUtils_Model {
         $salt = vglobal($i);
         self::$site_url = trim($salt, "/");
 
-        if (!empty(self::$templateid)) {
-            $result = self::$db->pquery("SELECT vtiger_pdfmaker.*, vtiger_pdfmaker_settings.* FROM vtiger_pdfmaker LEFT JOIN vtiger_pdfmaker_settings ON vtiger_pdfmaker_settings.templateid = vtiger_pdfmaker.templateid WHERE vtiger_pdfmaker.templateid=? AND vtiger_pdfmaker.deleted=0", array(self::$templateid));
-        } else {
-            $result = self::$db->pquery("SELECT vtiger_pdfmaker.*, vtiger_pdfmaker_settings.* FROM vtiger_pdfmaker LEFT JOIN vtiger_pdfmaker_settings ON vtiger_pdfmaker_settings.templateid = vtiger_pdfmaker.templateid WHERE vtiger_pdfmaker.module=? AND vtiger_pdfmaker.deleted=0 LIMIT 1", array(self::$module));
-        }
+        $result = self::$db->pquery("SELECT vtiger_pdfmaker.*, vtiger_pdfmaker_settings.* FROM vtiger_pdfmaker LEFT JOIN vtiger_pdfmaker_settings ON vtiger_pdfmaker_settings.templateid = vtiger_pdfmaker.templateid WHERE vtiger_pdfmaker.module=? AND vtiger_pdfmaker.module IN (?,?,?,?)", array(self::$module,'Invoice','Quotes','SalesOrder','PurchaseOrder'));
         $data = self::$db->fetch_array($result);
 
         self::$decimal_point = html_entity_decode($data["decimal_point"], ENT_QUOTES);
@@ -454,52 +448,7 @@ class PDFMaker_PDFContent_Model extends PDFMaker_PDFContentUtils_Model {
         $PDF_content = array();
         list($PDF_content["header"], $PDF_content["body"], $PDF_content["footer"]) = explode(self::$section_sep, self::$content);
 
-        // Clean up HTML document wrappers from each section
-        foreach (array("header", "body", "footer") as $key) {
-            $PDF_content[$key] = $this->cleanHtmlDocumentWrapper($PDF_content[$key]);
-        }
-
         return $PDF_content;
-    }
-
-    /**
-     * Strip full HTML document wrapper (<!DOCTYPE>, <html>, <head>, <body> tags)
-     * and extract styles + body content for mPDF rendering.
-     * Also removes <script> tags (e.g. browser extension artifacts).
-     */
-    private function cleanHtmlDocumentWrapper($html) {
-        if (empty($html)) {
-            return $html;
-        }
-        $trimmed = trim($html);
-        // Only process if content looks like a full HTML document
-        if (stripos($trimmed, '<html') === false && stripos($trimmed, '<!DOCTYPE') === false) {
-            return $html;
-        }
-
-        // Extract all <style> blocks from anywhere in the document
-        $styles = '';
-        if (preg_match_all('/<style[^>]*>(.*?)<\/style>/si', $trimmed, $styleMatches)) {
-            foreach ($styleMatches[0] as $styleBlock) {
-                $styles .= $styleBlock . "\n";
-            }
-        }
-
-        // Extract body content
-        $bodyContent = $trimmed;
-        if (preg_match('/<body[^>]*>(.*)<\/body>/si', $trimmed, $bodyMatch)) {
-            $bodyContent = $bodyMatch[1];
-        } else {
-            // No <body> tag found, strip head section and outer tags manually
-            $bodyContent = preg_replace('/<head[^>]*>.*?<\/head>/si', '', $trimmed);
-            $bodyContent = preg_replace('/<!DOCTYPE[^>]*>/i', '', $bodyContent);
-            $bodyContent = preg_replace('/<\/?html[^>]*>/i', '', $bodyContent);
-        }
-
-        // Remove <script> tags (browser extension artifacts etc.)
-        $bodyContent = preg_replace('/<script[^>]*>.*?<\/script>/si', '', $bodyContent);
-
-        return $styles . $bodyContent;
     }
 
     public function retrieveAssignedUserId()
@@ -1246,7 +1195,7 @@ class PDFMaker_PDFContent_Model extends PDFMaker_PDFContentUtils_Model {
                      orientation,
                      encoding,
                      disp_header, disp_footer
-              FROM vtiger_pdfmaker_settings INNER JOIN vtiger_pdfmaker ON  vtiger_pdfmaker.templateid = vtiger_pdfmaker_settings.templateid WHERE  vtiger_pdfmaker.module = ? AND vtiger_pdfmaker.deleted=0 ";
+              FROM vtiger_pdfmaker_settings INNER JOIN vtiger_pdfmaker ON  vtiger_pdfmaker.templateid = vtiger_pdfmaker_settings.templateid WHERE  vtiger_pdfmaker.module = ? AND vtiger_pdfmaker.module IN ('Invoice','Quotes','SalesOrder','PurchaseOrder') ";
 
         $result = $db->pquery($sql, array($module));
         return $db->fetchByAssoc($result, 1);

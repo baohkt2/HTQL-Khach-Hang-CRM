@@ -177,3 +177,8 @@ php_errors.log
 # Except specific needed files
 !libraries/**/*.zip
 logs/
+
+
+logs/
+*.log
+database/*.sql

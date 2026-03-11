@@ -20,10 +20,12 @@ class Settings_Workflows_SaveWorkflow_Action extends Vtiger_Action_Controller {
 	}
 
 	public function process(Vtiger_Request $request) {
+		require_once 'modules/com_vtiger_workflow/VTWorkflowUtils.php';
 		$recordId = $request->get('record');
 		$summary = $request->get('summary');
 		$moduleName = $request->get('module_name');
 		$conditions = $request->get('conditions');
+		$conditions = VTWorkflowUtils::decodeUnicodeEscapes($conditions);
 		$filterSavedInNew = $request->get('filtersavedinnew');
 		$workflow_trigger = $request->get('workflow_trigger');
 		$workflow_recurrence = $request->get('workflow_recurrence');

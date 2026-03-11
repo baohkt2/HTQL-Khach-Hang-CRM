@@ -2888,6 +2888,19 @@ class CRMEntity {
 		$tabId = getTabid($module);
 		if ($is_admin == false && $profileGlobalPermission[1] == 1 && $profileGlobalPermission[2]
 				== 1 && $defaultOrgSharingPermission[$tabId] == 3) {
+			
+			// --- BYPASS LIST SHARING FOR SHARED CUSTOMVIEWS ---
+			$cvId = isset($_REQUEST['viewname']) ? $_REQUEST['viewname'] : (isset($_REQUEST['cvid']) ? $_REQUEST['cvid'] : '');
+			if(!empty($cvId) && is_numeric($cvId)) {
+				require_once 'modules/CustomView/CustomView.php';
+				$customView = new CustomView($module);
+				$isShared = $customView->isPermittedCustomView($cvId, 'List', $module);
+				if($isShared == 'yes') {
+					return "";
+				}
+			}
+			// --------------------------------------------------
+
 			$tableName = 'vt_tmp_u' . $user->id;
 			$sharingRuleInfoVariable = $module . '_share_read_permission';
 			$sharingRuleInfo = $$sharingRuleInfoVariable;

@@ -31,7 +31,7 @@
 				<input type="hidden" name="folder_value" value="{$FOLDER_VALUE}"/>
 			{/if}
 			<div class="overlayHeader">
-				{assign var=TITLE value="{vtranslate('LBL_EXPORT_RECORDS',$MODULE)}"}
+				{assign var=TITLE value="{vtranslate($EXPORT_TITLE_LABEL, 'Vtiger')}"}
 				{include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$TITLE}
 			</div>
 
@@ -63,6 +63,11 @@
 									<div>
 										<input type="radio" name="export_format" value="xls" id="format_xls" />
 										<label style="font-weight:normal" for="format_xls">&nbsp;&nbsp;Excel (.xls)</label>
+									</div>
+									<br>
+									<div>
+										<input type="radio" name="export_format" value="xlsx" id="format_xlsx" />
+										<label style="font-weight:normal" for="format_xlsx">&nbsp;&nbsp;Excel (.xlsx)</label>
 									</div>
 								</div>
 
@@ -126,7 +131,7 @@
 			<div class="modal-overlay-footer clearfix">
 				<div class="row clearfix">
 					<div class=" textAlignCenter col-lg-12 col-md-12 col-sm-12 ">
-						<div><button type="submit" class="btn btn-success btn-lg">{vtranslate('LBL_EXPORT', 'Vtiger')}&nbsp;{vtranslate($SOURCE_MODULE, $SOURCE_MODULE)}</button>
+						<div><button type="submit" class="btn btn-success btn-lg">{vtranslate($EXPORT_ACTION_LABEL, 'Vtiger')}&nbsp;{vtranslate($SOURCE_MODULE, $SOURCE_MODULE)}</button>
 							&nbsp;&nbsp;&nbsp;<a class="cancelLink" data-dismiss="modal" href="#">{vtranslate('LBL_CANCEL', $MODULE)}</a>
 						</div>
 					</div>

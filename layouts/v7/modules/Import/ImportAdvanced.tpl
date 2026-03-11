@@ -24,6 +24,30 @@
             <input type="hidden" name="has_header" value='{$HAS_HEADER}' />
             <input type="hidden" name="file_encoding" value='{$USER_INPUT->get('file_encoding')}' />
             <input type="hidden" name="delimiter" value='{$USER_INPUT->get('delimiter')}' />
+                <div id="importJsTranslations" class="hide"
+                    data-import-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_IMPORT', $MODULE))}"
+                    data-running-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_RUNNING', $MODULE))}"
+                    data-created-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_CREATED', $MODULE))}"
+                    data-updated-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_UPDATED', $MODULE))}"
+                    data-skipped-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_SKIPPED', $MODULE))}"
+                    data-failed-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_FAILED', $MODULE))}"
+                    data-cancel-import-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_CANCEL_IMPORT', $MODULE))}"
+                    data-finish-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_FINISH_BUTTON_LABEL', $MODULE))}"
+                    data-import-more-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_IMPORT_MORE', $MODULE))}"
+                    data-import-success-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_IMPORT_SUCCESS', $MODULE))}"
+                    data-auto-close-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_AUTO_CLOSE_IN', $MODULE))}"
+                    data-error-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_ERROR', $MODULE))}"
+                    data-records-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('records', $MODULE))}"
+                    data-speed-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('Speed', $MODULE))}"
+                    data-eta-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('ETA', $MODULE))}"
+                    data-elapsed-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('Elapsed', $MODULE))}"
+                    data-calculating-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('calculating', $MODULE))}"
+                    data-almost-done-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('almost done', $MODULE))}"
+                    data-completed-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('Completed', $MODULE))}"
+                    data-cancelling-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('Cancelling', $MODULE))}"
+                    data-import-completed-message="{Vtiger_Util_Helper::toSafeHTML(vtranslate('Import Completed.', $MODULE))}"
+                    data-import-cancelled-message="{Vtiger_Util_Helper::toSafeHTML(vtranslate('Import Cancelled.', $MODULE))}"
+                    data-import-id-not-ready-message="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_IMPORT_ID_NOT_READY', $MODULE))}"></div>
 
             <div class='modal-body'>
 				{assign var=LABELS value=[]}

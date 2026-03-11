@@ -56,6 +56,7 @@ class Settings_Workflows_TaskAjax_Action extends Settings_Vtiger_IndexAjax_View 
 	}
 
 	public function Save(Vtiger_Request $request) {
+		require_once 'modules/com_vtiger_workflow/VTWorkflowUtils.php';
 
 		$workflowId = $request->get('for_workflow');
 		if(!empty($workflowId)) {
@@ -104,6 +105,7 @@ class Settings_Workflows_TaskAjax_Action extends Settings_Vtiger_IndexAjax_View 
 			require_once 'modules/com_vtiger_workflow/expression_engine/include.inc';
 
 			$fieldMapping = Zend_Json::decode($taskObject->field_value_mapping);
+			$fieldMapping = VTWorkflowUtils::decodeUnicodeEscapes($fieldMapping);
 			if (is_array($fieldMapping)) {
 				foreach ($fieldMapping as $key => $mappingInfo) {
 					if ($mappingInfo['valuetype'] == 'expression') {
@@ -152,6 +154,7 @@ class Settings_Workflows_TaskAjax_Action extends Settings_Vtiger_IndexAjax_View 
 				$ownerFieldModels = $relationModuleModel->getFieldsByType('owner');
 
 				$fieldMapping = Zend_Json::decode($taskObject->field_value_mapping);
+				$fieldMapping = VTWorkflowUtils::decodeUnicodeEscapes($fieldMapping);
 				foreach ($fieldMapping as $key => $mappingInfo) {
 					if (array_key_exists($mappingInfo['fieldname'], $ownerFieldModels)) {
 						$userRecordModel = Users_Record_Model::getInstanceById($mappingInfo['value'], 'Users');

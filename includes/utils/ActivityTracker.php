@@ -23,11 +23,11 @@ class ActivityTracker {
         $loginId = isset($_SESSION['login_id']) ? $_SESSION['login_id'] : null;
         $userName = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : null;
         
-        // If no login_id in session, try to get the latest ACTIVE one for this user
+        // If no login_id in session, try to get the latest one for this user
         if (empty($loginId) && !empty($userName)) {
             $query = "SELECT login_id FROM vtiger_loginhistory 
                      WHERE user_name = ? 
-                     AND status = 'Signed in' 
+                     AND status IN ('Signed in', 'Signed off') 
                      ORDER BY login_time DESC 
                      LIMIT 1";
             $result = $adb->pquery($query, array($userName));
@@ -44,14 +44,15 @@ class ActivityTracker {
         try {
             $currentTime = date('Y-m-d H:i:s');
             
-            // 1) Update logout_time for active sessions only.
-            //    Do NOT re-open 'Signed off' or 'Session expired' sessions.
-            //    Only sessions with status 'Signed in' should be updated.
+            // 1) Update logout_time AND re-activate the session.
+            //    If a previous AutoLogout falsely marked it as 'Signed off'
+            //    (e.g., user was just reading a page), this re-opens it.
+            //    An authenticated request = the user is still active.
             $adb->pquery(
                 "UPDATE vtiger_loginhistory 
-                 SET logout_time = ? 
+                 SET logout_time = ?, status = 'Signed in' 
                  WHERE login_id = ? 
-                 AND status = 'Signed in'",
+                 AND status IN ('Signed in', 'Signed off')",
                 array($currentTime, $loginId)
             );
             

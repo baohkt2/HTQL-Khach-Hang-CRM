@@ -11,10 +11,12 @@
 class Settings_Workflows_Save_Action extends Settings_Vtiger_Basic_Action {
 
 	public function process(Vtiger_Request $request) {
+		require_once 'modules/com_vtiger_workflow/VTWorkflowUtils.php';
 		$recordId = $request->get('record');
 		$summary = $request->get('summary');
 		$moduleName = $request->get('module_name');
 		$conditions = $request->get('conditions');
+		$conditions = VTWorkflowUtils::decodeUnicodeEscapes($conditions);
 		$filterSavedInNew = $request->get('filtersavedinnew');
 		$executionCondition = $request->get('execution_condition');
 

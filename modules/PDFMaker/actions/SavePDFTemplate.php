@@ -23,8 +23,6 @@ class PDFMaker_SavePDFTemplate_Action extends Vtiger_Action_Controller {
         $adb->startTransaction();
         $S_Data = $request->getAll();
         $templateid = $request->get('templateid');
-        $isNew = (empty($templateid) || $templateid == '0');
-
         $description = $request->get('description');
         $body = $S_Data['body'];
         
@@ -43,6 +41,11 @@ class PDFMaker_SavePDFTemplate_Action extends Vtiger_Action_Controller {
         if ($df_last != "") $df_last = "1"; else $df_last = "0";
         if ($df_other != "") $df_other = "1"; else $df_other = "0";
 
+
+        $sql = "update vtiger_pdfmaker set description =?, body =? where templateid =?";
+        $params = array($description, $body, $templateid);
+        $adb->pquery($sql, $params);
+
         $margin_top = $request->get('margin_top');
         if ($margin_top < 0) $margin_top = 0;
 
@@ -55,6 +58,7 @@ class PDFMaker_SavePDFTemplate_Action extends Vtiger_Action_Controller {
         $margin_right = $request->get('margin_right');
         if ($margin_right < 0) $margin_right = 0; 
         
+ 
         $dec_point = $request->get('dec_point');
         $dec_decimals = $request->get('dec_decimals');
         $dec_thousands = $request->get('dec_thousands');
@@ -78,52 +82,10 @@ class PDFMaker_SavePDFTemplate_Action extends Vtiger_Action_Controller {
         $disp_header = base_convert($dh_first . $dh_other, 2, 10);
         $disp_footer = base_convert($df_first . $df_last . $df_other, 2, 10);
 
-        if ($isNew) {
-            // CREATE new template
-            $filename = $request->get('template_filename');
-            $modulename = $request->get('modulename');
-            if (empty($filename)) $filename = 'New Template';
-            if (empty($modulename)) $modulename = 'Contacts';
-
-            // Get next sequence
-            $seqResult = $adb->pquery("SELECT id FROM vtiger_pdfmaker_seq", array());
-            $currentSeq = $adb->query_result($seqResult, 0, 'id');
-            $templateid = $currentSeq + 1;
-            $adb->pquery("UPDATE vtiger_pdfmaker_seq SET id = ?", array($templateid));
-
-            $adb->pquery(
-                "INSERT INTO vtiger_pdfmaker (templateid, filename, module, body, description, deleted) VALUES (?, ?, ?, ?, ?, 0)",
-                array($templateid, $filename, $modulename, $body, $description)
-            );
-
-            $adb->pquery(
-                "INSERT INTO vtiger_pdfmaker_settings (templateid, margin_top, margin_bottom, margin_left, margin_right, format, orientation, decimals, decimal_point, thousands_separator, header, footer, encoding, disp_header, disp_footer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                array($templateid, $margin_top, $margin_bottom, $margin_left, $margin_right, $pdf_format, $pdf_orientation, $dec_decimals, $dec_point, $dec_thousands, $header, $footer, $encoding, $disp_header, $disp_footer)
-            );
-        } else {
-            // UPDATE existing template
-            $filename = $request->get('template_filename');
-            $modulename = $request->get('modulename');
-
-            $sql = "UPDATE vtiger_pdfmaker SET description = ?, body = ?";
-            $params = array($description, $body);
-            if (!empty($filename)) {
-                $sql .= ", filename = ?";
-                $params[] = $filename;
-            }
-            if (!empty($modulename)) {
-                $sql .= ", module = ?";
-                $params[] = $modulename;
-            }
-            $sql .= " WHERE templateid = ?";
-            $params[] = $templateid;
-            $adb->pquery($sql, $params);
-
-            $sql4 = "UPDATE vtiger_pdfmaker_settings SET margin_top = ?, margin_bottom = ?, margin_left = ?, margin_right = ?, format = ?, orientation = ?, decimals = ?, decimal_point = ?, thousands_separator = ?, header = ?, footer = ?, encoding = ?, disp_header = ?, disp_footer= ? WHERE templateid = ?";
-            $params4 = array( $margin_top, $margin_bottom, $margin_left, $margin_right, $pdf_format, $pdf_orientation,
-                $dec_decimals, $dec_point, $dec_thousands, $header, $footer, $encoding, $disp_header, $disp_footer, $templateid);
-            $adb->pquery($sql4, $params4);
-        }
+        $sql4 = "UPDATE vtiger_pdfmaker_settings SET margin_top = ?, margin_bottom = ?, margin_left = ?, margin_right = ?, format = ?, orientation = ?, decimals = ?, decimal_point = ?, thousands_separator = ?, header = ?, footer = ?, encoding = ?, disp_header = ?, disp_footer= ? WHERE templateid = ?";
+        $params4 = array( $margin_top, $margin_bottom, $margin_left, $margin_right, $pdf_format, $pdf_orientation,
+            $dec_decimals, $dec_point, $dec_thousands, $header, $footer, $encoding, $disp_header, $disp_footer, $templateid);
+        $adb->pquery($sql4, $params4);
 // ITS4YOU-END
 //ignored picklist values
         $adb->pquery("DELETE FROM vtiger_pdfmaker_ignorepicklistvalues", array());

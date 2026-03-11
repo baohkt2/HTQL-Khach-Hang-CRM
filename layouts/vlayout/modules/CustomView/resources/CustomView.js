@@ -8,257 +8,301 @@
  *************************************************************************************/
 
 var Vtiger_CustomView_Js = {
+  contentsCotainer: false,
+  columnListSelect2Element: false,
+  advanceFilterInstance: false,
 
-	contentsCotainer : false,
-	columnListSelect2Element : false,
-	advanceFilterInstance : false,
+  //This will store the columns selection container
+  columnSelectElement: false,
 
-	//This will store the columns selection container
-	columnSelectElement : false,
+  //This will store the input hidden selectedColumnsList element
+  selectedColumnsList: false,
 
-	//This will store the input hidden selectedColumnsList element
-	selectedColumnsList : false,
+  loadFilterView: function (url) {
+    var progressIndicatorElement = jQuery.progressIndicator();
+    AppConnector.request(url).then(
+      function (data) {
+        app.hideModalWindow();
+        var contents = jQuery(".contentsDiv").html(data);
+        progressIndicatorElement.progressIndicator({ mode: "hide" });
+        Vtiger_CustomView_Js.registerEvents();
+        Vtiger_CustomView_Js.advanceFilterInstance =
+          Vtiger_AdvanceFilter_Js.getInstance(
+            jQuery(".filterContainer", contents),
+          );
+      },
+      function (error, err) {},
+    );
+  },
 
-	loadFilterView : function(url) {
-		var progressIndicatorElement = jQuery.progressIndicator();
-		AppConnector.request(url).then(
-			function(data){
-				app.hideModalWindow();
-				var contents = jQuery(".contentsDiv").html(data);
-				progressIndicatorElement.progressIndicator({'mode' : 'hide'});
-				Vtiger_CustomView_Js.registerEvents();
-				Vtiger_CustomView_Js.advanceFilterInstance = Vtiger_AdvanceFilter_Js.getInstance(jQuery('.filterContainer',contents));
-			},
-			function(error,err){
+  loadDateFilterValues: function () {
+    var selectedDateFilter = jQuery("#standardDateFilter option:selected");
+    var currentDate = selectedDateFilter.data("currentdate");
+    var endDate = selectedDateFilter.data("enddate");
+    jQuery("#standardFilterCurrentDate").val(currentDate);
+    jQuery("#standardFilterEndDate").val(endDate);
+  },
 
-			}
-		);
-	},
+  /**
+   * Function to get the contents container
+   * @return : jQuery object of contents container
+   */
+  getContentsContainer: function () {
+    if (Vtiger_CustomView_Js.contentsCotainer == false) {
+      Vtiger_CustomView_Js.contentsCotainer = jQuery("div.contentsDiv");
+    }
+    return Vtiger_CustomView_Js.contentsCotainer;
+  },
 
-	loadDateFilterValues : function(){
-		var selectedDateFilter = jQuery('#standardDateFilter option:selected');
-		var currentDate = selectedDateFilter.data('currentdate');
-		var endDate = selectedDateFilter.data('enddate');
-		jQuery("#standardFilterCurrentDate").val(currentDate);
-		jQuery("#standardFilterEndDate").val(endDate);
-	},
+  getColumnListSelect2Element: function () {
+    return Vtiger_CustomView_Js.columnListSelect2Element;
+  },
 
-	/**
-	 * Function to get the contents container
-	 * @return : jQuery object of contents container
-	 */
-	getContentsContainer : function() {
-		if(Vtiger_CustomView_Js.contentsCotainer == false) {
-			Vtiger_CustomView_Js.contentsCotainer = jQuery('div.contentsDiv');
-		}
-		return Vtiger_CustomView_Js.contentsCotainer;
-	},
+  /**
+   * Function to get the view columns selection element
+   * @return : jQuery object of view columns selection element
+   */
+  getColumnSelectElement: function () {
+    if (Vtiger_CustomView_Js.columnSelectElement == false) {
+      Vtiger_CustomView_Js.columnSelectElement = jQuery("#viewColumnsSelect");
+    }
+    return Vtiger_CustomView_Js.columnSelectElement;
+  },
 
-	getColumnListSelect2Element : function() {
-		return Vtiger_CustomView_Js.columnListSelect2Element;
-	},
+  /**
+   * Function to get the selected columns list
+   * @return : jQuery object of selectedColumnsList
+   */
+  getSelectedColumnsList: function () {
+    if (Vtiger_CustomView_Js.selectedColumnsList == false) {
+      Vtiger_CustomView_Js.selectedColumnsList = jQuery("#selectedColumnsList");
+    }
+    return Vtiger_CustomView_Js.selectedColumnsList;
+  },
 
-	/**
-	 * Function to get the view columns selection element
-	 * @return : jQuery object of view columns selection element
-	 */
-	getColumnSelectElement : function() {
-		if(Vtiger_CustomView_Js.columnSelectElement == false) {
-			Vtiger_CustomView_Js.columnSelectElement = jQuery('#viewColumnsSelect');
-		}
-		return Vtiger_CustomView_Js.columnSelectElement;
-	},
+  /**
+   * Function to regiser the event to make the columns list sortable
+   */
+  makeColumnListSortable: function () {
+    var select2Element = Vtiger_CustomView_Js.getColumnListSelect2Element();
+    //TODO : peform the selection operation in context this might break if you have multi select element in advance filter
+    //The sorting is only available when Select2 is attached to a hidden input field.
+    var chozenChoiceElement = select2Element.find("ul.select2-choices");
+    chozenChoiceElement.sortable({
+      containment: chozenChoiceElement,
+      start: function () {
+        Vtiger_CustomView_Js.getSelectedColumnsList().select2("onSortStart");
+      },
+      update: function () {
+        Vtiger_CustomView_Js.getSelectedColumnsList().select2("onSortEnd");
+      },
+    });
+  },
 
-	/**
-	 * Function to get the selected columns list
-	 * @return : jQuery object of selectedColumnsList
-	 */
-	getSelectedColumnsList : function() {
-		if(Vtiger_CustomView_Js.selectedColumnsList == false) {
-			Vtiger_CustomView_Js.selectedColumnsList = jQuery('#selectedColumnsList');
-		}
-		return Vtiger_CustomView_Js.selectedColumnsList;
-	},
+  /**
+   * Function which will get the selected columns with order preserved
+   * @return : array of selected values in order
+   */
+  getSelectedColumns: function () {
+    var columnListSelectElement = Vtiger_CustomView_Js.getColumnSelectElement();
+    var select2Element = Vtiger_CustomView_Js.getColumnListSelect2Element();
 
-	/**
-	 * Function to regiser the event to make the columns list sortable
-	 */
-	makeColumnListSortable : function() {
-		var select2Element = Vtiger_CustomView_Js.getColumnListSelect2Element();
-		//TODO : peform the selection operation in context this might break if you have multi select element in advance filter
-		//The sorting is only available when Select2 is attached to a hidden input field.
-		var chozenChoiceElement = select2Element.find('ul.select2-choices');
-		chozenChoiceElement.sortable({
-                'containment': chozenChoiceElement,
-                start: function() { Vtiger_CustomView_Js.getSelectedColumnsList().select2("onSortStart"); },
-                update: function() { Vtiger_CustomView_Js.getSelectedColumnsList().select2("onSortEnd"); }
-            });
-	},
+    var selectedValuesByOrder = new Array();
+    var selectedOptions = columnListSelectElement.find("option:selected");
 
-	/**
-	 * Function which will get the selected columns with order preserved
-	 * @return : array of selected values in order
-	 */
-	getSelectedColumns : function() {
-		var columnListSelectElement = Vtiger_CustomView_Js.getColumnSelectElement();
-		var select2Element = Vtiger_CustomView_Js.getColumnListSelect2Element();
+    var orderedSelect2Options = select2Element
+      .find("li.select2-search-choice")
+      .find("div");
+    orderedSelect2Options.each(function (index, element) {
+      var chosenOption = jQuery(element);
+      selectedOptions.each(function (optionIndex, domOption) {
+        var option = jQuery(domOption);
+        if (option.html() == chosenOption.html()) {
+          selectedValuesByOrder.push(option.val());
+          return false;
+        }
+      });
+    });
+    return selectedValuesByOrder;
+  },
 
-		var selectedValuesByOrder = new Array();
-		var selectedOptions = columnListSelectElement.find('option:selected');
+  /**
+   * Function which will arrange the chosen element choices in order
+   */
+  arrangeSelectChoicesInOrder: function () {
+    var contentsContainer = Vtiger_CustomView_Js.getContentsContainer();
+    var chosenElement = Vtiger_CustomView_Js.getColumnListSelect2Element();
+    var choicesContainer = chosenElement.find("ul.select2-choices");
+    var choicesList = choicesContainer.find("li.select2-search-choice");
+    var coulmnListSelectElement = Vtiger_CustomView_Js.getColumnSelectElement();
+    var selectedOptions = coulmnListSelectElement.find("option:selected");
+    var selectedOrderRaw = jQuery(
+      'input[name="columnslist"]',
+      contentsContainer,
+    ).val();
+    var selectedOrder = [];
+    if (selectedOrderRaw && selectedOrderRaw.length) {
+      try {
+        selectedOrder = JSON.parse(selectedOrderRaw);
+      } catch (e) {
+        selectedOrder = [];
+      }
+    }
 
-		var orderedSelect2Options = select2Element.find('li.select2-search-choice').find('div');
-		orderedSelect2Options.each(function(index,element){
-			var chosenOption = jQuery(element);
-			selectedOptions.each(function(optionIndex, domOption){
-				var option = jQuery(domOption);
-				if(option.html() == chosenOption.html()) {
-					selectedValuesByOrder.push(option.val());
-					return false;
-				}
-			});
-		});
-		return selectedValuesByOrder;
-	},
+    if (!jQuery.isArray(selectedOrder) || selectedOrder.length === 0) {
+      return;
+    }
 
-	/**
-	 * Function which will arrange the chosen element choices in order
-	 */
-	arrangeSelectChoicesInOrder : function() {
-		var contentsContainer = Vtiger_CustomView_Js.getContentsContainer();
-		var chosenElement = Vtiger_CustomView_Js.getColumnListSelect2Element();
-		var choicesContainer = chosenElement.find('ul.select2-choices');
-		var choicesList = choicesContainer.find('li.select2-search-choice');
-		var coulmnListSelectElement = Vtiger_CustomView_Js.getColumnSelectElement();
-		var selectedOptions = coulmnListSelectElement.find('option:selected');
-		var selectedOrder = JSON.parse(jQuery('input[name="columnslist"]', contentsContainer).val());
+    for (var index = selectedOrder.length; index > 0; index--) {
+      var selectedValue = selectedOrder[index - 1];
+      if (typeof selectedValue !== "string" || !selectedValue.length) {
+        continue;
+      }
+      var option = selectedOptions.filter('[value="' + selectedValue + '"]');
+      choicesList.each(function (choiceListIndex, element) {
+        var liElement = jQuery(element);
+        if (liElement.find("div").html() == option.html()) {
+          choicesContainer.prepend(liElement);
+          return false;
+        }
+      });
+    }
+  },
 
-		for(var index=selectedOrder.length ; index > 0 ; index--) {
-			var selectedValue = selectedOrder[index-1];
-			var option = selectedOptions.filter('[value="'+selectedValue+'"]');
-			choicesList.each(function(choiceListIndex,element){
-				var liElement = jQuery(element);
-				if(liElement.find('div').html() == option.html()){
-					choicesContainer.prepend(liElement);
-					return false;
-				}
-			});
-		}
-	},
+  saveFilter: function () {
+    var aDeferred = jQuery.Deferred();
+    var formElement = jQuery("#CustomView");
+    var formData = formElement.serializeFormData();
 
-	saveFilter : function() {
-		var aDeferred = jQuery.Deferred();
-		var formElement = jQuery("#CustomView");
-		var formData = formElement.serializeFormData();
+    var progressIndicatorInstance = jQuery.progressIndicator({
+      blockInfo: {
+        enabled: true,
+      },
+    });
 
-		var progressIndicatorInstance = jQuery.progressIndicator({
-			'blockInfo' : {
-				'enabled' : true
-			}
-		});
+    AppConnector.request(formData).then(
+      function (data) {
+        progressIndicatorInstance.progressIndicator({
+          mode: "hide",
+        });
+        aDeferred.resolve(data);
+      },
+      function (error) {
+        progressIndicatorInstance.progressIndicator({
+          mode: "hide",
+        });
+        aDeferred.reject(error);
+      },
+    );
+    return aDeferred.promise();
+  },
 
-		AppConnector.request(formData).then(
-			function(data){
-				progressIndicatorInstance.progressIndicator({
-					'mode' : 'hide'
-				})
-				aDeferred.resolve(data);
-			},
-			function(error){
-				progressIndicatorInstance.progressIndicator({
-					'mode' : 'hide'
-				})
-				aDeferred.reject(error);
-			}
-		)
-		return aDeferred.promise();
-	},
+  saveAndViewFilter: function () {
+    Vtiger_CustomView_Js.saveFilter().then(
+      function (response) {
+        if (response.success) {
+          var url = response["result"]["listviewurl"];
+          window.location.href = url;
+        } else {
+          var params = {
+            title: app.vtranslate("JS_DUPLICATE_RECORD"),
+            text: response.error["message"],
+          };
+          Vtiger_Helper_Js.showPnotify(params);
+        }
+      },
+      function (error) {},
+    );
+  },
 
-	saveAndViewFilter : function(){
-		Vtiger_CustomView_Js.saveFilter().then(
-			function(response){
-				if (response.success) {
-					var url = response['result']['listviewurl'];
-					window.location.href=url;
-				} else {
-					var params = {
-						title: app.vtranslate('JS_DUPLICATE_RECORD'),
-						text: response.error['message']
-					};
-					Vtiger_Helper_Js.showPnotify(params);
-				}
-			},
-			function(error) {
+  /**
+   * Function which will register the select2 elements for columns selection
+   */
+  registerSelect2ElementForColumnsSelection: function () {
+    var selectElement = Vtiger_CustomView_Js.getColumnSelectElement();
+    app.changeSelectElementView(selectElement, "select2", {
+      maximumSelectionSize: 40,
+      dropdownCss: { "z-index": 0 },
+    });
+  },
 
-			}
-		);
-	},
+  registerEvents: function () {
+    Vtiger_CustomView_Js.registerSelect2ElementForColumnsSelection();
+    var contentsContainer = Vtiger_CustomView_Js.getContentsContainer();
+    jQuery(".stndrdFilterDateSelect").datepicker();
+    jQuery(".chzn-select").chosen();
 
-	/**
-	 * Function which will register the select2 elements for columns selection
-	 */
-	registerSelect2ElementForColumnsSelection : function() {
-		var selectElement = Vtiger_CustomView_Js.getColumnSelectElement();
-		app.changeSelectElementView(selectElement, 'select2', {maximumSelectionSize: 40,dropdownCss : {'z-index' : 0}});
-	},
+    var select2Element = app.getSelect2ElementFromSelect(
+      Vtiger_CustomView_Js.getColumnSelectElement(),
+    );
+    Vtiger_CustomView_Js.columnListSelect2Element = select2Element;
 
-	registerEvents: function(){
-		Vtiger_CustomView_Js.registerSelect2ElementForColumnsSelection();
-		var contentsContainer = Vtiger_CustomView_Js.getContentsContainer();
-		jQuery('.stndrdFilterDateSelect').datepicker();
-		jQuery('.chzn-select').chosen();
+    //To arrange the chosen choices in the order that is selected
+    try {
+      Vtiger_CustomView_Js.arrangeSelectChoicesInOrder();
+    } catch (e) {
+      // Keep edit UI usable if legacy saved order data is malformed.
+    }
 
-		var select2Element = app.getSelect2ElementFromSelect(Vtiger_CustomView_Js.getColumnSelectElement());
-		Vtiger_CustomView_Js.columnListSelect2Element = select2Element;
+    jQuery("#standardDateFilter").change(function () {
+      Vtiger_CustomView_Js.loadDateFilterValues();
+    });
 
-		//To arrange the chosen choices in the order that is selected
-		Vtiger_CustomView_Js.arrangeSelectChoicesInOrder();
+    Vtiger_CustomView_Js.makeColumnListSortable();
 
-		jQuery("#standardDateFilter").change(function(){
-			Vtiger_CustomView_Js.loadDateFilterValues();
-		});
+    jQuery("#CustomView").submit(function (e) {
+      var selectElement = Vtiger_CustomView_Js.getColumnSelectElement();
+      var select2Element = app.getSelect2ElementFromSelect(selectElement);
+      // MultiSelect validation removed - no mandatory column requirement
+      if (jQuery("#viewname").val().length > 40) {
+        var params = {
+          title: app.vtranslate("JS_MESSAGE"),
+          text: app.vtranslate("JS_VIEWNAME_ALERT"),
+        };
+        Vtiger_Helper_Js.showPnotify(params);
+        e.preventDefault();
+        return;
+      }
 
-		Vtiger_CustomView_Js.makeColumnListSortable();
+      //Mandatory Fields validation removed - users can freely choose any columns
 
-		jQuery("#CustomView").submit(function(e) {
-			var selectElement = Vtiger_CustomView_Js.getColumnSelectElement();
-			var select2Element = app.getSelect2ElementFromSelect(selectElement);
-			// MultiSelect validation removed - no mandatory column requirement
-            if(jQuery('#viewname').val().length > 40) {
-                var params = {
-                    title : app.vtranslate('JS_MESSAGE'),
-                    text : app.vtranslate('JS_VIEWNAME_ALERT')
-                }
-                Vtiger_Helper_Js.showPnotify(params);
-                e.preventDefault();
-                return;
-            }
+      var result = jQuery(e.currentTarget).validationEngine("validate");
+      if (result == true) {
+        //handled standard filters saved values.
+        var stdfilterlist = {};
 
-			//Mandatory Fields validation removed - users can freely choose any columns
+        if (
+          jQuery("#standardFilterCurrentDate").val() != "" &&
+          jQuery("#standardFilterEndDate").val() != "" &&
+          jQuery("select.standardFilterColumn option:selected").val() != "none"
+        ) {
+          stdfilterlist["columnname"] = jQuery(
+            "select.standardFilterColumn option:selected",
+          ).val();
+          stdfilterlist["stdfilter"] = jQuery(
+            "select#standardDateFilter option:selected",
+          ).val();
+          stdfilterlist["startdate"] = jQuery(
+            "#standardFilterCurrentDate",
+          ).val();
+          stdfilterlist["enddate"] = jQuery("#standardFilterEndDate").val();
+          jQuery("#stdfilterlist").val(JSON.stringify(stdfilterlist));
+        }
 
-			var result = jQuery(e.currentTarget).validationEngine('validate');
-			if(result == true){
-				//handled standard filters saved values.
-				var stdfilterlist = {};
+        //handled advanced filters saved values.
+        var advfilterlist =
+          Vtiger_CustomView_Js.advanceFilterInstance.getValues();
+        jQuery("#advfilterlist").val(JSON.stringify(advfilterlist));
+        jQuery('input[name="columnslist"]', contentsContainer).val(
+          JSON.stringify(Vtiger_CustomView_Js.getSelectedColumns()),
+        );
+        Vtiger_CustomView_Js.saveAndViewFilter();
+        return false;
+      } else {
+        app.formAlignmentAfterValidation(jQuery(e.currentTarget));
+      }
+    });
 
-				if((jQuery('#standardFilterCurrentDate').val() != '') && (jQuery('#standardFilterEndDate').val()!= '') && (jQuery('select.standardFilterColumn option:selected').val() != 'none')){
-					stdfilterlist['columnname'] = jQuery('select.standardFilterColumn option:selected').val();
-					stdfilterlist['stdfilter'] = jQuery('select#standardDateFilter option:selected').val();
-					stdfilterlist['startdate'] = jQuery('#standardFilterCurrentDate').val();
-					stdfilterlist['enddate'] = jQuery('#standardFilterEndDate').val();
-					jQuery('#stdfilterlist').val(JSON.stringify(stdfilterlist));
-				}
-
-				//handled advanced filters saved values.
-				var advfilterlist = Vtiger_CustomView_Js.advanceFilterInstance.getValues();
-				jQuery('#advfilterlist').val(JSON.stringify(advfilterlist));
-				jQuery('input[name="columnslist"]', contentsContainer).val(JSON.stringify(Vtiger_CustomView_Js.getSelectedColumns()));
-				Vtiger_CustomView_Js.saveAndViewFilter();
-				return false;
-			} else {
-				app.formAlignmentAfterValidation(jQuery(e.currentTarget));
-			}
-		});
-
-		jQuery('#CustomView').validationEngine(app.validationEngineOptions);
-	}
-}
+    jQuery("#CustomView").validationEngine(app.validationEngineOptions);
+  },
+};

@@ -11,6 +11,8 @@ interface VTExpressionEnv{
 	function get($var);
 }
 
+require_once 'modules/com_vtiger_workflow/VTWorkflowUtils.php';
+
 function __vt_add($arr){
 	if(sizeof($arr)==1){
 		return $arr[0];
@@ -48,6 +50,10 @@ function __vt_div($arr){
 }
 
 function __vt_equals($arr){
+	if (php7_count($arr) >= 2 && is_string($arr[0]) && is_string($arr[1])) {
+		$arr[0] = VTWorkflowUtils::normalizeVietnameseUnicode(VTWorkflowUtils::decodeUnicodeEscapes($arr[0]));
+		$arr[1] = VTWorkflowUtils::normalizeVietnameseUnicode(VTWorkflowUtils::decodeUnicodeEscapes($arr[1]));
+	}
 	return $arr[0] == $arr[1];
 }
 

@@ -34,38 +34,55 @@ class CustomView_Save_Action extends Vtiger_Action_Controller {
 			}
 		}
 
+		$shareListEnabled = ($request->get('sharelist') == '1');
 		if (!empty($shareTasks)) {
-			// Ensure sharelist flag is on (status 3 = Public)
-			$request->set('sharelist', '1');
-			// Status 3 means shared/public - needed for isPermittedCustomView
-			$request->set('status', CustomView_Record_Model::CV_STATUS_PUBLIC);
+			// Ensure sharelist flag is enabled when custom share tasks are provided.
+			$shareListEnabled = true;
+		}
+		$request->set('sharelist', $shareListEnabled ? '1' : '0');
 
-			// Collect all unique member IDs from all share tasks
+		if ($shareListEnabled) {
+			// Collect all unique members from request payload and share task rows.
 			$allMembers = array();
-			
-			// Also include any members manually selected in Vtiger's default field if it exists
+
 			$standardMembers = $request->get('members');
+			if (is_string($standardMembers) && $standardMembers !== '') {
+				$standardMembers = array($standardMembers);
+			}
 			if (!empty($standardMembers) && is_array($standardMembers)) {
-				$allMembers = $standardMembers;
+				foreach ($standardMembers as $memberId) {
+					$cleanMember = html_entity_decode($memberId, ENT_QUOTES, 'UTF-8');
+					if (!in_array($cleanMember, $allMembers)) {
+						$allMembers[] = $cleanMember;
+					}
+				}
 			}
 
-			// Add members from our custom share rows
 			foreach ($shareTasks as $task) {
 				$taskMembers = isset($task['members']) ? $task['members'] : array();
 				if (is_string($taskMembers)) {
 					$taskMembers = json_decode(html_entity_decode($taskMembers, ENT_QUOTES, 'UTF-8'), true);
-					if (!is_array($taskMembers)) $taskMembers = array();
+					if (!is_array($taskMembers)) {
+						$taskMembers = array();
+					}
 				}
 				if (is_array($taskMembers)) {
-					foreach ($taskMembers as $m) {
-						$cleanM = html_entity_decode($m, ENT_QUOTES, 'UTF-8');
-						if (!in_array($cleanM, $allMembers)) {
-							$allMembers[] = $cleanM;
+					foreach ($taskMembers as $memberId) {
+						$cleanMember = html_entity_decode($memberId, ENT_QUOTES, 'UTF-8');
+						if (!in_array($cleanMember, $allMembers)) {
+							$allMembers[] = $cleanMember;
 						}
 					}
 				}
 			}
+
+			$hasAllUsers = in_array('All::Users', $allMembers);
+			$request->set('status', $hasAllUsers ? CustomView_Record_Model::CV_STATUS_PUBLIC : CustomView_Record_Model::CV_STATUS_PRIVATE);
 			$request->set('members', $allMembers);
+		} else {
+			// Share is disabled, ensure the list is no longer public/shared.
+			$request->set('status', CustomView_Record_Model::CV_STATUS_PRIVATE);
+			$request->set('members', array());
 		}
 
 		$customViewModel = $this->getCVModelFromRequest($request);
@@ -169,11 +186,15 @@ class CustomView_Save_Action extends Vtiger_Action_Controller {
 		if(!empty($advFilterList)) {
 			$customViewData['advfilterlist'] = $advFilterList;
 		}
-        if($request->has('sharelist')) {
-            $customViewData['sharelist'] = $request->get('sharelist');
-            if($customViewData['sharelist'] == '1')
-                $customViewData['members'] = $request->get('members');
-        }
+		$customViewData['sharelist'] = $request->get('sharelist') == '1' ? '1' : '0';
+		$members = $request->get('members');
+		if (is_string($members) && $members !== '') {
+			$members = array($members);
+		}
+		if (!is_array($members)) {
+			$members = array();
+		}
+		$customViewData['members'] = $members;
 		return $customViewModel->setData($customViewData);
 	}
     

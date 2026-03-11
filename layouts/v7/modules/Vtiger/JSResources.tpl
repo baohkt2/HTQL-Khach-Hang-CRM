@@ -69,9 +69,6 @@
 		{literal}jQuery(document).ready(function() { window._PAGEREADYAT = new Date(); });
 		jQuery(window).load(function() {
 			window._PAGELOADAT = new Date();
-            if (typeof window._PAGEREADYAT === 'undefined') {
-                window._PAGEREADYAT = window._PAGELOADAT;
-            }
 			window._PAGELOADREQSENT = false;
 			// Transmit the information to server about page render time now.
 			if (typeof _REQSTARTTIME != 'undefined') {

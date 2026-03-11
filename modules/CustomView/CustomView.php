@@ -170,8 +170,20 @@ class CustomView extends CRMEntity {
 		$sparams = array($cvid);
 
 		if ($is_admin == false) {
-			$ssql .= " and (vtiger_customview.status=0 or vtiger_customview.userid = ? or vtiger_customview.status = 3 or vtiger_customview.userid in(select vtiger_user2role.userid from vtiger_user2role inner join vtiger_users on vtiger_users.id=vtiger_user2role.userid inner join vtiger_role on vtiger_role.roleid=vtiger_user2role.roleid where vtiger_role.parentrole like '" . $current_user_parent_role_seq . "::%'))";
-			array_push($sparams, $current_user->id);
+			$ssql .= " and (vtiger_customview.status=0 or vtiger_customview.userid = ? or vtiger_customview.status = 3 or vtiger_customview.userid in(select vtiger_user2role.userid from vtiger_user2role inner join vtiger_users on vtiger_users.id=vtiger_user2role.userid inner join vtiger_role on vtiger_role.roleid=vtiger_user2role.roleid where vtiger_role.parentrole like '" . $current_user_parent_role_seq . "::%')
+				or vtiger_customview.cvid in (select vtiger_cv2users.cvid from vtiger_cv2users where vtiger_cv2users.userid = ?)
+				or vtiger_customview.cvid in (select vtiger_cv2group.cvid from vtiger_cv2group where vtiger_cv2group.groupid in (select vtiger_users2group.groupid from vtiger_users2group where vtiger_users2group.userid = ?))
+				or vtiger_customview.cvid in (select vtiger_cv2role.cvid from vtiger_cv2role where vtiger_cv2role.roleid in (select vtiger_user2role.roleid from vtiger_user2role where vtiger_user2role.userid = ?))
+				or vtiger_customview.cvid in (
+					select cv2rs.cvid
+					from vtiger_cv2rs cv2rs
+					inner join vtiger_role shareRole on shareRole.roleid = cv2rs.rsid
+					inner join vtiger_user2role myu2r on myu2r.userid = ?
+					inner join vtiger_role myRole on myRole.roleid = myu2r.roleid
+					where myRole.parentrole like concat(shareRole.parentrole, '::%') or myRole.roleid = shareRole.roleid
+				)
+			)";
+			array_push($sparams, $current_user->id, $current_user->id, $current_user->id, $current_user->id, $current_user->id);
 		}
 		$result = $adb->pquery($ssql, $sparams);
 
@@ -219,8 +231,20 @@ class CustomView extends CRMEntity {
 		$sparams = array($tabid);
 
 		if ($is_admin == false) {
-			$ssql .= " and (vtiger_customview.status=0 or vtiger_customview.userid = ? or vtiger_customview.status = 3 or vtiger_customview.userid in(select vtiger_user2role.userid from vtiger_user2role inner join vtiger_users on vtiger_users.id=vtiger_user2role.userid inner join vtiger_role on vtiger_role.roleid=vtiger_user2role.roleid where vtiger_role.parentrole like '" . $current_user_parent_role_seq . "::%'))";
-			array_push($sparams, $current_user->id);
+			$ssql .= " and (vtiger_customview.status=0 or vtiger_customview.userid = ? or vtiger_customview.status = 3 or vtiger_customview.userid in(select vtiger_user2role.userid from vtiger_user2role inner join vtiger_users on vtiger_users.id=vtiger_user2role.userid inner join vtiger_role on vtiger_role.roleid=vtiger_user2role.roleid where vtiger_role.parentrole like '" . $current_user_parent_role_seq . "::%')
+				or vtiger_customview.cvid in (select vtiger_cv2users.cvid from vtiger_cv2users where vtiger_cv2users.userid = ?)
+				or vtiger_customview.cvid in (select vtiger_cv2group.cvid from vtiger_cv2group where vtiger_cv2group.groupid in (select vtiger_users2group.groupid from vtiger_users2group where vtiger_users2group.userid = ?))
+				or vtiger_customview.cvid in (select vtiger_cv2role.cvid from vtiger_cv2role where vtiger_cv2role.roleid in (select vtiger_user2role.roleid from vtiger_user2role where vtiger_user2role.userid = ?))
+				or vtiger_customview.cvid in (
+					select cv2rs.cvid
+					from vtiger_cv2rs cv2rs
+					inner join vtiger_role shareRole on shareRole.roleid = cv2rs.rsid
+					inner join vtiger_user2role myu2r on myu2r.userid = ?
+					inner join vtiger_role myRole on myRole.roleid = myu2r.roleid
+					where myRole.parentrole like concat(shareRole.parentrole, '::%') or myRole.roleid = shareRole.roleid
+				)
+			)";
+			array_push($sparams, $current_user->id, $current_user->id, $current_user->id, $current_user->id, $current_user->id);
 		}
 		$ssql .= " ORDER BY viewname";
 		$result = $adb->pquery($ssql, $sparams);
@@ -1978,6 +2002,48 @@ class CustomView extends CRMEntity {
 	 * @return Array
 	 */
 	protected static $cvStatusAndUser = array();
+
+	protected function hasCustomViewMemberAccess($recordId, $userId) {
+		global $adb;
+
+		$userRole = fetchUserRole($userId);
+		$parentRoles = getParentRole($userRole);
+		$roleAndSubordinates = array($userRole);
+		if (is_array($parentRoles)) {
+			$roleAndSubordinates = array_merge($roleAndSubordinates, $parentRoles);
+		}
+
+		$userGroups = new GetUserGroups();
+		$userGroups->getAllUserGroups($userId);
+		$groups = is_array($userGroups->user_groups) ? $userGroups->user_groups : array();
+
+		$directUserResult = $adb->pquery('SELECT 1 FROM vtiger_cv2users WHERE cvid = ? AND userid = ? LIMIT 1', array($recordId, $userId));
+		if ($directUserResult && $adb->num_rows($directUserResult) > 0) {
+			return true;
+		}
+
+		if (!empty($groups)) {
+			$groupResult = $adb->pquery('SELECT 1 FROM vtiger_cv2group WHERE cvid = ? AND groupid IN (' . generateQuestionMarks($groups) . ') LIMIT 1', array($recordId, $groups));
+			if ($groupResult && $adb->num_rows($groupResult) > 0) {
+				return true;
+			}
+		}
+
+		$roleResult = $adb->pquery('SELECT 1 FROM vtiger_cv2role WHERE cvid = ? AND roleid = ? LIMIT 1', array($recordId, $userRole));
+		if ($roleResult && $adb->num_rows($roleResult) > 0) {
+			return true;
+		}
+
+		if (!empty($roleAndSubordinates)) {
+			$roleSubResult = $adb->pquery('SELECT 1 FROM vtiger_cv2rs WHERE cvid = ? AND rsid IN (' . generateQuestionMarks($roleAndSubordinates) . ') LIMIT 1', array($recordId, $roleAndSubordinates));
+			if ($roleSubResult && $adb->num_rows($roleSubResult) > 0) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	function getStatusAndUserid($viewid) {
 		global $adb;
 
@@ -2038,30 +2104,8 @@ class CustomView extends CRMEntity {
 						if ($userid == $current_user->id)
 							$permission = "yes";
 						else {
-							/* if($action == 'ListView' || $action == $module."Ajax" || $action == 'index')
-							  { */
-							$log->debug("Entering when status=1 or status=2 & action = ListView or $module.Ajax or index");
-							$sql = "select vtiger_users.id from vtiger_customview inner join vtiger_users where vtiger_customview.cvid = ? and vtiger_customview.userid in (select vtiger_user2role.userid from vtiger_user2role inner join vtiger_users on vtiger_users.id=vtiger_user2role.userid inner join vtiger_role on vtiger_role.roleid=vtiger_user2role.roleid where vtiger_role.parentrole like '%" . $current_user_parent_role_seq . "::%')";
-							$result = $adb->pquery($sql, array($record_id));
-
-							while ($row = $adb->fetchByAssoc($result)) {
-								$temp_result[] = $row['id'];
-							}
-							$user_array = $temp_result;
-							if (php7_sizeof($user_array) > 0) {
-								if (!in_array($current_user->id, $user_array))
-									$permission = "no";
-								else
-									$permission = "yes";
-							}
-							else
-								$permission = "no";
-							/* }
-							  else
-							  {
-							  $log->debug("Entering when status=1 or 2 & action = Editview or Customview");
-							  $permission = "no";
-							  } */
+							$log->debug("Checking private/pending access via member mapping tables");
+							$permission = $this->hasCustomViewMemberAccess($record_id, $current_user->id) ? "yes" : "no";
 						}
 					}
 					else

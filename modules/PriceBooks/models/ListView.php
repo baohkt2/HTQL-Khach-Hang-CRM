@@ -36,6 +36,12 @@ class PriceBooks_ListView_Model extends Vtiger_ListView_Model {
 					'linkurl' => 'javascript:Vtiger_List_Js.triggerExportAction("'.$this->getModule()->getExportUrl().'")',
 					'linkicon' => ''
 				);
+			$advancedLinks[] = array(
+					'linktype' => 'LISTVIEW',
+					'linklabel' => 'LBL_CUSTOM_EXPORT',
+					'linkurl' => 'javascript:Vtiger_List_Js.triggerExportAction("'.$this->getModule()->getCustomExportUrl().'")',
+					'linkicon' => ''
+				);
 		}
 		return $advancedLinks;
 	}

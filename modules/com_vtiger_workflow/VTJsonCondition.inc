@@ -8,6 +8,7 @@
  * All Rights Reserved.
  ************************************************************************************/
 require_once("include/Zend/Json.php");
+require_once 'modules/com_vtiger_workflow/VTWorkflowUtils.php';
 
 class VTJsonCondition {
 
@@ -17,6 +18,7 @@ class VTJsonCondition {
 
 	function evaluate($condition, $entityCache, $id) {
 		$expr = Zend_Json::decode($condition);
+		$expr = VTWorkflowUtils::decodeUnicodeEscapes($expr);
 		$finalResult = TRUE;
 		if (is_array($expr)) {
 			$entityData = $entityCache->forId($id);
@@ -162,6 +164,8 @@ class VTJsonCondition {
 			$fieldValue = isset($data[$cond['fieldname']]) ? $data[$cond['fieldname']]:"";
 		}
 		$value = trim(html_entity_decode($cond['value']));
+		$fieldValue = VTWorkflowUtils::decodeUnicodeEscapes($fieldValue);
+		$value = VTWorkflowUtils::decodeUnicodeEscapes($value);
 		$expressionType = isset($cond['valuetype']) ? $cond['valuetype'] : null;
 
 		if ($expressionType == 'fieldname') {
@@ -233,6 +237,9 @@ class VTJsonCondition {
 		if(is_numeric($fieldValue) && is_numeric($value)){
 			$fieldValue = round($fieldValue, 8);
 			$value = round($value,8);
+		} else {
+			$fieldValue = VTWorkflowUtils::normalizeVietnameseUnicode($fieldValue);
+			$value = VTWorkflowUtils::normalizeVietnameseUnicode($value);
 		}
 
 		switch ($condition) {
@@ -512,8 +519,10 @@ class VTJsonCondition {
 			case 'has changed from' :
 				$entityDelta = new VTEntityDelta();
 				$idParts = vtws_getIdComponents($entityData->getId());
+				$oldValue = $entityDelta->getOldValue($entityData->getModuleName(), $idParts[1], $cond['fieldname']);
+				$oldValue = VTWorkflowUtils::normalizeVietnameseUnicode(VTWorkflowUtils::decodeUnicodeEscapes(decode_html($oldValue)));
 				return ($entityDelta->hasChanged($entityData->getModuleName(), $idParts[1], $cond['fieldname'])
-					&& (decode_html($value) == decode_html($entityDelta->getOldValue($entityData->getModuleName(), $idParts[1], $cond['fieldname']))));
+					&& (VTWorkflowUtils::normalizeVietnameseUnicode(VTWorkflowUtils::decodeUnicodeEscapes(decode_html($value))) == $oldValue));
 			case 'is added':
 				//This condition was used only for comments. It should not execute from not from workflows, So it was always "FALSE"
 				return false;
