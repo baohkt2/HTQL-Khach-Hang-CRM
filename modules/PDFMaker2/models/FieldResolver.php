@@ -140,6 +140,11 @@ class PDFMaker2_FieldResolver_Model {
                 ['fieldname' => 'record_id', 'fieldlabel' => 'Record ID', 'variable' => '$RECORD_ID$'],
                 ['fieldname' => 'current_date', 'fieldlabel' => vtranslate('LBL_CURRENT_DATE', 'PDFMaker2'), 'variable' => '$CURRENT_DATE$'],
                 ['fieldname' => 'current_time', 'fieldlabel' => vtranslate('LBL_CURRENT_TIME', 'PDFMaker2'), 'variable' => '$CURRENT_TIME$'],
+                ['fieldname' => 'current_day', 'fieldlabel' => 'Ngày (dd)', 'variable' => '$CURRENT_DAY$'],
+                ['fieldname' => 'current_month', 'fieldlabel' => 'Tháng (mm)', 'variable' => '$CURRENT_MONTH$'],
+                ['fieldname' => 'current_year', 'fieldlabel' => 'Năm (yyyy)', 'variable' => '$CURRENT_YEAR$'],
+                ['fieldname' => 'current_day_name', 'fieldlabel' => 'Thứ trong tuần', 'variable' => '$CURRENT_DAY_NAME$'],
+                ['fieldname' => 'current_month_name', 'fieldlabel' => 'Tháng (chữ)', 'variable' => '$CURRENT_MONTH_NAME$'],
                 ['fieldname' => 'current_user', 'fieldlabel' => vtranslate('LBL_CURRENT_USER', 'PDFMaker2'), 'variable' => '$CURRENT_USER$'],
                 ['fieldname' => 'company_name', 'fieldlabel' => vtranslate('LBL_COMPANY_NAME', 'PDFMaker2'), 'variable' => '$COMPANY_NAME$'],
                 ['fieldname' => 'company_address', 'fieldlabel' => vtranslate('LBL_COMPANY_ADDRESS', 'PDFMaker2'), 'variable' => '$COMPANY_ADDRESS$'],
@@ -212,6 +217,10 @@ class PDFMaker2_FieldResolver_Model {
         );
         while ($row = $this->db->fetchByAssoc($fieldResult)) {
             $rawValue = $focus->column_fields[$row['fieldname']] ?? '';
+            // PearDatabase to_html() encodes all values; decode for clean UTF-8
+            if (is_string($rawValue)) {
+                $rawValue = html_entity_decode($rawValue, ENT_QUOTES, 'UTF-8');
+            }
             $uitype = (int)$row['uitype'];
 
             // Track related record IDs for later resolution
@@ -250,6 +259,11 @@ class PDFMaker2_FieldResolver_Model {
         $fieldMap['RECORD_ID'] = $recordId;
         $fieldMap['CURRENT_DATE'] = date('d/m/Y');
         $fieldMap['CURRENT_TIME'] = date('H:i:s');
+        $fieldMap['CURRENT_DAY'] = date('d');
+        $fieldMap['CURRENT_MONTH'] = date('m');
+        $fieldMap['CURRENT_YEAR'] = date('Y');
+        $fieldMap['CURRENT_DAY_NAME'] = $this->getVietnameseDayName(date('N'));
+        $fieldMap['CURRENT_MONTH_NAME'] = $this->getVietnameseMonthName(date('n'));
         $fieldMap['CURRENT_USER'] = trim(($currentUser->get('first_name') ?? '') . ' ' . ($currentUser->get('last_name') ?? ''));
         $fieldMap['COMPANY_NAME'] = $companyDetails['organizationname'] ?? '';
         $fieldMap['COMPANY_ADDRESS'] = $companyDetails['address'] ?? '';
@@ -300,6 +314,10 @@ class PDFMaker2_FieldResolver_Model {
             );
             while ($row = $this->db->fetchByAssoc($fieldResult)) {
                 $rawValue = $relFocus->column_fields[$row['fieldname']] ?? '';
+                // PearDatabase to_html() encodes all values; decode for clean UTF-8
+                if (is_string($rawValue)) {
+                    $rawValue = html_entity_decode($rawValue, ENT_QUOTES, 'UTF-8');
+                }
                 $displayValue = $this->formatFieldValue($rawValue, (int)$row['uitype'], $row['fieldname'], $relModuleName);
 
                 $varKey = strtoupper($relModuleName) . '_' . strtoupper($row['columnname']);
@@ -327,7 +345,10 @@ class PDFMaker2_FieldResolver_Model {
         );
         if ($this->db->num_rows($result) > 0) {
             $row = $this->db->fetchByAssoc($result);
-            // PearDatabase::fetchByAssoc already applies to_html encoding
+            // Decode PearDatabase to_html() encoding for clean UTF-8
+            foreach ($row as $k => $v) {
+                if (is_string($v)) $row[$k] = html_entity_decode($v, ENT_QUOTES, 'UTF-8');
+            }
             $fieldMap['USERS_FIRST_NAME'] = $row['first_name'] ?? '';
             $fieldMap['USERS_LAST_NAME'] = $row['last_name'] ?? '';
             $fieldMap['USERS_EMAIL1'] = $row['email1'] ?? '';
@@ -341,8 +362,7 @@ class PDFMaker2_FieldResolver_Model {
             // Check if it's a group
             $grpResult = $this->db->pquery("SELECT groupname FROM vtiger_groups WHERE groupid = ?", [$userId]);
             if ($this->db->num_rows($grpResult) > 0) {
-                // PearDatabase::query_result already applies to_html encoding
-                $groupName = $this->db->query_result($grpResult, 0, 'groupname');
+                $groupName = html_entity_decode($this->db->query_result($grpResult, 0, 'groupname'), ENT_QUOTES, 'UTF-8');
                 $fieldMap['USERS_FULLNAME'] = $groupName;
                 $fieldMap['USERS_FIRST_NAME'] = $fieldMap['USERS_FULLNAME'];
             }
@@ -406,8 +426,9 @@ class PDFMaker2_FieldResolver_Model {
                     $entityType = getSalesEntityType($value);
                     if ($entityType) {
                         $entityNames = getEntityName($entityType, [$value]);
+                        $name = $entityNames[$value] ?? '';
                         // getEntityName returns HTML-encoded values (via PearDatabase to_html)
-                        return $entityNames[$value] ?? htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+                        if (!empty($name)) return html_entity_decode($name, ENT_QUOTES, 'UTF-8');
                     }
                 }
                 return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
@@ -419,13 +440,12 @@ class PDFMaker2_FieldResolver_Model {
                 if (!empty($value) && is_numeric($value)) {
                     $userName = getUserFullName($value);
                     if (!empty($userName)) {
-                        // getUserFullName() already returns HTML-encoded string
-                        return $userName;
+                        // getUserFullName() returns HTML-encoded string via PearDatabase
+                        return html_entity_decode($userName, ENT_QUOTES, 'UTF-8');
                     }
-                    // Could be a group — query_result already applies to_html encoding
                     $grpResult = $this->db->pquery("SELECT groupname FROM vtiger_groups WHERE groupid = ?", [$value]);
                     if ($this->db->num_rows($grpResult) > 0) {
-                        return $this->db->query_result($grpResult, 0, 'groupname');
+                        return html_entity_decode($this->db->query_result($grpResult, 0, 'groupname'), ENT_QUOTES, 'UTF-8');
                     }
                 }
                 return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
@@ -492,13 +512,14 @@ class PDFMaker2_FieldResolver_Model {
         );
         if ($this->db->num_rows($result) > 0) {
             $row = $this->db->fetchByAssoc($result);
-            // PearDatabase::fetchByAssoc already applies to_html encoding
+            // Decode PearDatabase to_html() encoding
+            foreach ($row as $k => $v) {
+                if (is_string($v)) $row[$k] = html_entity_decode($v, ENT_QUOTES, 'UTF-8');
+            }
             $storedName = !empty($row['storedname']) ? $row['storedname'] : $row['name'];
             $imgPath = $row['path'] . $row['attachmentsid'] . '_' . $storedName;
-            // Decode for file_exists check, re-encode for HTML output
-            $rawPath = html_entity_decode($imgPath, ENT_QUOTES, 'UTF-8');
-            if (file_exists($rawPath)) {
-                return '<img src="' . $imgPath . '" style="max-width:150px;max-height:150px" />';
+            if (file_exists($imgPath)) {
+                return '<img src="' . htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8') . '" style="max-width:150px;max-height:150px" />';
             }
         }
         return '';
@@ -510,8 +531,22 @@ class PDFMaker2_FieldResolver_Model {
     private function getCompanyDetails() {
         $result = $this->db->pquery("SELECT * FROM vtiger_organizationdetails LIMIT 1", []);
         if ($this->db->num_rows($result) > 0) {
-            return $this->db->fetch_array($result);
+            $row = $this->db->fetch_array($result);
+            // Decode PearDatabase to_html() encoding
+            foreach ($row as $k => $v) {
+                if (is_string($v)) $row[$k] = html_entity_decode($v, ENT_QUOTES, 'UTF-8');
+            }
+            return $row;
         }
         return [];
+    }
+
+    private function getVietnameseDayName($dayOfWeek) {
+        $days = [1 => 'Thứ Hai', 2 => 'Thứ Ba', 3 => 'Thứ Tư', 4 => 'Thứ Năm', 5 => 'Thứ Sáu', 6 => 'Thứ Bảy', 7 => 'Chủ Nhật'];
+        return $days[(int)$dayOfWeek] ?? '';
+    }
+
+    private function getVietnameseMonthName($month) {
+        return 'Tháng ' . (int)$month;
     }
 }

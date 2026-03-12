@@ -57,7 +57,7 @@
                                     <span class="label label-default">{vtranslate('LBL_INACTIVE', 'PDFMaker2')}</span>
                                 {/if}
                             </td>
-                            <td>{$TEMPLATE.modified_at|date_format:'%d/%m/%Y %H:%M'}</td>
+                            <td>{($TEMPLATE.modified_at|strtotime + 25200)|date_format:'%d/%m/%Y %H:%M'}</td>
                             <td>
                                 <div class="table-actions">
                                     <span class="more dropdown action">
