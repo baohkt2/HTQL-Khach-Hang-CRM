@@ -3567,6 +3567,72 @@ Vtiger.Class(
       // Setup fixed columns
       console.log("Calling setupFixedColumns from registerEvents...");
       this.setupFixedColumns();
+      this.registerFixedColumnToggle();
+    },
+
+    /**
+     * Register pin toggle button and inline fix-column checkboxes
+     */
+    registerFixedColumnToggle: function () {
+      var thisInstance = this;
+      var container = this.getListViewContainer();
+
+      // Toggle pin checkboxes visibility
+      container.on('click', '.fixedColumnToggle', function (e) {
+        e.stopPropagation();
+        var $icon = jQuery(this).find('i');
+        var $pins = container.find('.fixColumnPin');
+        if ($pins.hasClass('hide')) {
+          $pins.removeClass('hide');
+          $icon.css('color', '#007cba');
+        } else {
+          $pins.addClass('hide');
+          $icon.css('color', '#888');
+        }
+      });
+
+      // Handle checkbox change — save via AJAX
+      container.on('change', '.fixColumnCheckbox', function () {
+        var $cb = jQuery(this);
+        var fieldName = $cb.data('field-name');
+        var isFixed = $cb.is(':checked') ? 1 : 0;
+        var cvid = jQuery('input[name="cvid"]').val();
+
+        if (!cvid) return;
+
+        app.helper.showProgress();
+        app.request.post({
+          data: {
+            module: 'CustomView',
+            action: 'SaveAjax',
+            mode: 'toggleFixedColumn',
+            record: cvid,
+            fieldname: fieldName,
+            is_fixed: isFixed,
+            source_module: app.module()
+          }
+        }).then(function (err, res) {
+          app.helper.hideProgress();
+          if (!err) {
+            // Apply/remove fixed-column class on all matching cells
+            var $table = jQuery('#listview-table');
+            var colIndex = $cb.closest('th').index();
+            if (isFixed) {
+              $table.find('tr').each(function () {
+                jQuery(this).children().eq(colIndex).addClass('fixed-column');
+              });
+              thisInstance.setupFixedColumns();
+            } else {
+              $table.find('tr').each(function () {
+                jQuery(this).children().eq(colIndex).removeClass('fixed-column').css({
+                  position: '', left: '', 'z-index': '', 'background-color': '',
+                  'border-right': '', 'box-shadow': ''
+                });
+              });
+            }
+          }
+        });
+      });
     },
 
     /**

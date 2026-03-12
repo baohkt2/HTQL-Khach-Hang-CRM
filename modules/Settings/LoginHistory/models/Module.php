@@ -17,7 +17,7 @@ class Settings_LoginHistory_Module_Model extends Settings_Vtiger_Module_Model {
 	var $baseIndex = 'login_id';
 	var $listFields = Array(
 		'user_name'=> 'LBL_USER_NAME',
-		'user_ip'=> 'LBL_USER_IP_ADDRESS', 
+		'last_name'=> 'LBL_USER_LAST_NAME', 
 		'login_time' => 'LBL_LOGIN_TIME',
 		'logout_time' => 'LBL_LOGGED_OUT_TIME',
 		'session_duration' => 'LBL_SESSION_DURATION',

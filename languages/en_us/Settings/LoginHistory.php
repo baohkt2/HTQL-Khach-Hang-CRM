@@ -13,6 +13,7 @@ $languageStrings = array(
 	'LBL_LOGIN_HISTORY_DESCRIPTION' => 'Login History Details',
 	'LBL_USER_NAME'=> 'User Name',
 	'LBL_USER_IP_ADDRESS'=> 'User IP Address', 
+	'LBL_USER_LAST_NAME'=> 'Last Name',
 	'LBL_LOGIN_TIME' => 'Sign-in Time',
 	'LBL_LOGGED_OUT_TIME' => 'Sign-out Time', 
 	'LBL_STATUS' => 'Status',

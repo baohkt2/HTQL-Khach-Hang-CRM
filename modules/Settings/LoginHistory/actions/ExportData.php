@@ -72,20 +72,20 @@ class Settings_LoginHistory_ExportData_Action extends Settings_Vtiger_Basic_Acti
         $this->output($request, $translatedHeaders, $entries);
     }
     
-    function output($request, $headers, $entries) {
-		$moduleName = $request->getModule();
-		$fileName = str_replace(' ','_',decode_html(vtranslate($moduleName, $moduleName)));
-		$fileName = str_replace(',', '_', $fileName);
+   function output($request, $headers, $entries) {
+        $moduleName = $request->getModule();
+        $fileName = str_replace(' ','_',decode_html(vtranslate($moduleName, $moduleName)));
+        $fileName = str_replace(',', '_', $fileName);
         
         require_once("libraries/PHPExcel/PHPExcel.php");
 
-		$workbook = new PHPExcel();
-		$worksheet = $workbook->setActiveSheetIndex(0);
+        $workbook = new PHPExcel();
+        $worksheet = $workbook->setActiveSheetIndex(0);
         
         $header_styles = array(
-			'fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID, 'color' => array('rgb' => 'E1E0F7')),
+            'fill' => array('type' => PHPExcel_Style_Fill::FILL_SOLID, 'color' => array('rgb' => 'E1E0F7')),
             'font' => array('bold' => true)
-		);
+        );
 
         // Print Headers
         $colCount = 0;
@@ -106,15 +106,24 @@ class Settings_LoginHistory_ExportData_Action extends Settings_Vtiger_Basic_Acti
             $rowCount++;
         }
 
-		header("Content-Disposition:attachment;filename=$fileName.xls");
-		header("Content-Type:application/vnd.ms-excel;charset=UTF-8");
-		header("Expires: Mon, 31 Dec 2000 00:00:00 GMT" );
-		header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT" );
-		header("Cache-Control: post-check=0, pre-check=0", false );
+        // --- BỔ SUNG: AUTO FIT TEXT CHO CÁC CỘT ---
+        $lastColIndex = count($headers);
+        for ($i = 0; $i < $lastColIndex; $i++) {
+            // Chuyển đổi số thứ tự cột sang chữ cái (0 -> A, 1 -> B, ...)
+            $cellColumn = PHPExcel_Cell::stringFromColumnIndex($i);
+            $worksheet->getColumnDimension($cellColumn)->setAutoSize(true);
+        }
+        // ------------------------------------------
 
-		ob_clean();
+        header("Content-Disposition:attachment;filename=$fileName.xls");
+        header("Content-Type:application/vnd.ms-excel;charset=UTF-8");
+        header("Expires: Mon, 31 Dec 2000 00:00:00 GMT" );
+        header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT" );
+        header("Cache-Control: post-check=0, pre-check=0", false );
+
+        ob_clean();
         
         $workbookWriter = PHPExcel_IOFactory::createWriter($workbook, 'Excel5');
-		$workbookWriter->save('php://output');
-	}
+        $workbookWriter->save('php://output');
+    }
 }

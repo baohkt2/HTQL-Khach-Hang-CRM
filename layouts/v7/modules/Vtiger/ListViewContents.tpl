@@ -86,6 +86,11 @@
 									 data-toggle="tooltip" data-placement="bottom" data-container="body">
 									<i class="fa fa-th-large"></i>
 								</div>
+								<div class="fixedColumnToggle" title="{vtranslate('LBL_TOGGLE_FIXED_COLUMNS','Vtiger')}"
+									 data-toggle="tooltip" data-placement="bottom" data-container="body"
+									 style="display:inline-block; cursor:pointer; margin-left:4px; color:#888;">
+									<i class="fa fa-thumb-tack"></i>
+								</div>
 							</div>
 						{/if}
 					</div>
@@ -99,7 +104,10 @@
 					{else}
 						{assign var=NO_SORTING value=0}
 					{/if}
-					<th {if isset($COLUMN_NAME) && $COLUMN_NAME eq $LISTVIEW_HEADER->get('name')} nowrap="nowrap" {/if} class="{if $LISTVIEW_HEADER->get('is_fixed')}fixed-column{/if}">
+					<th {if isset($COLUMN_NAME) && $COLUMN_NAME eq $LISTVIEW_HEADER->get('name')} nowrap="nowrap" {/if} class="{if $LISTVIEW_HEADER->get('is_fixed')}fixed-column{/if}" data-field-name="{$LISTVIEW_HEADER->get('name')}">
+						<span class="fixColumnPin hide" style="margin-right:3px;">
+							<input type="checkbox" class="fixColumnCheckbox" data-field-name="{$LISTVIEW_HEADER->get('name')}" {if $LISTVIEW_HEADER->get('is_fixed')}checked{/if} title="{vtranslate('LBL_FIX_COLUMN','Vtiger')}">
+						</span>
 						<a href="#" class="{if $NO_SORTING}noSorting{else}listViewContentHeaderValues{/if}" {if !$NO_SORTING}data-nextsortorderval="{if $COLUMN_NAME eq $LISTVIEW_HEADER->get('name')}{$NEXT_SORT_ORDER}{else}ASC{/if}" data-columnname="{$LISTVIEW_HEADER->get('name')}"{/if} data-field-id='{$LISTVIEW_HEADER->getId()}'>
 							{if !$NO_SORTING}
 								{if $COLUMN_NAME eq $LISTVIEW_HEADER->get('name')}

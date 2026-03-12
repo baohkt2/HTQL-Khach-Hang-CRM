@@ -13,6 +13,7 @@ $languageStrings = array(
 	'LBL_LOGIN_HISTORY_DESCRIPTION' => 'Chi tiết lịch sử đăng nhập',
 	'LBL_USER_NAME'=> 'Tên đăng nhập',
 	'LBL_USER_IP_ADDRESS'=> 'IP của Người dùng', 
+	'LBL_USER_LAST_NAME'=> 'Tên người dùng',
 	'LBL_LOGIN_TIME' => 'Thời gian đăng nhập',
 	'LBL_LOGGED_OUT_TIME' => 'Thời gian thoát', 
 	'LBL_STATUS' => 'Trạng thái',

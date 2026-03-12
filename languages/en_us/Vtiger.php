@@ -1439,6 +1439,8 @@ $languageStrings = array(
 	'LBL_RECORD_PERMISSION_DENIED' => 'Record permissions denied',
 	'LBL_MASS_SELECT' => 'Mass Select',
 	'LBL_DASHBOARD_TAB_INVALID' => 'Invalid Tab Name ',
+	'LBL_TOGGLE_FIXED_COLUMNS' => 'Toggle Fixed Columns',
+	'LBL_FIX_COLUMN' => 'Fix this column',
 );
 
 $jsLanguageStrings = array(

@@ -55,7 +55,7 @@ class Settings_LoginHistory_ListView_Model extends Settings_Vtiger_ListView_Mode
         $module = $this->getModule();
 		$userNameSql = getSqlForNameInDisplayFormat(array('first_name'=>'vtiger_users.first_name', 'last_name' => 'vtiger_users.last_name'), 'Users');
 		
-		$query = "SELECT login_id, $userNameSql AS user_name, user_ip, logout_time, login_time, vtiger_loginhistory.status,
+		$query = "SELECT login_id, $userNameSql AS user_name, vtiger_users.last_name, user_ip, logout_time, login_time, vtiger_loginhistory.status,
 				CASE 
 					WHEN vtiger_loginhistory.status = 'Signed in' THEN NULL
 					WHEN vtiger_loginhistory.logout_time IS NULL OR vtiger_loginhistory.logout_time = '0000-00-00 00:00:00' THEN NULL

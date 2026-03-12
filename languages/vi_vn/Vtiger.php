@@ -709,6 +709,8 @@ $languageStrings = array(
 	'LBL_UPDATED_LIST' => 'đã cập nhật danh sách',
 	'LBL_COLUMNS' => 'Số cột',
 	'LBL_SHARE_TASK_ASSIGNMENT' => 'Phân công công việc:',
+	'LBL_TOGGLE_FIXED_COLUMNS' => 'Bật/tắt cố định cột',
+	'LBL_FIX_COLUMN' => 'Cố định cột này',
 );
 $jsLanguageStrings = array(
 	'LBL_SELECT_SAVED_EXPORT_FORMAT' => 'Định dạng đã lưu',
@@ -878,4 +880,3 @@ $jsLanguageStrings = array(
 	'Import Completed.' => 'Import hoàn tất.',
 	'Import Cancelled.' => 'Đã hủy Import.',
 );
-

@@ -969,6 +969,31 @@ table#listview-table.table.listview-table
   z-index: 1001 !important;
 }
 
+/* Pin toggle button */
+.fixedColumnToggle {
+  display: inline-block;
+  cursor: pointer;
+  margin-left: 4px;
+  color: #888;
+  font-size: 13px;
+  vertical-align: middle;
+}
+.fixedColumnToggle:hover {
+  color: #007cba;
+}
+
+/* Pin column checkboxes in header */
+.fixColumnPin {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 3px;
+}
+.fixColumnPin .fixColumnCheckbox {
+  cursor: pointer;
+  margin: 0;
+  vertical-align: middle;
+}
+
 /* Ensure horizontal scrollbar is visible */
 .table-container .ps-scrollbar-x {
   z-index: 1001 !important;
