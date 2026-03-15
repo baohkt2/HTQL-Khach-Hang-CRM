@@ -3,8 +3,8 @@
  * PDFMaker2 — Vietnamese Language File
  */
 $languageStrings = array(
-    'PDFMaker2' => 'PDF Maker 2',
-    'PDF Maker 2' => 'PDF Maker 2',
+    'PDFMaker2' => 'Mẫu PDF',
+    'PDF Maker 2' => 'Mẫu PDF',
     'SINGLE_PDFMaker2' => 'PDF Template',
 
     // List View

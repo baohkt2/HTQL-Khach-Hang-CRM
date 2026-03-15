@@ -253,6 +253,7 @@ $languageStrings = array(
 	'LBL_DISPLAY_WIDETYPE' => 'Rộng',
 	'LBL_DOCUMENTATION' => 'Tài liệu',
 	'LBL_DOES_NOT_CONTAIN' => 'không chứa',
+	'LBL_CONTAINS_ONE_OF' => 'chứa một trong',
 	'LBL_DRAG' => 'kéo',
 	'LBL_DUE' => 'đên hạn:',
 	'LBL_DUPLICATE' => 'Sao chép',

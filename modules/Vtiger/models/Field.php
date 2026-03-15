@@ -1021,7 +1021,7 @@ class Vtiger_Field_Model extends Vtiger_Field {
 	 */
 	public static function getAdvancedFilterOpsByFieldType() {
 		return array(
-			'V' => array('e','n','s','ew','c','k','y','ny'),
+			'V' => array('e','n','s','ew','c','k','ct','y','ny'),
 			'N' => array('e','n','l','g','m','h', 'y','ny'),
 			'T' => array('e','n','l','g','m','h','bw','b','a','y','ny'),
 			'I' => array('e','n','l','g','m','h','y','ny'),
@@ -1029,7 +1029,7 @@ class Vtiger_Field_Model extends Vtiger_Field {
 			'D' => array('e','n','bw','b','a','y','ny'),
 			'DT' => array('e','n','bw','b','a','y','ny','lessthanhoursbefore','lessthanhourslater','morethanhoursbefore','morethanhourslater'),
 			'NN' => array('e','n','l','g','m','h','y','ny'),
-			'E' => array('e','n','s','ew','c','k','y','ny')
+			'E' => array('e','n','s','ew','c','k','ct','y','ny')
 		);
 	}
 

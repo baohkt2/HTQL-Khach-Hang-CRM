@@ -1033,6 +1033,19 @@ class QueryGenerator {
 			}
 			return $sql;
 		}
+
+		// "contains one of" operator: split comma-separated values, generate LIKE for each
+		if ($operator == 'ct') {
+			$rawValues = is_string($value) ? explode(',', $value) : (array)$value;
+			foreach ($rawValues as $v) {
+				$v = trim($v);
+				if ($v === '') continue;
+				$v = $db->sql_escape_string($v);
+				$sql[] = "LIKE '%{$v}%'";
+			}
+			return $sql;
+		}
+
 		foreach ($valueArray as $value) {
 			$isvaluefn = false; /* flag to use when value becomes a sql function */
 

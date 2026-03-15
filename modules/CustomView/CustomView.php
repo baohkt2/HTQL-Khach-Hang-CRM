@@ -24,6 +24,7 @@ if ($mod_strings) {
 		"ew" => "" . $mod_strings['ends with'] . "",
 		"c" => "" . $mod_strings['contains'] . "",
 		"k" => "" . $mod_strings['does not contain'] . "",
+		"ct" => "" . $mod_strings['contains one of'] . "",
 		"l" => "" . $mod_strings['less than'] . "",
 		"g" => "" . $mod_strings['greater than'] . "",
 		"m" => "" . $mod_strings['less or equal'] . "",

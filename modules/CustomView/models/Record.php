@@ -1386,6 +1386,7 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 				'ew' => 'LBL_ENDS_WITH',
 				'c' => 'LBL_CONTAINS',
 				'k' => 'LBL_DOES_NOT_CONTAIN',
+				'ct' => 'LBL_CONTAINS_ONE_OF',
 				'l' => 'LBL_LESS_THAN',
 				'g' => 'LBL_GREATER_THAN',
 				'm' => 'LBL_LESS_THAN_OR_EQUAL',
@@ -1403,7 +1404,7 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 	 */
 	public static function getAdvancedFilterOpsByFieldType() {
 		return array(
-				'V' => array('e','n','s','ew','c','k'),
+				'V' => array('e','n','s','ew','c','k','ct'),
 				'N' => array('e','n','l','g','m','h'),
 				'T' => array('e','n','l','g','m','h','bw','b','a'),
 				'I' => array('e','n','l','g','m','h'),
@@ -1411,7 +1412,7 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 				'D' => array('e','n','bw','b','a'),
 				'DT' => array('e','n','bw','b','a'),
 				'NN' => array('e','n','l','g','m','h'),
-				'E' => array('e','n','s','ew','c','k')
+				'E' => array('e','n','s','ew','c','k','ct')
 		);
 	}
 

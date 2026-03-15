@@ -10754,3 +10754,27 @@ FileAccessForInclusion -
 /var/www/html/cusc/includes/main/WebUI.php::process::221<br>
 /var/www/html/cusc/index.php::process::29<br>
 
+Traced on 2026-03-12 08:25:45
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/modules/SMSNotifier/ext/SMSProvider.php::checkFileAccessForInclusion::18<br>
+/var/www/html/cusc/modules/SMSNotifier/SMSNotifier.php::getInstance::268<br>
+/var/www/html/cusc/modules/SMSNotifier/SMSNotifier.php::getActiveProviderInstance::23<br>
+/var/www/html/cusc/modules/Vtiger/views/MassActionAjax.php::checkServer::359<br>
+/var/www/html/cusc/includes/runtime/Controller.php::showSendSMSForm::65<br>
+/var/www/html/cusc/modules/Vtiger/views/MassActionAjax.php::invokeExposedMethod::53<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
+Traced on 2026-03-12 08:26:07
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/modules/SMSNotifier/ext/SMSProvider.php::checkFileAccessForInclusion::18<br>
+/var/www/html/cusc/modules/SMSNotifier/SMSNotifier.php::getInstance::268<br>
+/var/www/html/cusc/modules/SMSNotifier/SMSNotifier.php::getActiveProviderInstance::23<br>
+/var/www/html/cusc/modules/Vtiger/views/MassActionAjax.php::checkServer::359<br>
+/var/www/html/cusc/includes/runtime/Controller.php::showSendSMSForm::65<br>
+/var/www/html/cusc/modules/Vtiger/views/MassActionAjax.php::invokeExposedMethod::53<br>
+/var/www/html/cusc/includes/main/WebUI.php::process::221<br>
+/var/www/html/cusc/index.php::process::29<br>
+
