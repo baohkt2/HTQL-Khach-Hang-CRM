@@ -123,6 +123,47 @@ class Settings_Workflows_RecordStructure_Model extends Vtiger_RecordStructure_Mo
 				}
 			}
 		}
+
+		// Contacts -> Campaigns is a many-to-many relation. Expose Campaign fields in
+		// Update Fields task using a virtual reference token handled by VTUpdateFieldsTask.
+		if ($taskTypeName == 'VTUpdateFieldsTask' && $baseModuleModel->getName() == 'Contacts') {
+			$campaignModuleModel = Vtiger_Module_Model::getInstance('Campaigns');
+			if ($campaignModuleModel) {
+				$campaignBlockModelList = $campaignModuleModel->getBlocks();
+				foreach ($campaignBlockModelList as $blockModel) {
+					$fieldModelList = $blockModel->getFields();
+					if (empty($fieldModelList)) {
+						continue;
+					}
+
+					foreach ($fieldModelList as $fieldName => $fieldModel) {
+						if (!$fieldModel->isViewable()) {
+							continue;
+						}
+						if ($fieldModel->getDisplayType() == '6') {
+							continue;
+						}
+
+						$name = "(related_campaigns : (Campaigns) $fieldName)";
+						$label = vtranslate('Campaigns', 'Campaigns') . ' : '
+								. vtranslate($fieldModel->get('label'), 'Campaigns');
+						$fieldModel->set('workflow_columnname', $name)
+								->set('workflow_columnlabel', $label)
+								->set('workflow_fieldEditable', $fieldModel->isEditable());
+
+						if (!empty($recordId)) {
+							$fieldValueType = $recordModel->getFieldFilterValueType($name);
+							$fieldInfo = $fieldModel->getFieldInfo();
+							$fieldInfo['workflow_valuetype'] = $fieldValueType;
+							$fieldInfo['workflow_columnname'] = $name;
+							$fieldModel->setFieldInfo($fieldInfo);
+						}
+
+						$values['Campaigns'][$name] = clone $fieldModel;
+					}
+				}
+			}
+		}
 		$this->structuredValues = $values;
 		return $values;
 	}

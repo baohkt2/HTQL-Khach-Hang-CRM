@@ -26,6 +26,7 @@ class VTUpdateFieldsTask extends VTTask {
 		unset($_FILES);
 		global $adb, $current_user, $default_charset,$default_timezone;
 		$referenceModuleUpdated = array();
+		$relatedCampaignReferenceIds = array();
 		$util = new VTWorkflowUtils();
 		$util->adminUser();
 
@@ -64,12 +65,30 @@ class VTUpdateFieldsTask extends VTTask {
 
 			foreach ($fieldValueMapping as $fieldInfo) {
 				$fieldName = $fieldInfo['fieldname'];
+				$rightOperandFieldType = '';
+				$rightOperandFieldInstance = false;
+				$currencyfieldValueInDB = '';
+				$currencyfieldConvertedValue = '';
+				$fieldValueDataType = '';
+				$isRelatedCampaignReference = false;
+				$isDeferredRelatedCampaignValue = false;
+				$relatedCampaignFocusList = array();
 				$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
 				if ($moduleModel && in_array($fieldName, $moduleModel->getNameFields())) {
 					$entityFields = true;
 				}
 				$fieldValueType = $fieldInfo['valuetype'];
 				$fieldValue = trim($fieldInfo['value']);
+				if ($moduleName === 'Contacts' && $fieldValueType === 'fieldname') {
+					if (preg_match('/^\(related_campaigns : \(Campaigns\) \w+\)\s*=\s*(.+)$/', $fieldValue, $assignmentMatch)) {
+						$fieldValueType = 'rawtext';
+						$fieldValue = trim($assignmentMatch[1]);
+						// Allow quoting literal values in task definition.
+						if (preg_match('/^(["\']).*\1$/', $fieldValue)) {
+							$fieldValue = substr($fieldValue, 1, -1);
+						}
+					}
+				}
 				preg_match('/\((\w+) : \((\w+)\) (\w+)\)/',$fieldName,$matches);
 				if(php7_count($matches) > 0){
 					//reference field update
@@ -80,26 +99,43 @@ class VTUpdateFieldsTask extends VTTask {
 					if ($refModuleModel && in_array($referencedFieldName,$refModuleModel->getNameFields())) {
 						$referenceEntityFields = true;
 					}
-					$referenceRecordId = $focus->column_fields[$referenceField];
-					if(empty($referenceRecordId) || isRecordExists($referenceRecordId) === false || 
-							getSalesEntityType($referenceRecordId) !== $referencedModule){ // if the record belongs to other module, for ex in events we have related to field
-						//if no value exists for the reference field then we dont have to update
-						//if reference record is deleted then we dont have to update
-						continue;
-					}
-					$referenceRecordFocus = $this->getReferenceFieldFocus($referencedModule, $referenceField, $referenceRecordId);
-
-					$moduleFocus = $referenceRecordFocus;
 
 					$referenceModuleHandler = vtws_getModuleHandlerFromName($referencedModule, $current_user);
 					$referenceHandlerMeta = $referenceModuleHandler->getMeta();
 					$referenceModuleFields = $referenceHandlerMeta->getModuleFields();
-					$fieldInstance = $referenceModuleFields[$referencedFieldName];
-					$referenceModuleUpdated[$referencedModule][$referenceField] = $referenceRecordId;
-					$fieldName = $referencedFieldName;
+
+					if ($this->isContactsRelatedCampaignMapping($moduleName, $referenceField, $referencedModule)) {
+						$relatedCampaignFocusList = $this->getRelatedCampaignReferenceFocuses($recordId);
+						if (empty($relatedCampaignFocusList) || empty($referenceModuleFields[$referencedFieldName])) {
+							continue;
+						}
+						$moduleFocus = reset($relatedCampaignFocusList);
+						$fieldInstance = $referenceModuleFields[$referencedFieldName];
+						$fieldName = $referencedFieldName;
+						$isRelatedCampaignReference = true;
+					} else {
+						$referenceRecordId = $focus->column_fields[$referenceField];
+						if(empty($referenceRecordId) || isRecordExists($referenceRecordId) === false || 
+								getSalesEntityType($referenceRecordId) !== $referencedModule){ // if the record belongs to other module, for ex in events we have related to field
+							//if no value exists for the reference field then we dont have to update
+							//if reference record is deleted then we dont have to update
+							continue;
+						}
+						$referenceRecordFocus = $this->getReferenceFieldFocus($referencedModule, $referenceField, $referenceRecordId);
+						$moduleFocus = $referenceRecordFocus;
+						if (empty($referenceModuleFields[$referencedFieldName])) {
+							continue;
+						}
+						$fieldInstance = $referenceModuleFields[$referencedFieldName];
+						$referenceModuleUpdated[$referencedModule][$referenceField] = $referenceRecordId;
+						$fieldName = $referencedFieldName;
+					}
 				}else{
 					$moduleFocus = $focus;
-					$fieldInstance = $moduleFields[$fieldName];
+					$fieldInstance = !empty($moduleFields[$fieldName]) ? $moduleFields[$fieldName] : false;
+					if (empty($fieldInstance)) {
+						continue;
+					}
 				}
 
 				if ($fieldValueType == 'fieldname') {
@@ -109,6 +145,24 @@ class VTUpdateFieldsTask extends VTTask {
 						$referenceField = $matches1[1];
 						$referencedModule = $matches1[2];
 						$referencedFieldName = $matches1[3];
+						if ($this->isContactsRelatedCampaignMapping($moduleName, $referenceField, $referencedModule)) {
+							if (empty($relatedCampaignFocusList)) {
+								continue;
+							}
+							$referenceFocus = reset($relatedCampaignFocusList);
+							$fieldValue = $referenceFocus->column_fields[$referencedFieldName];
+
+							$currencyfieldValueInDB = $referenceFocus->column_fields[$referencedFieldName . "_raw"];
+							$currencyfieldConvertedValue = $referenceFocus->column_fields[$referencedFieldName . "_raw_converted"];
+
+							$rightOperandReferenceModuleHandler = vtws_getModuleHandlerFromName($referencedModule, $current_user);
+							$rightOperandReferenceHandlerMeta = $rightOperandReferenceModuleHandler->getMeta();
+							$rightOperandReferenceModuleFields = $rightOperandReferenceHandlerMeta->getModuleFields();
+							$rightOperandFieldInstance = $rightOperandReferenceModuleFields[$referencedFieldName];
+							if($rightOperandFieldInstance){
+								$rightOperandFieldType = $rightOperandFieldInstance->getFieldDataType();
+							}
+						} else {
 						$referenceRecordId = $focus->column_fields[$referenceField];
 						if(empty($referenceRecordId)){
 							//if no value exists for the reference field then we dont have to update
@@ -128,6 +182,7 @@ class VTUpdateFieldsTask extends VTTask {
 							if($rightOperandFieldInstance){
 								$rightOperandFieldType = $rightOperandFieldInstance->getFieldDataType();
 							}
+						}
 						}
 					}else{
 						$rightOperandFieldInstance = $moduleFields[$fieldValue];
@@ -242,7 +297,11 @@ class VTUpdateFieldsTask extends VTTask {
 					$fieldValueInDB = $fieldValue;
 				}
 
-				if ($fieldInstance && $fieldInstance->getFieldDataType() === 'owner') {
+				if ($isRelatedCampaignReference && $this->containsRelatedCampaignToken($fieldValue)) {
+					$isDeferredRelatedCampaignValue = true;
+				}
+
+				if (!$isDeferredRelatedCampaignValue && $fieldInstance && $fieldInstance->getFieldDataType() === 'owner') {
 					if(!is_numeric($fieldValue)){
 						//If name is given
 						$userId = getUserId_Ol($fieldValue);
@@ -268,13 +327,13 @@ class VTUpdateFieldsTask extends VTTask {
 					}
 				}
 
-				if ($fieldInstance && $fieldInstance->getFieldDataType() === 'multipicklist') {
+				if (!$isDeferredRelatedCampaignValue && $fieldInstance && $fieldInstance->getFieldDataType() === 'multipicklist') {
 					$valueArray = explode(',', $fieldValue);
 					$fieldValue = implode(' |##| ', $valueArray);
 					$fieldValueInDB = $fieldValue;
 				}
 				
-				if ($fieldInstance && $fieldInstance->getFieldDataType() === 'double') {
+				if (!$isDeferredRelatedCampaignValue && $fieldInstance && $fieldInstance->getFieldDataType() === 'double') {
 
 					//The replacing of UTF-8 non-breaking space characters with space is to handle if the decimal separator is space.
 					$decimalSeparator = str_replace("\xC2\xA0", ' ', html_entity_decode($current_user->currency_decimal_separator, ENT_QUOTES, $default_charset));
@@ -286,7 +345,7 @@ class VTUpdateFieldsTask extends VTTask {
 					$fieldValue = str_replace(".", "$decimalSeparator", $fieldValue);
 				}
 
-				if($fieldInstance && $fieldInstance->getFieldDataType() == 'reference') {
+				if(!$isDeferredRelatedCampaignValue && $fieldInstance && $fieldInstance->getFieldDataType() == 'reference') {
 						$referenceModuleList = $fieldInstance->getReferenceList();
 						$fieldReferenceModule = $referenceModuleList[0];
 						$recordId = Vtiger_Util_Helper::getRecordId($fieldValue, $fieldReferenceModule,true);
@@ -297,22 +356,50 @@ class VTUpdateFieldsTask extends VTTask {
 						}
 					}
 
-				$moduleFocus->column_fields[$fieldName] = $fieldValue;
-				if (php7_count($matches) > 0) {
-					$wsReferenceRecordId = vtws_getWebserviceEntityId($referencedModule, $referenceRecordId);
-					$referenceRecordEntity = VTEntityCache::getCachedEntity($wsReferenceRecordId);
-					if (empty($referenceRecordEntity)) {
-						$referenceEntity = new VTEntityCache($current_user);
-						$referenceRecordEntity = $referenceEntity->forId($wsReferenceRecordId);
+				if ($isRelatedCampaignReference) {
+					foreach ($relatedCampaignFocusList as $relatedCampaignId => $relatedCampaignFocus) {
+						$campaignFieldValue = $fieldValue;
+						$campaignFieldValueInDB = $fieldValueInDB;
+
+						if ($isDeferredRelatedCampaignValue) {
+							$computedCampaignValue = $this->resolveRelatedCampaignValueExpression($fieldValue, $relatedCampaignFocus);
+							if ($computedCampaignValue === null) {
+								continue;
+							}
+							$campaignFieldValue = $computedCampaignValue;
+							$campaignFieldValueInDB = $computedCampaignValue;
+						}
+
+						$relatedCampaignFocus->column_fields[$fieldName] = $campaignFieldValue;
+						$wsReferenceRecordId = vtws_getWebserviceEntityId($referencedModule, $relatedCampaignId);
+						$referenceRecordEntity = VTEntityCache::getCachedEntity($wsReferenceRecordId);
+						if (empty($referenceRecordEntity)) {
+							$referenceEntity = new VTEntityCache($current_user);
+							$referenceRecordEntity = $referenceEntity->forId($wsReferenceRecordId);
+							VTEntityCache::setCachedEntity($wsReferenceRecordId, $referenceRecordEntity);
+						}
+						$referenceRecordEntity->set($referencedFieldName, $campaignFieldValueInDB);
 						VTEntityCache::setCachedEntity($wsReferenceRecordId, $referenceRecordEntity);
+						$relatedCampaignReferenceIds[$relatedCampaignId] = $relatedCampaignId;
 					}
-					$referenceRecordEntity->set($referencedFieldName, $fieldValueInDB);
-					// to set the current reference record id. so that if there any field which will use current field name will get updated value
-					// (account_id : (Accounts) phone) = '5433'  updating accounts phone to 5433
-					// phone = (account_id : (Accounts) phone)  contacts phone = accounts phone . Here accounts phone need to have the updated value
-					VTEntityCache::setCachedEntity($wsReferenceRecordId, $referenceRecordEntity);
 				} else {
-					$entity->data[$fieldName] = $fieldValueInDB;
+					$moduleFocus->column_fields[$fieldName] = $fieldValue;
+					if (php7_count($matches) > 0) {
+						$wsReferenceRecordId = vtws_getWebserviceEntityId($referencedModule, $referenceRecordId);
+						$referenceRecordEntity = VTEntityCache::getCachedEntity($wsReferenceRecordId);
+						if (empty($referenceRecordEntity)) {
+							$referenceEntity = new VTEntityCache($current_user);
+							$referenceRecordEntity = $referenceEntity->forId($wsReferenceRecordId);
+							VTEntityCache::setCachedEntity($wsReferenceRecordId, $referenceRecordEntity);
+						}
+						$referenceRecordEntity->set($referencedFieldName, $fieldValueInDB);
+						// to set the current reference record id. so that if there any field which will use current field name will get updated value
+						// (account_id : (Accounts) phone) = '5433'  updating accounts phone to 5433
+						// phone = (account_id : (Accounts) phone)  contacts phone = accounts phone . Here accounts phone need to have the updated value
+						VTEntityCache::setCachedEntity($wsReferenceRecordId, $referenceRecordEntity);
+					} else {
+						$entity->data[$fieldName] = $fieldValueInDB;
+					}
 				}
 			}
 			foreach ($focus->column_fields as $fieldName => $fieldValue) {
@@ -359,6 +446,27 @@ class VTUpdateFieldsTask extends VTTask {
 						$referenceIds[] = $referenceFocus->id;
 					}
 				}
+
+			if (!empty($relatedCampaignReferenceIds)) {
+				foreach ($relatedCampaignReferenceIds as $relatedCampaignId) {
+					$referenceFocus = $this->referenceFieldFocusList['related_campaigns'][$relatedCampaignId];
+					if (empty($referenceFocus)) {
+						continue;
+					}
+					foreach ($referenceFocus->column_fields as $fieldName => $fieldValue) {
+						$referenceFocus->column_fields[$fieldName] = html_entity_decode($fieldValue, ENT_QUOTES, $default_charset);
+					}
+					$referenceFocus->isLineItemUpdate = false;
+					$referenceFocus->isWorkFlowFieldUpdate = true;
+					$changedFields = $referenceFocus->column_fields->getChanged();
+					if (php7_count($changedFields) > 0) {
+						$referenceFocus->saveentity($referenceFocus->moduleName);
+					}
+					if ($referenceEntityFields == true) {
+						Vtiger_Functions::updateCRMRecordLabel($referenceFocus->moduleName, $referenceFocus->id);
+					}
+				}
+			}
 
 			// Reverting back the action name as there can be some dependencies on this.
 			$_REQUEST['action'] = $actionName;
@@ -431,6 +539,152 @@ class VTUpdateFieldsTask extends VTTask {
 			$this->referenceFieldFocusList[$referenceField][$referenceRecordId] = $referenceRecordFocus;
 		}
 		return $referenceRecordFocus;
+	}
+
+	private function isContactsRelatedCampaignMapping($moduleName, $referenceField, $referencedModule) {
+		return ($moduleName === 'Contacts' && $referenceField === 'related_campaigns' && $referencedModule === 'Campaigns');
+	}
+
+	private function getRelatedCampaignReferenceFocuses($contactId) {
+		global $adb;
+		$focusList = array();
+		$result = $adb->pquery(
+			"SELECT DISTINCT vtiger_campaigncontrel.campaignid
+			 FROM vtiger_campaigncontrel
+			 INNER JOIN vtiger_crmentity ON vtiger_crmentity.crmid = vtiger_campaigncontrel.campaignid
+			 WHERE vtiger_campaigncontrel.contactid = ? AND vtiger_crmentity.deleted = 0",
+			array($contactId)
+		);
+
+		for ($i = 0; $i < $adb->num_rows($result); $i++) {
+			$campaignId = (int) $adb->query_result($result, $i, 'campaignid');
+			if ($campaignId <= 0) {
+				continue;
+			}
+			$focusList[$campaignId] = $this->getReferenceFieldFocus('Campaigns', 'related_campaigns', $campaignId);
+		}
+
+		return $focusList;
+	}
+
+	private function containsRelatedCampaignToken($value) {
+		if (!is_string($value)) {
+			return false;
+		}
+		return (bool) preg_match('/\(related_campaigns : \(Campaigns\) \w+\)/', $value);
+	}
+
+	private function resolveRelatedCampaignValueExpression($expression, $campaignFocus) {
+		if (!is_string($expression) || trim($expression) === '') {
+			return null;
+		}
+
+		$tokenRegex = '/\(related_campaigns : \(Campaigns\) (\w+)\)/';
+		$hasToken = false;
+		$resolvedExpression = preg_replace_callback($tokenRegex, function($matches) use ($campaignFocus, &$hasToken) {
+			$hasToken = true;
+			$fieldName = $matches[1];
+			$currentValue = $campaignFocus->column_fields[$fieldName];
+			if (!is_numeric($currentValue)) {
+				$currentValue = 0;
+			}
+			return (string) $currentValue;
+		}, $expression);
+
+		if (!$hasToken) {
+			return null;
+		}
+
+		$resolvedExpression = preg_replace('/\s+/', '', $resolvedExpression);
+		if ($resolvedExpression === '') {
+			return null;
+		}
+		if (!preg_match('/^[0-9\.\+\-\*\/\(\)]+$/', $resolvedExpression)) {
+			return null;
+		}
+
+		$evaluatedValue = $this->evaluateMathExpression($resolvedExpression);
+		if ($evaluatedValue === null) {
+			return null;
+		}
+
+		return (string) $evaluatedValue;
+	}
+
+	private function evaluateMathExpression($expression) {
+		$expression = preg_replace('/^\-/', '0-', $expression);
+		$expression = str_replace('(-', '(0-', $expression);
+
+		if (!preg_match_all('/([0-9]*\.?[0-9]+|\+|\-|\*|\/|\(|\))/', $expression, $matches)) {
+			return null;
+		}
+		$tokens = $matches[0];
+
+		$outputQueue = array();
+		$operatorStack = array();
+		$precedence = array('+' => 1, '-' => 1, '*' => 2, '/' => 2);
+
+		foreach ($tokens as $token) {
+			if (is_numeric($token)) {
+				$outputQueue[] = $token;
+			} elseif ($token == '(') {
+				$operatorStack[] = $token;
+			} elseif ($token == ')') {
+				while (!empty($operatorStack) && end($operatorStack) != '(') {
+					$outputQueue[] = array_pop($operatorStack);
+				}
+				if (empty($operatorStack)) {
+					return null;
+				}
+				array_pop($operatorStack);
+			} else {
+				while (!empty($operatorStack) && end($operatorStack) != '(' && $precedence[end($operatorStack)] >= $precedence[$token]) {
+					$outputQueue[] = array_pop($operatorStack);
+				}
+				$operatorStack[] = $token;
+			}
+		}
+
+		while (!empty($operatorStack)) {
+			$op = array_pop($operatorStack);
+			if ($op == '(' || $op == ')') {
+				return null;
+			}
+			$outputQueue[] = $op;
+		}
+
+		$stack = array();
+		foreach ($outputQueue as $token) {
+			if (is_numeric($token)) {
+				$stack[] = (float) $token;
+			} else {
+				if (count($stack) < 2) {
+					return null;
+				}
+				$b = array_pop($stack);
+				$a = array_pop($stack);
+				if ($token == '+') {
+					$stack[] = $a + $b;
+				} elseif ($token == '-') {
+					$stack[] = $a - $b;
+				} elseif ($token == '*') {
+					$stack[] = $a * $b;
+				} elseif ($token == '/') {
+					$stack[] = ($b == 0) ? 0 : ($a / $b);
+				}
+			}
+		}
+
+		if (count($stack) !== 1) {
+			return null;
+		}
+
+		$result = $stack[0];
+		if (is_finite($result)) {
+			return rtrim(rtrim(number_format($result, 12, '.', ''), '0'), '.');
+		}
+
+		return null;
 	}
 
 }
