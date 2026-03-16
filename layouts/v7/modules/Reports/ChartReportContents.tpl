@@ -12,6 +12,25 @@
 <input type='hidden' name='clickthrough' value="{if isset($CLICK_THROUGH)}{$CLICK_THROUGH}{/if}" />
 
 <br>
+{if !empty($ADVANCED_CALCULATION_FIELDS)}
+    <table class="table table-bordered table-condensed marginBottom10px" width="100%">
+        <thead>
+            <tr class="blockHeader">
+                <th>{vtranslate('LBL_METRIC',$MODULE)}</th>
+                <th>{vtranslate('LBL_TYPE',$MODULE)}</th>
+                <th>{vtranslate('LBL_VALUE',$MODULE)}</th>
+            </tr>
+        </thead>
+        {foreach from=$ADVANCED_CALCULATION_FIELDS item=ADV_METRIC}
+            <tr>
+                <td>{$ADV_METRIC.metric_label}</td>
+                <td>{$ADV_METRIC.metric_type}</td>
+                <td>{$ADV_METRIC.metric_value}</td>
+            </tr>
+        {/foreach}
+    </table>
+{/if}
+
 <div class="dashboardWidgetContent">
     <input type="hidden" class="yAxisFieldType" value="{$YAXIS_FIELD_TYPE}" />
     <div class='border1px filterConditionContainer' style="padding:30px;">

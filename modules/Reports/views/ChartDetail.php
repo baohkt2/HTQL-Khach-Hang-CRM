@@ -163,11 +163,13 @@ class Reports_ChartDetail_View extends Vtiger_Index_View {
 		$viewer->assign('PRIMARY_MODULE_FIELDS', $reportModel->getPrimaryModuleFields());
 		$viewer->assign('SECONDARY_MODULE_FIELDS', $reportModel->getSecondaryModuleFields());
 		$viewer->assign('CALCULATION_FIELDS', $reportModel->getModuleCalculationFieldsForReport());
+		$viewer->assign('ADVANCED_CALCULATION_FIELDS', $reportModel->getAdvancedCalculationData());
 
 		$data = $reportChartModel->getData();
 		$viewer->assign('CHART_TYPE', $reportChartModel->getChartType());
 		$viewer->assign('DATA', $data);
 		$viewer->assign('REPORT_MODEL', $reportModel);
+		$viewer->assign('ADVANCED_CALCULATION_FIELDS', $reportModel->getAdvancedCalculationData());
 
 		$viewer->assign('RECORD_ID', $record);
 		$viewer->assign('REPORT_MODEL', $reportModel);

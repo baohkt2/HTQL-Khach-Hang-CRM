@@ -220,6 +220,10 @@ Class Reports_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('SECONDARY_MODULE_FIELDS', $secondaryModuleFields);
 
 		$viewer->assign('CALCULATION_FIELDS', $reportModel->getCalculationFields());
+		if (!$reportModel->get('advanced_metrics')) {
+			$reportModel->set('advanced_metrics', $reportModel->getAdvancedMetricsConfigJson());
+		}
+		$viewer->assign('ADVANCED_METRICS_JSON', $reportModel->get('advanced_metrics'));
 		$viewer->assign('MODULE', $moduleName);
 
 		if ($request->get('isDuplicate')) {

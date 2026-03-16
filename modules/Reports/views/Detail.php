@@ -12,6 +12,7 @@ class Reports_Detail_View extends Vtiger_Index_View {
 
 	protected $reportData;
 	protected $calculationFields;
+	protected $advancedCalculationFields;
 	protected $count;
 
 	public function requiresPermission(\Vtiger_Request $request) {
@@ -60,6 +61,7 @@ class Reports_Detail_View extends Vtiger_Index_View {
 		$reportData = $reportModel->getReportData($pagingModel);
 		$this->reportData = isset($reportData['data']) ? $reportData['data'] : '';
 		$this->calculationFields = $reportModel->getReportCalulationData();
+		$this->advancedCalculationFields = $reportModel->getAdvancedCalculationData();
 
 		$this->count = $reportData['count'];
 
@@ -173,6 +175,7 @@ class Reports_Detail_View extends Vtiger_Index_View {
 
 		$data = $this->reportData;
 		$calculation = $this->calculationFields;
+		$advancedCalculation = $this->advancedCalculationFields;
 
 		$pagingModel = new Vtiger_Paging_Model();
 		$pagingModel->set('page', $page);
@@ -187,9 +190,11 @@ class Reports_Detail_View extends Vtiger_Index_View {
 			$data = isset($reportData['data']) ? $reportData['data'] : '';
 			$this->count = $reportData['count'];
 			$calculation = $reportModel->getReportCalulationData();
+			$advancedCalculation = $reportModel->getAdvancedCalculationData();
 		}
 
 		$viewer->assign('CALCULATION_FIELDS',$calculation);
+		$viewer->assign('ADVANCED_CALCULATION_FIELDS',$advancedCalculation);
 		$viewer->assign('DATA', $data);
 		$viewer->assign('RECORD_ID', $record);
 		$viewer->assign('PAGING_MODEL', $pagingModel);

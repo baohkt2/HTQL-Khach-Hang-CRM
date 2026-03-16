@@ -21,6 +21,7 @@
         <input type="hidden" name="secondary_modules" value={ZEND_JSON::encode($SECONDARY_MODULES)} >
         <input type="hidden" name="isDuplicate" value="{$IS_DUPLICATE}" >
         <input type="hidden" name="advanced_filter" id="advanced_filter" value="" >
+        <input type="hidden" name="advanced_metrics" id="advanced_metrics" value='{Vtiger_Util_Helper::toSafeHTML($REPORT_MODEL->get('advanced_metrics'))}' >
         <input type="hidden" class="step" value="3" >
         <input type="hidden" name='groupbyfield' value={$CHART_MODEL->getGroupByField()} >
         <input type="hidden" name='datafields' value={Zend_JSON::encode($CHART_MODEL->getDataFields())}>

@@ -660,7 +660,10 @@ class Reports_Record_Model extends Vtiger_Record_Model {
 					if(empty($columnCondition)) continue;
 
 					$advFilterColumn = $columnCondition["columnname"];
-					$advFilterComparator = $columnCondition["comparator"];
+					$advFilterComparator = strtolower(trim((string)$columnCondition["comparator"]));
+					if ($advFilterComparator === 'ct') {
+						$advFilterComparator = 'c';
+					}
 					$advFilterValue = $columnCondition["value"];
 					$advFilterColumnCondition = $columnCondition["column_condition"];
 
@@ -791,7 +794,144 @@ class Reports_Record_Model extends Vtiger_Record_Model {
 	function getReportData($pagingModel = false, $filterQuery = false) {
 		$reportRun = ReportRun::getInstance($this->getId());
 		$data = $reportRun->GenerateReport('PDF', $filterQuery, true, $pagingModel->getStartIndex(), $pagingModel->getPageLimit());
+		$data = $this->appendAdvancedColumnsToRows($data, $filterQuery);
 		return $data;
+	}
+
+	/**
+	 * Inject advanced calculated columns into report rows.
+	 * Values are computed once per report scope and appended as additional columns.
+	 *
+	 * @param array $reportData
+	 * @param string|false $filterQuery
+	 * @return array
+	 */
+	function appendAdvancedColumnsToRows($reportData, $filterQuery = false) {
+		if (!is_array($reportData) || empty($reportData['data']) || !is_array($reportData['data'])) {
+			return $reportData;
+		}
+
+		$advancedMetrics = $this->getAdvancedMetricsConfig();
+		if (empty($advancedMetrics) || !is_array($advancedMetrics)) {
+			return $reportData;
+		}
+		$reportRun = ReportRun::getInstance($this->getId());
+		$globalColumns = $reportRun->getAdvancedMetricsTotals($filterQuery, $advancedMetrics);
+
+		if (empty($globalColumns) || !is_array($globalColumns)) {
+			return $reportData;
+		}
+
+		$columnLabelMap = array();
+		$metricOrder = array();
+		$existingHeaders = array();
+		if (!empty($reportData['data'][0]) && is_array($reportData['data'][0])) {
+			$existingHeaders = array_keys($reportData['data'][0]);
+		}
+		foreach ($globalColumns as $index => $columnInfo) {
+			if (!is_array($columnInfo)) {
+				continue;
+			}
+			$metricKey = isset($columnInfo['metric_key']) ? trim($columnInfo['metric_key']) : '';
+			if ($metricKey === '') {
+				$metricKey = 'adv_col_' . ($index + 1);
+			}
+			$columnLabel = isset($columnInfo['metric_label']) ? trim($columnInfo['metric_label']) : '';
+			if ($columnLabel === '') {
+				$columnLabel = $metricKey;
+			}
+			if (in_array($columnLabel, $existingHeaders)) {
+				$columnLabel .= ' (ADV)';
+			}
+			if (isset($columnLabelMap[$metricKey]) || in_array($columnLabel, $columnLabelMap)) {
+				$columnLabel .= ' #' . ($index + 1);
+			}
+			$columnLabelMap[$metricKey] = $columnLabel;
+			$metricOrder[] = $metricKey;
+		}
+
+		if (empty($columnLabelMap)) {
+			return $reportData;
+		}
+
+		$rowMetricCache = array();
+		$globalMetricValues = array();
+		foreach ($globalColumns as $metricInfo) {
+			if (!is_array($metricInfo) || empty($metricInfo['metric_key'])) {
+				continue;
+			}
+			$globalMetricValues[$metricInfo['metric_key']] = isset($metricInfo['metric_value']) ? $metricInfo['metric_value'] : '0';
+		}
+
+		foreach ($reportData['data'] as $rowIndex => $rowData) {
+			if (!is_array($rowData)) {
+				continue;
+			}
+
+			$metricValues = $globalMetricValues;
+			$recordId = $this->extractPrimaryRecordIdFromReportRow($rowData);
+			if (!empty($recordId)) {
+				if (!isset($rowMetricCache[$recordId])) {
+					$rowScopedColumns = $reportRun->getAdvancedMetricsTotals($filterQuery, $advancedMetrics, $recordId);
+					$scopedValues = array();
+					if (is_array($rowScopedColumns)) {
+						foreach ($rowScopedColumns as $metricInfo) {
+							if (!is_array($metricInfo) || empty($metricInfo['metric_key'])) {
+								continue;
+							}
+							$scopedValues[$metricInfo['metric_key']] = isset($metricInfo['metric_value']) ? $metricInfo['metric_value'] : '0';
+						}
+					}
+					$rowMetricCache[$recordId] = $scopedValues;
+				}
+				if (!empty($rowMetricCache[$recordId])) {
+					$metricValues = array_merge($metricValues, $rowMetricCache[$recordId]);
+				}
+			}
+
+			foreach ($metricOrder as $metricKey) {
+				$columnLabel = $columnLabelMap[$metricKey];
+				$columnValue = isset($metricValues[$metricKey]) ? $metricValues[$metricKey] : '0';
+				$rowData[$columnLabel] = $columnValue;
+			}
+			$reportData['data'][$rowIndex] = $rowData;
+		}
+
+		return $reportData;
+	}
+
+	/**
+	 * Extract primary module record id from row values (usually from action link).
+	 *
+	 * @param array $rowData
+	 * @return int|null
+	 */
+	function extractPrimaryRecordIdFromReportRow($rowData) {
+		if (!is_array($rowData)) {
+			return null;
+		}
+
+		$primaryModule = $this->getPrimaryModule();
+		$modulePattern = '/module=' . preg_quote($primaryModule, '/') . '&view=Detail&record=(\d+)/';
+		foreach ($rowData as $value) {
+			if (!is_string($value) || $value === '') {
+				continue;
+			}
+			if (preg_match($modulePattern, $value, $matches)) {
+				return intval($matches[1]);
+			}
+		}
+
+		foreach ($rowData as $value) {
+			if (!is_string($value) || $value === '') {
+				continue;
+			}
+			if (preg_match('/record=(\d+)/', $value, $matches)) {
+				return intval($matches[1]);
+			}
+		}
+
+		return null;
 	}
 
 	function getReportsCount($query = null){
@@ -1126,6 +1266,16 @@ class Reports_Record_Model extends Vtiger_Record_Model {
 		$filterQuery = $this->getAdvancedFilterSQL();
 		return $this->getReportCalulationData($filterQuery);
 	}
+
+	/**
+	 * Function to generate advanced metric totals with active advanced filter.
+	 *
+	 * @return array
+	 */
+	public function generateAdvancedCalculationData() {
+		$filterQuery = $this->getAdvancedFilterSQL();
+		return $this->getAdvancedCalculationData($filterQuery);
+	}
 	/**
 	 * Function to check duplicate exists or not
 	 * @return <boolean>
@@ -1224,15 +1374,148 @@ class Reports_Record_Model extends Vtiger_Record_Model {
 	}
 
 	/**
+	 * Returns advanced metric configuration attached to this report.
+	 *
+	 * Structure:
+	 * [
+	 *   {
+	 *     "key": "metric_key",
+	 *     "label": "Metric label",
+	 *     "type": "COUNT_ALL|COUNT_WHERE|SUM|AVG|MIN|MAX|PERCENT|FORMULA",
+	 *     "field": "cb:table:column:Field_Label",
+	 *     "criteria": [
+	 *       {"columnname":"...","comparator":"e","value":"...","columncondition":""}
+	 *     ],
+	 *     "numerator": "metric_a",
+	 *     "denominator": "metric_b",
+	 *     "expression": "metric_a/metric_b"
+	 *   }
+	 * ]
+	 *
+	 * @return array
+	 */
+	function getAdvancedMetricsConfig() {
+		$rawData = $this->getReportTypeInfo();
+		if (empty($rawData)) {
+			return array();
+		}
+
+		$decodedData = array();
+		try {
+			$decodedData = Zend_Json::decode(decode_html($rawData));
+		} catch (Exception $e) {
+			$decodedData = array();
+		}
+		if (!is_array($decodedData)) {
+			$decodedData = array();
+		}
+		if (empty($decodedData)) {
+			try {
+				$decodedData = Zend_Json::decode($rawData);
+			} catch (Exception $e) {
+				$decodedData = array();
+			}
+		}
+		if (!is_array($decodedData)) {
+			return array();
+		}
+
+		if (isset($decodedData['advanced_metrics']) && is_array($decodedData['advanced_metrics'])) {
+			return $decodedData['advanced_metrics'];
+		}
+
+		return array();
+	}
+
+	/**
+	 * Returns advanced metrics as JSON string for edit forms.
+	 *
+	 * @return string
+	 */
+	function getAdvancedMetricsConfigJson() {
+		$advancedMetrics = $this->getAdvancedMetricsConfig();
+		if (empty($advancedMetrics)) {
+			return '[]';
+		}
+		return Zend_Json::encode($advancedMetrics);
+	}
+
+	/**
+	 * Evaluate advanced metrics for report total area.
+	 *
+	 * @param string|false $filterQuery
+	 * @return array
+	 */
+	function getAdvancedCalculationData($filterQuery = false) {
+		$advancedMetrics = $this->getAdvancedMetricsConfig();
+		if (empty($advancedMetrics)) {
+			return array();
+		}
+
+		$reportRun = ReportRun::getInstance($this->getId());
+		return $reportRun->getAdvancedMetricsTotals($filterQuery, $advancedMetrics);
+	}
+
+	/**
 	 * Function to save reprot tyep data
 	 */
 	function saveReportType(){
 		$db = PearDatabase::getInstance();
+		$reportId = $this->getId();
 		$data = $this->get('reporttypedata');
-		if(!empty($data)){
-			$db->pquery('DELETE FROM vtiger_reporttype WHERE reportid = ?', array($this->getId()));
-			$db->pquery("INSERT INTO vtiger_reporttype(reportid, data) VALUES (?,?)",
-			array($this->getId(), $data));
+		$advancedMetricsRaw = $this->get('advanced_metrics');
+
+		$result = $db->pquery('SELECT data FROM vtiger_reporttype WHERE reportid = ?', array($reportId));
+		$existingData = array();
+		if ($db->num_rows($result) > 0) {
+			$currentData = $db->query_result($result, 0, 'data');
+			if (!empty($currentData)) {
+				$decodedCurrentData = array();
+				try {
+					$decodedCurrentData = Zend_Json::decode(decode_html($currentData));
+				} catch (Exception $e) {
+					$decodedCurrentData = array();
+				}
+				if (is_array($decodedCurrentData)) {
+					$existingData = $decodedCurrentData;
+				}
+			}
+		}
+
+		$payloadData = $existingData;
+
+		if (!empty($data)) {
+			$decodedData = array();
+			try {
+				$decodedData = Zend_Json::decode(decode_html($data));
+			} catch (Exception $e) {
+				$decodedData = array();
+			}
+			if (is_array($decodedData)) {
+				$payloadData = array_merge($payloadData, $decodedData);
+			}
+		}
+
+		if ($advancedMetricsRaw !== null && $advancedMetricsRaw !== '') {
+			if (is_array($advancedMetricsRaw)) {
+				$payloadData['advanced_metrics'] = $advancedMetricsRaw;
+			} else {
+				$decodedAdvancedMetrics = array();
+				try {
+					$decodedAdvancedMetrics = Zend_Json::decode(html_entity_decode($advancedMetricsRaw));
+				} catch (Exception $e) {
+					$decodedAdvancedMetrics = array();
+				}
+				if (is_array($decodedAdvancedMetrics)) {
+					$payloadData['advanced_metrics'] = $decodedAdvancedMetrics;
+				}
+			}
+		}
+
+		if (!empty($payloadData)) {
+			$encodedData = Zend_Json::encode($payloadData);
+			$db->pquery('DELETE FROM vtiger_reporttype WHERE reportid = ?', array($reportId));
+			$db->pquery('INSERT INTO vtiger_reporttype(reportid, data) VALUES (?,?)', array($reportId, $encodedData));
 		}
 	}
 

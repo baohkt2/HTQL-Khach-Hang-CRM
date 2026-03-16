@@ -51,6 +51,25 @@
 			{/if}
 		{/if}
 
+        {if !empty($ADVANCED_CALCULATION_FIELDS)}
+            <table class="table table-bordered table-condensed marginBottom10px" width="100%">
+                <thead>
+                    <tr class="blockHeader">
+                        <th>{vtranslate('LBL_METRIC',$MODULE)}</th>
+                        <th>{vtranslate('LBL_TYPE',$MODULE)}</th>
+                        <th>{vtranslate('LBL_VALUE',$MODULE)}</th>
+                    </tr>
+                </thead>
+                {foreach from=$ADVANCED_CALCULATION_FIELDS item=ADV_METRIC}
+                    <tr>
+                        <td>{$ADV_METRIC.metric_label}</td>
+                        <td>{$ADV_METRIC.metric_type}</td>
+                        <td>{$ADV_METRIC.metric_value}</td>
+                    </tr>
+                {/foreach}
+            </table>
+        {/if}
+
 		{if $DATA neq ''}
 			{assign var=HEADERS value=$DATA[0]}
 			<table class="table table-bordered table-striped">

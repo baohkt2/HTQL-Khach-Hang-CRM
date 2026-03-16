@@ -22,6 +22,7 @@
 		<input type="hidden" name="selected_fields" id="seleted_fields" value='{$REPORT_MODEL->get('selected_fields')}' />
 		<input type="hidden" name="selected_sort_fields" id="selected_sort_fields" value={$REPORT_MODEL->get('selected_sort_fields')} />
 		<input type="hidden" name="selected_calculation_fields" id="calculation_fields" value={$REPORT_MODEL->get('calculation_fields')} />
+		<input type="hidden" name="advanced_metrics" id="advanced_metrics" value='{Vtiger_Util_Helper::toSafeHTML($REPORT_MODEL->get('advanced_metrics'))}' />
 		<input type="hidden" name="advanced_filter" id="advanced_filter" value="" />
 		<input type="hidden" name="isDuplicate" value="{$IS_DUPLICATE}" />
 		<input type="hidden" class="step" value="3" />

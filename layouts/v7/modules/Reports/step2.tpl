@@ -26,6 +26,7 @@
         <input type="hidden" name="selected_fields" id="selected_fields" value='{if isset($SELECTED_FIELDS)}{ZEND_JSON::encode($SELECTED_FIELDS)}{else}false{/if}' />
         <input type="hidden" name="selected_sort_fields" id="selected_sort_fields" value="" />
         <input type="hidden" name="calculation_fields" id="calculation_fields" value="" />
+        <input type="hidden" name="advanced_metrics" id="advanced_metrics" value='{Vtiger_Util_Helper::toSafeHTML($ADVANCED_METRICS_JSON)}' />
         <input type="hidden" name="isDuplicate" value="{$IS_DUPLICATE}" />
 
         <input type="hidden" name="enable_schedule" value="{$REPORT_MODEL->get('enable_schedule')}">
@@ -91,39 +92,77 @@
                 </div>
             </div>
             <div class="row block padding1per">
-                <div class="padding1per"><strong>{vtranslate('LBL_CALCULATIONS',$MODULE)}</strong></div>
+                <div class="padding1per"><strong>{vtranslate('LBL_ADVANCED_COLUMNS',$MODULE)}</strong></div>
+                <div class="padding1per muted">{vtranslate('LBL_ADVANCED_COLUMNS_HINT',$MODULE)}</div>
                 <div class="padding1per">
-                    <table class="table table-bordered CalculationFields" width="100%">
-                        <thead>
-                            <tr class="calculationHeaders blockHeader">
-                                <th>{vtranslate('LBL_COLUMNS',$MODULE)}</th>
-                                <th>{vtranslate('LBL_SUM_VALUE',$MODULE)}</th>
-                                <th>{vtranslate('LBL_AVERAGE',$MODULE)}</th>
-                                <th>{vtranslate('LBL_LOWEST_VALUE',$MODULE)}</th>
-                                <th>{vtranslate('LBL_HIGHEST_VALUE',$MODULE)}</th>
-                            </tr>
-                        </thead>
-                        {assign var=FIELD_OPERATION_VALUES value=','|explode:'SUM:2,AVG:3,MIN:4,MAX:5'}
-                        {foreach key=CALCULATION_FIELDS_MODULE_LABEL item=CALCULATION_FIELDS_MODULE from=$CALCULATION_FIELDS}
-                            {foreach key=CALCULATION_FIELD_KEY item=CALCULATION_FIELD from=$CALCULATION_FIELDS_MODULE}
-                                {assign var=FIELD_EXPLODE value=explode(':',$CALCULATION_FIELD_KEY)}
-                                {assign var=tableName value=$FIELD_EXPLODE['0']}
-                                {assign var=columnName value=$FIELD_EXPLODE['1']}
-                                {assign var=FIELDNAME_EXPLODE value=explode('_',$FIELD_EXPLODE['2'])}
-                                {assign var=fieldNameArray value=array_slice($FIELDNAME_EXPLODE, 1)}
-                                {assign var=fieldName value=implode('_',$fieldNameArray)}
-                                <tr class="calculationFieldRow">
-                                    <td>{vtranslate($CALCULATION_FIELDS_MODULE_LABEL,$MODULE)}-{vtranslate($CALCULATION_FIELD,$CALCULATION_FIELDS_MODULE_LABEL)}</td>
-                                    {foreach item=FIELD_OPERATION_VALUE from=$FIELD_OPERATION_VALUES}
-                                        {assign var=FIELD_CALCULATION_VALUE value="cb:$tableName:$columnName:$fieldName"|cat:'_'|cat:$FIELD_OPERATION_VALUE}
-                                        <td width="15%">
-                                            <input class="calculationType" type="checkbox" value="{$FIELD_CALCULATION_VALUE}" {if !empty($SELECTED_CALCULATION_FIELDS) && in_array($FIELD_CALCULATION_VALUE,$SELECTED_CALCULATION_FIELDS)} checked=""{/if} />
-                                        </td>
+                    <div id="advancedMetricsBuilder" class="well" style="margin-bottom: 0;"
+                        data-lbl-key="{vtranslate('LBL_METRIC_KEY',$MODULE)}"
+                        data-lbl-label="{vtranslate('LBL_NEW_COLUMN',$MODULE)}"
+                        data-lbl-type="{vtranslate('LBL_TYPE',$MODULE)}"
+                        data-lbl-field="{vtranslate('LBL_SOURCE_COLUMN',$MODULE)}"
+                        data-lbl-condition-field="{vtranslate('LBL_CONDITION_FIELD',$MODULE)}"
+                        data-lbl-comparator="{vtranslate('LBL_COMPARATOR',$MODULE)}"
+                        data-lbl-condition-value="{vtranslate('LBL_VALUE',$MODULE)}"
+                        data-lbl-numerator="{vtranslate('LBL_NUMERATOR',$MODULE)}"
+                        data-lbl-denominator="{vtranslate('LBL_DENOMINATOR',$MODULE)}"
+                        data-lbl-expression="{vtranslate('LBL_EXPRESSION',$MODULE)}"
+                        data-lbl-remove="{vtranslate('LBL_REMOVE',$MODULE)}"
+                        data-lbl-metric-type="{vtranslate('LBL_CALCULATION_TYPE',$MODULE)}"
+                    >
+                        <div class="row" style="margin-bottom: 10px;">
+                            <div class="col-lg-12">
+                                <button type="button" id="addAdvancedMetricRow" class="btn btn-default btn-sm">
+                                    <i class="fa fa-plus"></i> {vtranslate('LBL_ADD_COLUMN',$MODULE)}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="advancedMetricsRows"></div>
+                    </div>
+                    <textarea id="advancedMetricsJson" class="hide">{$ADVANCED_METRICS_JSON}</textarea>
+
+                    <select id="advancedMetricFieldPool" class="hide">
+                        <option value="">{vtranslate('LBL_SELECT_FIELD',$MODULE)}</option>
+                        {foreach key=PRIMARY_MODULE_NAME item=PRIMARY_MODULE from=$PRIMARY_MODULE_FIELDS}
+                            {foreach key=BLOCK_LABEL item=BLOCK from=$PRIMARY_MODULE}
+                                <optgroup label='{vtranslate($PRIMARY_MODULE_NAME,$MODULE)} - {vtranslate($BLOCK_LABEL,$PRIMARY_MODULE_NAME)}'>
+                                    {foreach key=FIELD_KEY item=FIELD_LABEL from=$BLOCK}
+                                        <option value="{$FIELD_KEY}">{vtranslate($PRIMARY_MODULE_NAME, $PRIMARY_MODULE_NAME)} {vtranslate($FIELD_LABEL, $PRIMARY_MODULE_NAME)}</option>
                                     {/foreach}
-                                </tr>
+                                </optgroup>
                             {/foreach}
                         {/foreach}
-                    </table>
+                        {foreach key=SECONDARY_MODULE_NAME item=SECONDARY_MODULE from=$SECONDARY_MODULE_FIELDS}
+                            {foreach key=BLOCK_LABEL item=BLOCK from=$SECONDARY_MODULE}
+                                <optgroup label='{vtranslate($SECONDARY_MODULE_NAME,$MODULE)} - {vtranslate($BLOCK_LABEL,$SECONDARY_MODULE_NAME)}'>
+                                    {foreach key=FIELD_KEY item=FIELD_LABEL from=$BLOCK}
+                                        <option value="{$FIELD_KEY}">{vtranslate($SECONDARY_MODULE_NAME, $SECONDARY_MODULE_NAME)} {vtranslate($FIELD_LABEL, $SECONDARY_MODULE_NAME)}</option>
+                                    {/foreach}
+                                </optgroup>
+                            {/foreach}
+                        {/foreach}
+                    </select>
+
+                    <select id="advancedMetricConditionFieldPool" class="hide">
+                        <option value="">{vtranslate('LBL_SELECT_FIELD',$MODULE)}</option>
+                        {foreach key=PRIMARY_MODULE_NAME item=PRIMARY_MODULE from=$PRIMARY_MODULE_FIELDS}
+                            {foreach key=BLOCK_LABEL item=BLOCK from=$PRIMARY_MODULE}
+                                <optgroup label='{vtranslate($PRIMARY_MODULE_NAME,$MODULE)} - {vtranslate($BLOCK_LABEL,$PRIMARY_MODULE_NAME)}'>
+                                    {foreach key=FIELD_KEY item=FIELD_LABEL from=$BLOCK}
+                                        <option value="{$FIELD_KEY}">{vtranslate($PRIMARY_MODULE_NAME, $PRIMARY_MODULE_NAME)} {vtranslate($FIELD_LABEL, $PRIMARY_MODULE_NAME)}</option>
+                                    {/foreach}
+                                </optgroup>
+                            {/foreach}
+                        {/foreach}
+                        {foreach key=SECONDARY_MODULE_NAME item=SECONDARY_MODULE from=$SECONDARY_MODULE_FIELDS}
+                            {foreach key=BLOCK_LABEL item=BLOCK from=$SECONDARY_MODULE}
+                                <optgroup label='{vtranslate($SECONDARY_MODULE_NAME,$MODULE)} - {vtranslate($BLOCK_LABEL,$SECONDARY_MODULE_NAME)}'>
+                                    {foreach key=FIELD_KEY item=FIELD_LABEL from=$BLOCK}
+                                        <option value="{$FIELD_KEY}">{vtranslate($SECONDARY_MODULE_NAME, $SECONDARY_MODULE_NAME)} {vtranslate($FIELD_LABEL, $SECONDARY_MODULE_NAME)}</option>
+                                    {/foreach}
+                                </optgroup>
+                            {/foreach}
+                        {/foreach}
+                    </select>
                 </div>
             </div>
         </div>

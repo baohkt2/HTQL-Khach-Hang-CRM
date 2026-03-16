@@ -198,6 +198,13 @@ Class Reports_ChartEdit_View extends Vtiger_Edit_View {
 		$viewer->assign('ADVANCED_FILTER_OPTIONS', Vtiger_Field_Model::getAdvancedFilterOptions());
 		$viewer->assign('ADVANCED_FILTER_OPTIONS_BY_TYPE', $advanceFilterOpsByFieldType);
 		$viewer->assign('MODULE', $moduleName);
+		$viewer->assign('PRIMARY_MODULE_FIELDS', $reportModel->getPrimaryModuleFields());
+		$viewer->assign('SECONDARY_MODULE_FIELDS', $reportModel->getSecondaryModuleFields());
+		$viewer->assign('CALCULATION_FIELDS', $reportModel->getCalculationFields());
+		if (!$reportModel->get('advanced_metrics')) {
+			$reportModel->set('advanced_metrics', $reportModel->getAdvancedMetricsConfigJson());
+		}
+		$viewer->assign('ADVANCED_METRICS_JSON', $reportModel->get('advanced_metrics'));
 
 		$calculationFields = $reportModel->get('calculation_fields');
 		if($calculationFields) {

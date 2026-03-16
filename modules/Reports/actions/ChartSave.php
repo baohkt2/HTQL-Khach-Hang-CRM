@@ -43,6 +43,7 @@ class Reports_ChartSave_Action extends Reports_Save_Action {
 																'groupbyfield'=>$request->get('groupbyfield'),
 																'datafields'=>$dataFields)
 															));
+		$reportModel->set('advanced_metrics', $request->get('advanced_metrics'));
 		$reportModel->save();
 
 		$scheduleReportModel = new Reports_ScheduleReports_Model();

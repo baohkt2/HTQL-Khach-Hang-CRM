@@ -41,6 +41,7 @@ class Reports_ChartSaveAjax_View extends Vtiger_IndexAjax_View {
 															));
 		$reportModel->set('reporttype', 'chart');
 		$reportModel->save();
+		$advancedCalculation = $reportModel->generateAdvancedCalculationData();
 
 		$reportChartModel = Reports_Chart_Model::getInstanceById($reportModel);
         
@@ -67,6 +68,7 @@ class Reports_ChartSaveAjax_View extends Vtiger_IndexAjax_View {
 
 		$yAxisFieldDataType = (!$isPercentExist) ? 'currency' : '';
 		$viewer->assign('YAXIS_FIELD_TYPE', $yAxisFieldDataType);
+		$viewer->assign('ADVANCED_CALCULATION_FIELDS', $advancedCalculation);
 
 		$viewer->view('ChartReportContents.tpl', $moduleName);
 	}

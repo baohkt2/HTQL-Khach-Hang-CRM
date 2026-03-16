@@ -42,9 +42,11 @@ class Reports_SaveAjax_View extends Vtiger_IndexAjax_View {
 			$data = $reportData['data'];
 		}
 		$calculation = $reportModel->generateCalculationData();
+		$advancedCalculation = $reportModel->generateAdvancedCalculationData();
 
 		$viewer->assign('PRIMARY_MODULE', $reportModel->getPrimaryModule());
 		$viewer->assign('CALCULATION_FIELDS', $calculation);
+		$viewer->assign('ADVANCED_CALCULATION_FIELDS', $advancedCalculation);
 		$viewer->assign('DATA', $data);
 		$viewer->assign('RECORD_ID', $record);
 		$viewer->assign('PAGING_MODEL', $pagingModel);

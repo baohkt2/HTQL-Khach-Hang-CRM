@@ -87,10 +87,28 @@ Reports_Edit_Js("Reports_Edit2_Js",{},{
 			var form = thisInstance.getContainer();
 			app.formAlignmentAfterValidation(form);
 			return false;
-		} else {
-			select2Element.validationEngine('hide');
-			return true;
 		}
+
+		var advancedMetricsElement = jQuery('#advancedMetricsJson', this.getContainer());
+		if (advancedMetricsElement.length) {
+			var advancedMetricsValue = jQuery.trim(advancedMetricsElement.val());
+			if (advancedMetricsValue === '') {
+				advancedMetricsValue = '[]';
+			}
+			try {
+				var parsed = JSON.parse(advancedMetricsValue);
+				if (!jQuery.isArray(parsed)) {
+					app.helper.showErrorNotification({message: 'Advanced metrics must be a JSON array.'});
+					return false;
+				}
+			} catch (e) {
+				app.helper.showErrorNotification({message: 'Advanced metrics JSON is invalid.'});
+				return false;
+			}
+		}
+
+		select2Element.validationEngine('hide');
+		return true;
 	},
 	/*
 	 * Fucntion to perform all the requires calculation before submit
@@ -128,6 +146,15 @@ Reports_Edit_Js("Reports_Edit2_Js",{},{
 			});
 		});
 		jQuery('#calculation_fields').val(JSON.stringify(selectedCalculationFields));
+
+		var advancedMetricsElement = jQuery('#advancedMetricsJson', container);
+		if (advancedMetricsElement.length) {
+			var advancedMetricsValue = jQuery.trim(advancedMetricsElement.val());
+			if (advancedMetricsValue === '') {
+				advancedMetricsValue = '[]';
+			}
+			jQuery('#advanced_metrics').val(advancedMetricsValue);
+		}
 	},
 	submit : function(){
 		var aDeferred = jQuery.Deferred();

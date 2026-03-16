@@ -23,6 +23,7 @@
 		<input type="hidden" name="selected_fields" id="seleted_fields" value='{ZEND_JSON::encode($SELECTED_FIELDS)}' />
 		<input type="hidden" name="selected_sort_fields" id="selected_sort_fields" value="" />
 		<input type="hidden" name="calculation_fields" id="calculation_fields" value="" />
+		<input type="hidden" name="advanced_metrics" id="advanced_metrics" value='{Vtiger_Util_Helper::toSafeHTML($ADVANCED_METRICS_JSON)}' />
 		<input type="hidden" name="isDuplicate" value="{$IS_DUPLICATE}" />
 
 		<input type="hidden" name="enable_schedule" value="{$REPORT_MODEL->get('enable_schedule')}">
@@ -122,6 +123,13 @@
 							{/foreach}
 						{/foreach}
 					</table>
+				</div>
+			</div>
+			<div class="row-fluid block padding1per">
+				<div class="padding1per"><strong>{vtranslate('LBL_ADVANCED_METRICS_JSON',$MODULE)}</strong></div>
+				<div class="padding1per muted">{vtranslate('LBL_ADVANCED_METRICS_HINT',$MODULE)}</div>
+				<div class="padding1per">
+					<textarea id="advancedMetricsJson" class="span11" rows="8">{$ADVANCED_METRICS_JSON}</textarea>
 				</div>
 			</div>
 		</div>

@@ -6,6 +6,317 @@
  * Portions created by vtiger are Copyright (C) vtiger.
  * All Rights Reserved.
  *************************************************************************************/
+if (typeof window.ReportsAdvancedMetricsBuilder === 'undefined') {
+	window.ReportsAdvancedMetricsBuilder = {
+		escapeHtml: function(value) {
+			return jQuery('<div>').text(value || '').html();
+		},
+
+		getLabels: function(container) {
+			var builder = jQuery('#advancedMetricsBuilder', container);
+			return {
+				key: builder.data('lblKey') || 'Key',
+				label: builder.data('lblLabel') || 'Metric',
+				type: builder.data('lblType') || 'Type',
+				field: builder.data('lblField') || 'Field',
+				conditionField: builder.data('lblConditionField') || 'Condition Field',
+				comparator: builder.data('lblComparator') || 'Comparator',
+				conditionValue: builder.data('lblConditionValue') || 'Value',
+				numerator: builder.data('lblNumerator') || 'Numerator',
+				denominator: builder.data('lblDenominator') || 'Denominator',
+				expression: builder.data('lblExpression') || 'Expression',
+				remove: builder.data('lblRemove') || 'Remove',
+				metricType: builder.data('lblMetricType') || 'Metric Type'
+			};
+		},
+
+		getComparators: function() {
+			return [
+				{ value: 'e', label: '=' },
+				{ value: 'n', label: '!=' },
+				{ value: 'y', label: 'is empty' },
+				{ value: 'ny', label: "isn't empty" },
+				{ value: 'c', label: 'contains' },
+				{ value: 'k', label: 'not contains' },
+				{ value: 's', label: 'starts with' },
+				{ value: 'ew', label: 'ends with' },
+				{ value: 'g', label: '>' },
+				{ value: 'l', label: '<' }
+			];
+		},
+
+		renderComparatorOptions: function(selectedValue) {
+			var html = '';
+			jQuery.each(this.getComparators(), function(index, item) {
+				var selected = (item.value === selectedValue) ? ' selected="selected"' : '';
+				html += '<option value="' + item.value + '"' + selected + '>' + item.label + '</option>';
+			});
+			return html;
+		},
+
+		normalizeMetric: function(metric) {
+			metric = metric || {};
+			var criteria = jQuery.isArray(metric.criteria) ? metric.criteria : [];
+			var firstCriteria = criteria.length ? criteria[0] : {};
+			return {
+				key: metric.key || '',
+				label: metric.label || '',
+				type: (metric.type === 'COUNT_ALL' || metric.type === 'COUNT_WHERE') ? 'COUNT' : (metric.type || 'COUNT'),
+				field: metric.field || '',
+				conditionField: firstCriteria.columnname || '',
+				conditionComparator: firstCriteria.comparator || 'e',
+				conditionValue: firstCriteria.value || ''
+			};
+		},
+
+		isRowEmpty: function(row) {
+			return jQuery.trim(jQuery('.metricLabel', row).val()) === ''
+				&& jQuery.trim(jQuery('.metricField', row).val()) === ''
+				&& jQuery.trim(jQuery('.metricConditionField', row).val()) === ''
+				&& jQuery.trim(jQuery('.metricConditionValue', row).val()) === '';
+		},
+
+		toggleTypeSections: function(row) {
+			jQuery('.groupForCondition', row).show();
+			this.toggleConditionValueInput(row);
+		},
+
+		toggleConditionValueInput: function(row) {
+			var comparator = jQuery('.metricConditionComparator', row).val() || 'e';
+			var valueInput = jQuery('.metricConditionValue', row);
+			if (comparator === 'y' || comparator === 'ny') {
+				valueInput.val('');
+				valueInput.prop('disabled', true);
+				valueInput.attr('placeholder', '');
+			} else {
+				valueInput.prop('disabled', false);
+				valueInput.attr('placeholder', '');
+			}
+		},
+
+		refreshDependencyOptions: function(container) {
+			return;
+		},
+
+		addRow: function(container, metric) {
+			var builder = jQuery('#advancedMetricsBuilder', container);
+			var rowsContainer = jQuery('#advancedMetricsRows', container);
+			if (!builder.length || !rowsContainer.length) {
+				return;
+			}
+
+			var labels = this.getLabels(container);
+			var data = this.normalizeMetric(metric);
+			var fieldOptions = jQuery('#advancedMetricFieldPool', container).html() || '';
+			var conditionFieldOptions = jQuery('#advancedMetricConditionFieldPool', container).html() || '';
+
+			var rowHtml = '';
+			rowHtml += '<div class="advancedMetricRow panel panel-default" style="padding:10px; margin-bottom:10px;">';
+			rowHtml += '<div class="row">';
+			rowHtml += '<div class="col-lg-3"><label>' + this.escapeHtml(labels.label) + '</label><input type="text" class="form-control metricLabel" value="' + this.escapeHtml(data.label) + '" /></div>';
+			rowHtml += '<div class="col-lg-4 groupForField"><label>' + this.escapeHtml(labels.field) + '</label><select class="form-control metricField">' + fieldOptions + '</select></div>';
+			rowHtml += '<div class="col-lg-3"><label>' + this.escapeHtml(labels.metricType) + '</label>';
+			rowHtml += '<select class="form-control metricType">';
+			rowHtml += '<option value="COUNT">COUNT</option>';
+			rowHtml += '<option value="SUM">SUM</option>';
+			rowHtml += '<option value="AVG">AVG</option>';
+			rowHtml += '<option value="MIN">MIN</option>';
+			rowHtml += '<option value="MAX">MAX</option>';
+			rowHtml += '</select></div>';
+			rowHtml += '<div class="col-lg-2" style="padding-top:22px;"><button type="button" class="btn btn-link text-danger removeMetricRow">' + this.escapeHtml(labels.remove) + '</button></div>';
+			rowHtml += '</div>';
+
+			rowHtml += '<div class="row groupForCondition" style="margin-top:8px;">';
+			rowHtml += '<div class="col-lg-5"><label>' + this.escapeHtml(labels.conditionField) + '</label><select class="form-control metricConditionField">' + conditionFieldOptions + '</select></div>';
+			rowHtml += '<div class="col-lg-2"><label>' + this.escapeHtml(labels.comparator) + '</label><select class="form-control metricConditionComparator">' + this.renderComparatorOptions(data.conditionComparator) + '</select></div>';
+			rowHtml += '<div class="col-lg-5"><label>' + this.escapeHtml(labels.conditionValue) + '</label><input type="text" class="form-control metricConditionValue" value="' + this.escapeHtml(data.conditionValue) + '" /></div>';
+			rowHtml += '</div>';
+
+			rowHtml += '</div>';
+
+			var row = jQuery(rowHtml);
+			jQuery('.metricType', row).val(data.type || 'COUNT');
+			jQuery('.metricField', row).val(data.field || '');
+			jQuery('.metricConditionField', row).val(data.conditionField || '');
+			rowsContainer.append(row);
+
+			this.toggleTypeSections(row);
+			this.refreshDependencyOptions(container);
+		},
+
+		readExistingMetrics: function(container) {
+			var raw = jQuery.trim(jQuery('#advancedMetricsJson', container).val() || jQuery('#advanced_metrics', container).val() || '[]');
+			if (raw === '') {
+				return [];
+			}
+			try {
+				var parsed = JSON.parse(raw);
+				if (jQuery.isArray(parsed)) {
+					return parsed;
+				}
+			} catch (e) {
+				return [];
+			}
+			return [];
+		},
+
+		showError: function(message) {
+			if (window.app && app.helper && app.helper.showErrorNotification) {
+				app.helper.showErrorNotification({ message: message });
+			} else {
+				alert(message);
+			}
+		},
+
+		collect: function(container, showErrors) {
+			var metrics = [];
+			var keys = {};
+			var hasError = false;
+
+			jQuery('.advancedMetricRow', container).each(function() {
+				if (hasError) {
+					return;
+				}
+
+				var row = jQuery(this);
+				if (window.ReportsAdvancedMetricsBuilder.isRowEmpty(row)) {
+					return;
+				}
+
+				var label = jQuery.trim(jQuery('.metricLabel', row).val());
+				var type = jQuery.trim(jQuery('.metricType', row).val() || 'COUNT');
+				var key = 'adv_col_' + (metrics.length + 1);
+				var field = jQuery.trim(jQuery('.metricField', row).val());
+				var labelFinal = label;
+				if (labelFinal === '') {
+					labelFinal = key;
+				}
+				var metric = {
+					key: key,
+					label: labelFinal,
+					type: type
+				};
+
+				if (keys[labelFinal]) {
+					if (showErrors) {
+						window.ReportsAdvancedMetricsBuilder.showError('Column name must be unique: ' + labelFinal);
+					}
+					hasError = true;
+					return;
+				}
+				keys[labelFinal] = true;
+
+				if (type === 'SUM' || type === 'AVG' || type === 'MIN' || type === 'MAX') {
+					metric.field = field;
+					if (metric.field === '') {
+						if (showErrors) {
+							window.ReportsAdvancedMetricsBuilder.showError('Field is required for ' + type + '.');
+						}
+						hasError = true;
+						return;
+					}
+				}
+
+				if (type === 'COUNT') {
+					metric.type = 'COUNT_ALL';
+				}
+
+				if (metric.type === 'COUNT_ALL' || type === 'SUM' || type === 'AVG' || type === 'MIN' || type === 'MAX') {
+					var conditionField = jQuery.trim(jQuery('.metricConditionField', row).val());
+					if (conditionField !== '') {
+						if (metric.type === 'COUNT_ALL') {
+							metric.type = 'COUNT_WHERE';
+						}
+						metric.criteria = [{
+							columnname: conditionField,
+							comparator: jQuery.trim(jQuery('.metricConditionComparator', row).val() || 'e'),
+							value: jQuery.trim(jQuery('.metricConditionValue', row).val()),
+							columncondition: ''
+						}];
+					}
+				}
+
+				metrics.push(metric);
+			});
+
+			if (hasError) {
+				return false;
+			}
+
+			return metrics;
+		},
+
+		syncHiddenFields: function(container, showErrors) {
+			var metrics = this.collect(container, showErrors);
+			if (metrics === false) {
+				return false;
+			}
+			var encoded = JSON.stringify(metrics);
+			jQuery('#advancedMetricsJson', container).val(encoded);
+			jQuery('#advanced_metrics', container).val(encoded);
+			return true;
+		},
+
+		init: function(container) {
+			var builder = jQuery('#advancedMetricsBuilder', container);
+			if (!builder.length || builder.data('builderInit')) {
+				return;
+			}
+
+			builder.data('builderInit', true);
+			var thisBuilder = this;
+			var existingMetrics = this.readExistingMetrics(container);
+
+			if (existingMetrics.length) {
+				jQuery.each(existingMetrics, function(index, metric) {
+					thisBuilder.addRow(container, metric);
+				});
+			} else {
+				thisBuilder.addRow(container, {});
+			}
+
+			builder.on('click', '.removeMetricRow', function() {
+				jQuery(this).closest('.advancedMetricRow').remove();
+				thisBuilder.refreshDependencyOptions(container);
+				thisBuilder.syncHiddenFields(container, false);
+			});
+
+			builder.on('change', '.metricType', function() {
+				thisBuilder.toggleTypeSections(jQuery(this).closest('.advancedMetricRow'));
+				thisBuilder.syncHiddenFields(container, false);
+			});
+
+			builder.on('change', '.metricConditionComparator', function() {
+				thisBuilder.toggleConditionValueInput(jQuery(this).closest('.advancedMetricRow'));
+				thisBuilder.syncHiddenFields(container, false);
+			});
+
+			builder.on('keyup change', '.metricLabel, .metricField, .metricConditionField, .metricConditionComparator, .metricConditionValue', function() {
+				thisBuilder.refreshDependencyOptions(container);
+				thisBuilder.syncHiddenFields(container, false);
+			});
+
+			this.refreshDependencyOptions(container);
+			this.syncHiddenFields(container, false);
+		}
+	};
+}
+
+if (typeof window.ReportsAdvancedMetricsBuilderGlobalBindDone === 'undefined') {
+	window.ReportsAdvancedMetricsBuilderGlobalBindDone = true;
+	jQuery(document).on('click', '#addAdvancedMetricRow', function(e) {
+		e.preventDefault();
+		if (!window.ReportsAdvancedMetricsBuilder) {
+			return false;
+		}
+		var container = jQuery(this).closest('form');
+		window.ReportsAdvancedMetricsBuilder.init(container);
+		window.ReportsAdvancedMetricsBuilder.addRow(container, {});
+		window.ReportsAdvancedMetricsBuilder.syncHiddenFields(container, false);
+		return false;
+	});
+}
+
 Reports_Edit_Js("Reports_Edit2_Js",{},{
 
 	step2Container : false,
@@ -89,10 +400,16 @@ Reports_Edit_Js("Reports_Edit2_Js",{},{
 			var form = thisInstance.getContainer();
 			app.formAlignmentAfterValidation(form);
 			return false;
-		} else {
-			select2Element.validationEngine('hide');
-			return true;
 		}
+
+		if (window.ReportsAdvancedMetricsBuilder) {
+			if (!window.ReportsAdvancedMetricsBuilder.syncHiddenFields(this.getContainer(), true)) {
+				return false;
+			}
+		}
+
+		select2Element.validationEngine('hide');
+		return true;
 	},
 	
 	/*
@@ -131,6 +448,10 @@ Reports_Edit_Js("Reports_Edit2_Js",{},{
 			});
 		});
 		jQuery('#calculation_fields').val(JSON.stringify(selectedCalculationFields));
+
+		if (window.ReportsAdvancedMetricsBuilder) {
+			window.ReportsAdvancedMetricsBuilder.syncHiddenFields(container, false);
+		}
 	},
 	
 	submit : function(){
@@ -310,6 +631,9 @@ Reports_Edit_Js("Reports_Edit2_Js",{},{
 		this.registerSelect2ElementForReportColumns();
                 this.arrangeSelectChoicesInOrder();
                 this.makeColumnListSortable();
+		if (window.ReportsAdvancedMetricsBuilder) {
+			window.ReportsAdvancedMetricsBuilder.init(container);
+		}
 	}
 });
 

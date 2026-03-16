@@ -273,8 +273,11 @@ function transformAdvFilterListToDBFormat($advFilterList) {
         foreach($columnConditions['columns'] as $j => $columnCondition) {
             if(empty($columnCondition)) continue;
 
-            $advFilterColumn = $columnCondition["columnname"];
-            $advFilterComparator = $columnCondition["comparator"];
+			$advFilterColumn = $columnCondition["columnname"];
+			$advFilterComparator = strtolower(trim((string)$columnCondition["comparator"]));
+			if ($advFilterComparator === 'ct') {
+				$advFilterComparator = 'c';
+			}
             $advFilterValue = $columnCondition["value"];
 
             $columnInfo = explode(":",$advFilterColumn);
@@ -319,6 +322,7 @@ function transformAdvFilterListToDBFormat($advFilterList) {
                 }
                 $advFilterValue = implode(",", $val);
             }
+            $advFilterList[$k]['columns'][$j]['comparator'] = $advFilterComparator;
             $advFilterList[$k]['columns'][$j]['value'] = $advFilterValue;
         }
     }

@@ -53,6 +53,7 @@ class Reports_Save_Action extends Vtiger_Save_Action {
 		$reportModel->set('selectedFields', $request->get('selected_fields'));
 		$reportModel->set('sortFields', $request->get('selected_sort_fields'));
 		$reportModel->set('calculationFields', $request->get('selected_calculation_fields'));
+		$reportModel->set('advanced_metrics', $request->get('advanced_metrics'));
 
 		$reportModel->set('standardFilter', $request->get('standard_fiter'));
 		$reportModel->set('advancedFilter', $request->get('advanced_filter'));

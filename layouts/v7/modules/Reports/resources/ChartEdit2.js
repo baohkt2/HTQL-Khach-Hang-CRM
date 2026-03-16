@@ -13,6 +13,14 @@ Reports_Edit3_Js("Reports_ChartEdit2_Js",{},{
 		//handled advanced filters saved values.
 		var advfilterlist = this.advanceFilterInstance.getValues();
 		jQuery('#advanced_filter').val(JSON.stringify(advfilterlist));
+
+		if (window.ReportsAdvancedMetricsBuilder) {
+			if (!window.ReportsAdvancedMetricsBuilder.syncHiddenFields(this.getContainer(), true)) {
+				return false;
+			}
+		}
+
+		return true;
 	},
 
 	initialize : function(container) {
@@ -25,12 +33,18 @@ Reports_Edit3_Js("Reports_ChartEdit2_Js",{},{
 		}else{
 			this.setContainer(jQuery('#chart_report_step2'));
 		}
+		if (window.ReportsAdvancedMetricsBuilder) {
+			window.ReportsAdvancedMetricsBuilder.init(this.getContainer());
+		}
 	},
 
 	submit : function(){
 		var thisInstance = this;
 		var aDeferred = jQuery.Deferred();
-		thisInstance.calculateValues();
+		if (!thisInstance.calculateValues()) {
+			aDeferred.reject();
+			return aDeferred.promise();
+		}
 		var form = this.getContainer();
 		var formData = form.serializeFormData();
 		app.helper.showProgress();
