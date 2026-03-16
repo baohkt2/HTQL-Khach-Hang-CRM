@@ -18,7 +18,7 @@
         <input type="hidden" name="module" value="{$MODULE}" />
         <input type="hidden" name="view" value="{$VIEW}" />
         <input type="hidden" class="step" value="1" />
-        <input type="hidden" name="isDuplicate" value="{if isset($IS_DUPLICATE)}{$IS_DUPLICATE}{else}false{/if}" />
+        <input type="hidden" name="isDuplicate" value="{if isset($IS_DUPLICATE)}{$IS_DUPLICATE}{else}0{/if}" />
         <input type="hidden" name="record" value="{$RECORD_ID}" />
         <input type=hidden id="relatedModules" data-value='{ZEND_JSON::encode($RELATED_MODULES)}' />
         <div style="border:1px solid #ccc;padding:4%;">

@@ -10,6 +10,21 @@
 
 class Reports_Save_Action extends Vtiger_Save_Action {
 
+	/**
+	 * Normalize request duplicate flag to a strict boolean.
+	 */
+	protected function isDuplicateRequest(Vtiger_Request $request) {
+		$rawValue = $request->get('isDuplicate');
+		if (is_bool($rawValue)) {
+			return $rawValue;
+		}
+		if (is_numeric($rawValue)) {
+			return intval($rawValue) === 1;
+		}
+		$normalized = strtolower(trim((string)$rawValue));
+		return in_array($normalized, array('1', 'true', 'yes', 'on'), true);
+	}
+
 	public function requiresPermission(\Vtiger_Request $request) {
 		$permissions = parent::requiresPermission($request);
 		$permissions[] = array('module_parameter' => 'module', 'action' => 'DetailView', 'record_parameter' => 'record');
@@ -31,9 +46,10 @@ class Reports_Save_Action extends Vtiger_Save_Action {
 		$moduleName = $request->getModule();
 
 		$record = $request->get('record');
+		$isDuplicate = $this->isDuplicateRequest($request);
 		$reportModel = Reports_Record_Model::getCleanInstance();
 		$reportModel->setModule('Reports');
-		if(!empty($record) && !$request->get('isDuplicate')) {
+		if(!empty($record) && !$isDuplicate) {
 			$reportModel->setId($record);
 		}
 

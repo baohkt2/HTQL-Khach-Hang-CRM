@@ -275,9 +275,6 @@ function transformAdvFilterListToDBFormat($advFilterList) {
 
 			$advFilterColumn = $columnCondition["columnname"];
 			$advFilterComparator = strtolower(trim((string)$columnCondition["comparator"]));
-			if ($advFilterComparator === 'ct') {
-				$advFilterComparator = 'c';
-			}
             $advFilterValue = $columnCondition["value"];
 
             $columnInfo = explode(":",$advFilterColumn);

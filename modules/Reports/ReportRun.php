@@ -820,11 +820,7 @@ class ReportRun extends CRMEntity {
 	 * Normalize legacy comparator aliases to supported report comparators.
 	 */
 	protected function normalizeAdvancedComparator($comparator) {
-		$comparator = strtolower(trim((string)$comparator));
-		if ($comparator === 'ct') {
-			return 'c';
-		}
-		return $comparator;
+		return strtolower(trim((string)$comparator));
 	}
 
 	/** Function to get advanced comparator in query form for the given Comparator and value
@@ -846,6 +842,9 @@ class ReportRun extends CRMEntity {
 			$value = str_replace("yes", "1", str_replace("no", "0", $value));
 		}
 		$comparator = $this->normalizeAdvancedComparator($comparator);
+		if ($comparator == 'ct') {
+			$comparator = 'e';
+		}
 
 		if ($is_field == true) {
 			$value = $this->getFilterComparedField($temp);
@@ -1269,7 +1268,7 @@ class ReportRun extends CRMEntity {
 							}
 						}
 						$commaSeparatedFieldTypes = array('picklist', 'multipicklist', 'owner', 'date', 'datetime', 'time');
-						if(in_array($fieldDataType, $commaSeparatedFieldTypes)) {
+						if($comparator == 'ct' || in_array($fieldDataType, $commaSeparatedFieldTypes)) {
 							$valuearray = explode(",", trim($value));
 						} else {
 							$valuearray = array($value);

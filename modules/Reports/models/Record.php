@@ -661,9 +661,6 @@ class Reports_Record_Model extends Vtiger_Record_Model {
 
 					$advFilterColumn = $columnCondition["columnname"];
 					$advFilterComparator = strtolower(trim((string)$columnCondition["comparator"]));
-					if ($advFilterComparator === 'ct') {
-						$advFilterComparator = 'c';
-					}
 					$advFilterValue = $columnCondition["value"];
 					$advFilterColumnCondition = $columnCondition["column_condition"];
 

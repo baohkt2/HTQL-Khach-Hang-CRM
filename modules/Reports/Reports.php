@@ -1474,9 +1474,6 @@ function getEscapedColumns($selectedfields)
 				$criteria = array();
 				$criteria['columnname'] = $relcriteriarow["columnname"];
 				$criteria['comparator'] = strtolower(trim((string)$relcriteriarow["comparator"]));
-				if ($criteria['comparator'] === 'ct') {
-					$criteria['comparator'] = 'c';
-				}
 				$advfilterval = $relcriteriarow["value"];
 				$col = explode(":",$relcriteriarow["columnname"]);
 
@@ -1865,9 +1862,6 @@ function updateAdvancedCriteria($reportid, $advft_criteria, $advft_criteria_grou
 
 		$adv_filter_column = $column_condition["columnname"];
 		$adv_filter_comparator = strtolower(trim((string)$column_condition["comparator"]));
-		if ($adv_filter_comparator === 'ct') {
-			$adv_filter_comparator = 'c';
-		}
 		$adv_filter_value = $column_condition["value"];
 		$adv_filter_column_condition = $column_condition["columncondition"];
 		$adv_filter_groupid = $column_condition["groupid"];
