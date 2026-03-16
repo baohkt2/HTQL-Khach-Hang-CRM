@@ -1002,3 +1002,42 @@ table#listview-table.table.listview-table
 .table-container .ps-scrollbar-x-rail {
   z-index: 1001 !important;
 }
+
+/* Block-level inline edit controls */
+.block .js-block-edit-controls {
+  margin-top: 2px;
+}
+
+.block .js-block-edit-controls .btn {
+  min-width: 102px;
+  min-height: 34px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.16);
+}
+
+.block .js-block-edit-controls .js-toggle-block-edit {
+  letter-spacing: 0.2px;
+}
+
+.block .js-block-edit-controls .js-toggle-block-edit.btn-primary {
+  background: #1877f2;
+  border-color: #1466cf;
+}
+
+.block .js-block-edit-controls .js-toggle-block-edit.btn-danger {
+  background: #d9534f;
+  border-color: #b94845;
+}
+
+.block .js-block-edit-controls .js-save-block-edit {
+  margin-left: 6px;
+}
+
+.block.blockEditMode {
+  border-left: 3px solid #21a366;
+  padding-left: 8px;
+  background: rgba(33, 163, 102, 0.04);
+}

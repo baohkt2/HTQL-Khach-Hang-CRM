@@ -16,7 +16,7 @@
         {if $FIELD_MODEL->isHeaderField() && $FIELD_MODEL->isActiveField() && $RECORD->get($FIELD_NAME) && $FIELD_MODEL->isViewable()}
             {assign var=FIELD_MODEL value=$FIELD_MODEL->set('fieldvalue', $RECORD->get({$FIELD_NAME}))}
             <div class="info-row row headerAjaxEdit td">
-                <div class="col-lg-7 fieldLabel">
+                <div class="col-lg-7 fieldLabel {if $FIELD_MODEL->isEditable() eq 'true' AND (isset($LIST_PREVIEW) AND $LIST_PREVIEW neq 'true') && $IS_AJAX_ENABLED eq 'true'}headerInlineEditable{/if}">
                     {assign var=DISPLAY_VALUE value="{$FIELD_MODEL->getDisplayValue($RECORD->get($FIELD_NAME))}"}
                     <span class="{$FIELD_NAME} value" title="{vtranslate($FIELD_MODEL->get('label'),$MODULE)} : {strip_tags($DISPLAY_VALUE)}">
                         {include file=$FIELD_MODEL->getUITypeModel()->getDetailViewTemplateName()|@vtemplate_path:$MODULE_NAME FIELD_MODEL=$FIELD_MODEL MODULE=$MODULE_NAME RECORD=$RECORD}
@@ -29,8 +29,8 @@
                                 <input type="hidden" class="fieldBasicData" data-name='{$FIELD_MODEL->get('name')}' data-type="{$FIELD_MODEL->getFieldDataType()}" data-displayvalue='{Vtiger_Util_Helper::toSafeHTML($FIELD_MODEL->getDisplayValue($FIELD_MODEL->get('fieldvalue')))}' data-value="{$FIELD_MODEL->get('fieldvalue')}" />
                             {/if}    
                         </span>
-                        <span class="action">
-                            <a href="#" onclick="return false;" class="editAction fa fa-pencil"></a>
+                        <span class="action hide">
+                            <a href="#" onclick="return false;" class="editAction"></a>
                         </span>
                     {/if}
                 </div>

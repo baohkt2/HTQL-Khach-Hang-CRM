@@ -27,7 +27,7 @@
                             {/if}
                         </label>
                     </td>
-				<td class="fieldValue">
+                <td class="fieldValue {if $FIELD_MODEL->isEditable() eq 'true' && $IS_AJAX_ENABLED && $FIELD_MODEL->isAjaxEditable() eq 'true' && $FIELD_MODEL->get('uitype') neq 69}inlineEditableField{/if}">
                     <div class="">
                         {assign var=DISPLAY_VALUE value="{$FIELD_MODEL->getDisplayValue($FIELD_MODEL->get("fieldvalue"))}"}                  
                         <span class="value textOverflowEllipsis" title="{strip_tags($DISPLAY_VALUE)}"  {if $FIELD_MODEL->get('uitype') eq '19' or $FIELD_MODEL->get('uitype') eq '20' or $FIELD_MODEL->get('uitype') eq '21'}style="word-wrap: break-word;"{/if}>
@@ -41,7 +41,7 @@
                                 <input type="hidden" class="fieldBasicData" data-name='{$FIELD_MODEL->get('name')}' data-type="{$fieldDataType}" data-displayvalue='{Vtiger_Util_Helper::toSafeHTML($FIELD_MODEL->getDisplayValue($FIELD_MODEL->get('fieldvalue')))}' data-value="{$FIELD_MODEL->get('fieldvalue')}" />
                                 {/if}
                             </span>
-                            <span class="action"><a href="#" onclick="return false;" class="editAction fa fa-pencil"></a></span>
+                            <span class="action hide"><a href="#" onclick="return false;" class="editAction"></a></span>
                         {/if}
                     </div>
 				</td>

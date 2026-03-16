@@ -1162,15 +1162,28 @@ Vtiger.Class(
       var detailContentsHolder = this.getContentHolder();
       detailContentsHolder.on(
         "click",
-        "table.detailview-table td.fieldValue .editAction",
+        "table.detailview-table td.fieldValue, table.detailview-table td.fieldValue .value, table.detailview-table td.fieldValue .editAction",
         function (e) {
+          var clickTarget = jQuery(e.target);
+          if (thisInstance.shouldSkipInlineEditByClick(clickTarget)) {
+            return;
+          }
+
+          var currentTarget = jQuery(e.currentTarget);
+          if (currentTarget.hasClass("editAction")) {
+            e.preventDefault();
+          }
+
           var editedLength = jQuery(
             "table.detailview-table td.fieldValue .ajaxEdited",
           ).length;
           if (editedLength === 0) {
             var selection = window.getSelection().toString();
-            if (selection.length == 0) {
+            if (selection.length == 0 || currentTarget.hasClass("editAction")) {
               var currentTdElement = jQuery(e.currentTarget).closest("td");
+              if (!currentTdElement.find(".edit").length) {
+                return;
+              }
               thisInstance.ajaxEditHandling(currentTdElement);
             }
           }
@@ -1343,6 +1356,7 @@ Vtiger.Class(
       vtigerInstance.registerAutoCompleteFields(contentHolder);
       vtigerInstance.referenceModulePopupRegisterEvent(contentHolder);
       editElement.addClass("ajaxEdited");
+      currentTdElement.addClass("inlineEditActive");
       thisInstance.registerSaveOnEnterEvent(editElement);
       jQuery(".editAction").addClass("hide");
 
@@ -1399,6 +1413,18 @@ Vtiger.Class(
         wrapperElement = element.closest(".td");
       }
       return wrapperElement;
+    },
+
+    shouldSkipInlineEditByClick: function (targetElement) {
+      if (targetElement.closest(".editAction").length) {
+        return false;
+      }
+
+      return (
+        targetElement.closest(
+          "a, button, input, textarea, select, label, .inlineAjaxSave, .inlineAjaxCancel, .clearReferenceSelection, .input-group-addon",
+        ).length > 0
+      );
     },
 
     /**
@@ -1466,6 +1492,7 @@ Vtiger.Class(
           detailViewValue.css("display", "inline-block");
           editElement.addClass("hide");
           editElement.removeClass("ajaxEdited");
+          currentTdElement.removeClass("inlineEditActive");
           jQuery(".editAction").removeClass("hide");
           actionElement.show();
         } else {
@@ -1614,6 +1641,7 @@ Vtiger.Class(
                   detailViewValue.css("display", "inline-block");
                   editElement.addClass("hide");
                   editElement.removeClass("ajaxEdited");
+                  currentTdElement.removeClass("inlineEditActive");
                   jQuery(".editAction").removeClass("hide");
                   actionElement.show();
                   var postAjaxSaveEvent = jQuery.Event(
@@ -1753,6 +1781,7 @@ Vtiger.Class(
           .find(".inputElement")
           .trigger("Vtiger.Validation.Hide.Messsage");
         editElement.removeClass("ajaxEdited");
+        currentTdElement.removeClass("inlineEditActive");
         jQuery(".editAction").removeClass("hide");
         actionElement.show();
       });
@@ -1857,6 +1886,7 @@ Vtiger.Class(
         detailContentsHolder.html(response);
         thisInstance.detailViewForm = jQuery("#detailView");
         thisInstance.registerBlockStatusCheckOnLoad();
+        thisInstance.initializeBlockEditControls(detailContentsHolder);
         aDeferred.resolve(response);
         app.helper.hideProgress();
       });
@@ -2005,16 +2035,34 @@ Vtiger.Class(
       var self = this;
       this.registerEventForActivityWidget();
       this.loadWidgets();
+      this.markInlineEditableElements(summaryViewContainer);
       /**
        * Function to handle the ajax edit for summary view fields
        */
       summaryViewContainer.on(
         "click",
-        "table.summary-table td.fieldValue .editAction",
+        "table.summary-table td.fieldValue, table.summary-table td.fieldValue .value, table.summary-table td.fieldValue .editAction",
         function (e) {
+          var clickTarget = jQuery(e.target);
+          if (self.shouldSkipInlineEditByClick(clickTarget)) {
+            return;
+          }
+
           var currentTarget = jQuery(e.currentTarget);
-          currentTarget.hide();
+          if (currentTarget.hasClass("editAction")) {
+            e.preventDefault();
+            currentTarget.hide();
+          }
+
+          var selection = window.getSelection().toString();
+          if (selection.length > 0 && !currentTarget.hasClass("editAction")) {
+            return;
+          }
+
           var currentTdElement = currentTarget.closest("td.fieldValue");
+          if (!currentTdElement.find(".edit").length) {
+            return;
+          }
           self.ajaxEditHandling(currentTdElement);
         },
       );
@@ -3679,6 +3727,290 @@ Vtiger.Class(
       );
     },
 
+    markInlineEditableElements: function (scope) {
+      var container = scope || this.getDetailViewContainer();
+      container
+        .find("td.fieldValue")
+        .removeClass("inlineEditableField")
+        .has(".edit .fieldBasicData")
+        .addClass("inlineEditableField");
+      container
+        .find(".detailview-header .headerAjaxEdit .fieldLabel")
+        .removeClass("headerInlineEditable")
+        .has(".edit .fieldBasicData")
+        .addClass("headerInlineEditable");
+    },
+
+    setBlockEditModeState: function (blockElement, enabled) {
+      var toggleButton = blockElement.find(".js-toggle-block-edit");
+      var saveButton = blockElement.find(".js-save-block-edit");
+      var onLabel = toggleButton.data("label-on") || "Bật sửa";
+      var offLabel = toggleButton.data("label-off") || "Tắt sửa";
+
+      if (enabled) {
+        blockElement.addClass("blockEditMode");
+        toggleButton.data("mode", "on").text(offLabel);
+        toggleButton.removeClass("btn-primary").addClass("btn-danger");
+        saveButton.removeClass("hide");
+      } else {
+        blockElement.removeClass("blockEditMode");
+        toggleButton.data("mode", "off").text(onLabel);
+        toggleButton.removeClass("btn-danger").addClass("btn-primary");
+        saveButton.addClass("hide");
+      }
+    },
+
+    getComparableInlineValue: function (value, fieldType) {
+      if (typeof value === "undefined" || value === null) {
+        return "";
+      }
+
+      if (fieldType === "multipicklist") {
+        var valuesList = [];
+        if (jQuery.isArray(value)) {
+          valuesList = value;
+        } else {
+          valuesList = String(value).split("|##|");
+        }
+
+        valuesList = jQuery
+          .map(valuesList, function (item) {
+            var normalized = jQuery.trim(String(item));
+            return normalized.length ? normalized : null;
+          })
+          .sort();
+
+        return valuesList.join("|##|");
+      }
+
+      if (jQuery.isArray(value)) {
+        return jQuery
+          .map(value, function (item) {
+            return jQuery.trim(String(item));
+          })
+          .sort()
+          .join("||");
+      }
+
+      if (typeof value === "boolean") {
+        return value ? "1" : "0";
+      }
+
+      return jQuery.trim(String(value));
+    },
+
+    isInlineFieldChanged: function (wrapperElement) {
+      var editElement = wrapperElement.find(".edit");
+      var fieldBasicData = editElement.find(".fieldBasicData");
+      if (!fieldBasicData.length) {
+        return false;
+      }
+
+      var fieldName = fieldBasicData.data("name");
+      var fieldType = fieldBasicData.data("type");
+      var fieldElement = jQuery('[name="' + fieldName + '"]', editElement);
+
+      if (!fieldElement.length) {
+        return false;
+      }
+
+      var previousValue = jQuery.trim(fieldBasicData.data("displayvalue"));
+      var currentValue = fieldElement.val();
+
+      if (fieldElement.is("input:checkbox")) {
+        currentValue = fieldElement.is(":checked") ? "1" : "0";
+      } else if (fieldType == "reference") {
+        currentValue = fieldElement.data("value");
+      }
+
+      var customHandlingFields = [
+        "owner",
+        "ownergroup",
+        "picklist",
+        "multipicklist",
+        "reference",
+        "boolean",
+      ];
+      if (jQuery.inArray(fieldType, customHandlingFields) !== -1) {
+        previousValue = fieldBasicData.data("value");
+      }
+
+      var comparablePrevious = this.getComparableInlineValue(
+        previousValue,
+        fieldType,
+      );
+      var comparableCurrent = this.getComparableInlineValue(currentValue, fieldType);
+
+      return comparablePrevious !== comparableCurrent;
+    },
+
+    openBlockFieldsForEdit: function (blockElement) {
+      var thisInstance = this;
+      var bodyElement = blockElement.find(".blockData table tbody");
+      if (bodyElement.hasClass("hide")) {
+        blockElement
+          .find(".blockToggle[data-mode='show']")
+          .not(":hidden")
+          .trigger("click");
+      }
+
+      var editableFields = blockElement.find("td.fieldValue.inlineEditableField");
+
+      editableFields.each(function () {
+        var currentTdElement = jQuery(this);
+        var editElement = currentTdElement.find(".edit");
+        if (!editElement.length || editElement.hasClass("ajaxEdited")) {
+          return;
+        }
+        thisInstance.ajaxEditHandling(currentTdElement);
+      });
+    },
+
+    waitUntilInlineEditClosed: function (wrapperElement) {
+      var aDeferred = jQuery.Deferred();
+      var retries = 0;
+      var maxRetries = 80;
+
+      var checkState = function () {
+        if (!wrapperElement.find(".edit").hasClass("ajaxEdited")) {
+          aDeferred.resolve();
+          return;
+        }
+
+        retries++;
+        if (retries >= maxRetries) {
+          aDeferred.reject();
+          return;
+        }
+        setTimeout(checkState, 100);
+      };
+
+      setTimeout(checkState, 100);
+      return aDeferred.promise();
+    },
+
+    saveBlockEditedFields: function (blockElement) {
+      var thisInstance = this;
+      var aDeferred = jQuery.Deferred();
+      var editedWrappers = blockElement
+        .find("td.fieldValue.inlineEditableField")
+        .filter(function () {
+          return jQuery(this).find(".edit").hasClass("ajaxEdited");
+        });
+
+      var changedWrappers = [];
+      editedWrappers.each(function () {
+        var wrapperElement = jQuery(this);
+        if (thisInstance.isInlineFieldChanged(wrapperElement)) {
+          changedWrappers.push(wrapperElement);
+        } else {
+          wrapperElement.find(".inlineAjaxCancel").trigger("click");
+        }
+      });
+
+      var totalChanged = changedWrappers.length;
+      var index = 0;
+
+      if (!totalChanged) {
+        aDeferred.resolve();
+        return aDeferred.promise();
+      }
+
+      var saveNextField = function () {
+        if (index >= totalChanged) {
+          aDeferred.resolve();
+          return;
+        }
+
+        var currentWrapper = changedWrappers[index++];
+        var saveButton = currentWrapper.find(".inlineAjaxSave").first();
+        if (!saveButton.length) {
+          saveNextField();
+          return;
+        }
+
+        saveButton.trigger("click");
+
+        thisInstance
+          .waitUntilInlineEditClosed(currentWrapper)
+          .then(saveNextField)
+          .fail(function () {
+            aDeferred.reject();
+          });
+      };
+
+      saveNextField();
+      return aDeferred.promise();
+    },
+
+    initializeBlockEditControls: function (scope) {
+      var container = scope || this.getContentHolder();
+      var thisInstance = this;
+
+      thisInstance.markInlineEditableElements(container);
+
+      container.find(".block").each(function () {
+        var blockElement = jQuery(this);
+        var editableFields = blockElement.find("td.fieldValue.inlineEditableField");
+        var controls = blockElement.find(".js-block-edit-controls");
+
+        if (editableFields.length) {
+          controls.removeClass("hide");
+          thisInstance.setBlockEditModeState(blockElement, false);
+        } else {
+          controls.addClass("hide");
+          blockElement.removeClass("blockEditMode");
+        }
+      });
+    },
+
+    registerBlockInlineEditEvents: function () {
+      var thisInstance = this;
+      var detailContentsHolder = this.getContentHolder();
+
+      thisInstance.initializeBlockEditControls(detailContentsHolder);
+
+      detailContentsHolder.off("click", ".js-toggle-block-edit");
+      detailContentsHolder.on("click", ".js-toggle-block-edit", function (e) {
+        e.preventDefault();
+        var button = jQuery(e.currentTarget);
+        var blockElement = button.closest(".block");
+        var mode = button.data("mode");
+
+        if (mode === "on") {
+          blockElement.find(".ajaxEdited .inlineAjaxCancel").trigger("click");
+          thisInstance.setBlockEditModeState(blockElement, false);
+          return;
+        }
+
+        thisInstance.openBlockFieldsForEdit(blockElement);
+        thisInstance.setBlockEditModeState(blockElement, true);
+      });
+
+      detailContentsHolder.off("click", ".js-save-block-edit");
+      detailContentsHolder.on("click", ".js-save-block-edit", function (e) {
+        e.preventDefault();
+        var saveButton = jQuery(e.currentTarget);
+        var blockElement = saveButton.closest(".block");
+        var controls = blockElement.find(".js-block-edit-controls .btn");
+
+        controls.prop("disabled", true);
+        thisInstance
+          .saveBlockEditedFields(blockElement)
+          .then(function () {
+            thisInstance.setBlockEditModeState(blockElement, false);
+          })
+          .fail(function () {
+            app.helper.showErrorNotification({
+              message: "Có trường chưa hợp lệ. Vui lòng kiểm tra lại trước khi lưu.",
+            });
+          })
+          .always(function () {
+            controls.prop("disabled", false);
+          });
+      });
+    },
+
     registerHeaderAjaxEditEvents: function (contentHolder) {
       var self = this;
 
@@ -3686,14 +4018,33 @@ Vtiger.Class(
         contentHolder = jQuery(".detailview-header");
       }
 
+      this.markInlineEditableElements(contentHolder);
+
       contentHolder.on(
         "click",
-        ".recordBasicInfo .fieldLabel .editAction",
+        ".recordBasicInfo .headerAjaxEdit .fieldLabel, .recordBasicInfo .headerAjaxEdit .fieldLabel .value, .recordBasicInfo .headerAjaxEdit .fieldLabel .editAction",
         function (e) {
+          var clickTarget = jQuery(e.target);
+          if (self.shouldSkipInlineEditByClick(clickTarget)) {
+            return;
+          }
+
           var currentTarget = jQuery(e.currentTarget);
-          currentTarget.hide();
+          if (currentTarget.hasClass("editAction")) {
+            e.preventDefault();
+            currentTarget.hide();
+          }
+
+          var selection = window.getSelection().toString();
+          if (selection.length > 0 && !currentTarget.hasClass("editAction")) {
+            return;
+          }
+
           var currentContainerElement =
             currentTarget.closest(".headerAjaxEdit");
+          if (!currentContainerElement.find(".edit").length) {
+            return;
+          }
           self.ajaxEditHandling(currentContainerElement);
         },
       );
@@ -3946,6 +4297,7 @@ Vtiger.Class(
       this.registerAjaxEditEvent();
       this.registerAjaxEditSaveEvent();
       this.registerAjaxEditCancelEvent();
+      this.registerBlockInlineEditEvents();
       this.recordImageRandomColors();
       this.registerQtipevent();
 

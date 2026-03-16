@@ -26,11 +26,17 @@
 			{assign var=WIDTHTYPE value=$USER_MODEL->get('rowheight')}
 		<input type=hidden name="timeFormatOptions" data-value='{if isset($DAY_STARTS)}{$DAY_STARTS}{else}""{/if}' />
 			<div>
-				<h4 class="textOverflowEllipsis maxWidth50">
+				<div class="clearfix">
+					<h4 class="textOverflowEllipsis maxWidth50 pull-left">
 					<img class="cursorPointer alignMiddle blockToggle {if !($IS_HIDDEN)} hide {/if}" src="{vimage_path('arrowRight.png')}" data-mode="hide" data-id={$BLOCK_LIST[$BLOCK_LABEL_KEY]->get('id')}>
 					<img class="cursorPointer alignMiddle blockToggle {if ($IS_HIDDEN)} hide {/if}" src="{vimage_path('arrowdown.png')}" data-mode="show" data-id={$BLOCK_LIST[$BLOCK_LABEL_KEY]->get('id')}>&nbsp;
 					{vtranslate({$BLOCK_LABEL_KEY},{$MODULE_NAME})}
-				</h4>
+					</h4>
+					<div class="btn-group btn-group-xs pull-right js-block-edit-controls hide" role="group">
+						<button type="button" class="btn btn-primary js-toggle-block-edit" data-mode="off" data-label-on="Bật sửa" data-label-off="Tắt sửa">Bật sửa</button>
+						<button type="button" class="btn btn-success js-save-block-edit hide">Lưu lại</button>
+					</div>
+				</div>
 			</div>
 			<hr>
 			<div class="blockData">
@@ -107,7 +113,7 @@
 											{/if}
 										</span>
 									</td>
-									<td class="fieldValue {$WIDTHTYPE}" id="{$MODULE_NAME}_detailView_fieldValue_{$FIELD_MODEL->getName()}" {if $FIELD_MODEL->get('uitype') eq '19' or $fieldDataType eq 'reminder' or $fieldDataType eq 'recurrence'} colspan="3" {assign var=COUNTER value=$COUNTER+1} {/if}>
+									<td class="fieldValue {$WIDTHTYPE} {if isset($IS_AJAX_ENABLED) && $IS_AJAX_ENABLED && $FIELD_MODEL->isEditable() eq 'true' && $FIELD_MODEL->isAjaxEditable() eq 'true'}inlineEditableField{/if}" id="{$MODULE_NAME}_detailView_fieldValue_{$FIELD_MODEL->getName()}" {if $FIELD_MODEL->get('uitype') eq '19' or $fieldDataType eq 'reminder' or $fieldDataType eq 'recurrence'} colspan="3" {assign var=COUNTER value=$COUNTER+1} {/if}>
 										{assign var=FIELD_VALUE value=$FIELD_MODEL->get('fieldvalue')}
 										{if $fieldDataType eq 'multipicklist'}
 											{assign var=FIELD_DISPLAY_VALUE value=$FIELD_MODEL->getDisplayValue($FIELD_MODEL->get('fieldvalue'))}
@@ -126,7 +132,7 @@
 													<input type="hidden" class="fieldBasicData" data-name='{$FIELD_MODEL->get('name')}' data-type="{$fieldDataType}" data-displayvalue='{$FIELD_DISPLAY_VALUE}' data-value="{$FIELD_VALUE}" />
 												{/if}
 											</span>
-											<span class="action pull-right"><a href="#" onclick="return false;" class="editAction fa fa-pencil"></a></span>
+											<span class="action hide pull-right"><a href="#" onclick="return false;" class="editAction"></a></span>
 										{/if}
 									</td>
 								{/if}
