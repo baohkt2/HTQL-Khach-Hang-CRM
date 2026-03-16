@@ -5071,6 +5071,7 @@ class ReportRun extends CRMEntity {
 		$worksheet = $workbook->setActiveSheetIndex(0);
 
 		$reportData = $this->GenerateReport("PDF", $filterlist, false, false, false, 'ExcelExport');
+		$reportData = $this->appendAdvancedColumnsForExport($reportData, $filterlist);
 		$arr_val = isset($reportData['data']) ? $reportData['data'] : array();
 		$totalxls = $this->GenerateReport("XLS", $filterlist, false, false, false, 'ExcelExport');
 		$numericTypes = array('currency', 'double', 'integer', 'percentage');
@@ -5170,24 +5171,31 @@ class ReportRun extends CRMEntity {
 		$mod_strings = return_module_language($current_language, $currentModule);
 
 		$reportData = $this->GenerateReport("PDF", $filterlist);
+		$reportData = $this->appendAdvancedColumnsForExport($reportData, $filterlist);
 		$arr_val = isset($reportData['data']) ? $reportData['data'] : '';
 
 		$fp = fopen($fileName, 'w+');
 
 		if (isset($arr_val)) {
 			$csv_values = array();
-			// Header
-			$csv_values = array_map('decode_html', array_keys($arr_val[0]));
-			$unsetValue = false;
-			// It'll not translate properly if you don't mention module of that string
-			if (end($csv_values) == vtranslate('LBL_ACTION', $this->primarymodule) || end($csv_values) == vtranslate($this->primarymodule, $this->primarymodule) . " " . vtranslate('LBL_ACTION', $this->primarymodule) || end($csv_values) == vtranslate('LBL ACTION', $this->primarymodule) || end($csv_values) == vtranslate($this->primarymodule, $this->primarymodule) . " " . vtranslate('LBL ACTION', $this->primarymodule)) {
-				unset($csv_values[php7_count($csv_values) - 1]); //removed action header in csv file
-				$unsetValue = true;
+			$actionColumnKeys = array();
+
+			foreach ($arr_val[0] as $headerKey => $headerValue) {
+				if ($this->isActionExportHeader($headerKey)) {
+					$actionColumnKeys[$headerKey] = true;
+				}
 			}
+
+			$firstRow = $arr_val[0];
+			foreach ($actionColumnKeys as $actionKey => $ignored) {
+				unset($firstRow[$actionKey]);
+			}
+
+			$csv_values = array_map('decode_html', array_keys($firstRow));
 			fputcsv($fp, Vtiger_Functions::sanitizeForCSVExport($csv_values));
 			foreach ($arr_val as $key => $array_value) {
-				if ($unsetValue) {
-					array_pop($array_value); //removed action link
+				foreach ($actionColumnKeys as $actionKey => $ignored) {
+					unset($array_value[$actionKey]);
 				}
 				$csv_values = array_map('decode_html', array_values($array_value));
 				fputcsv($fp, Vtiger_Functions::sanitizeForCSVExport($csv_values));
@@ -5235,6 +5243,41 @@ class ReportRun extends CRMEntity {
 			ob_clean();
 			fclose($fp);
 		}
+	}
+
+	/**
+	 * Append advanced computed columns to export rows.
+	 *
+	 * @param array $reportData
+	 * @param string $filterlist
+	 * @return array
+	 */
+	protected function appendAdvancedColumnsForExport($reportData, $filterlist = '') {
+		if (!is_array($reportData) || empty($reportData['data']) || empty($this->reportid)) {
+			return $reportData;
+		}
+
+		require_once 'modules/Reports/models/Record.php';
+		$reportModel = Reports_Record_Model::getInstanceById($this->reportid);
+		if (!$reportModel || !method_exists($reportModel, 'appendAdvancedColumnsToRows')) {
+			return $reportData;
+		}
+
+		return $reportModel->appendAdvancedColumnsToRows($reportData, $filterlist);
+	}
+
+	/**
+	 * Check if exported header belongs to the action link column.
+	 *
+	 * @param string $header
+	 * @return bool
+	 */
+	protected function isActionExportHeader($header) {
+		return ($header == 'ACTION'
+			|| $header == vtranslate('LBL_ACTION', $this->primarymodule)
+			|| $header == vtranslate($this->primarymodule, $this->primarymodule) . " " . vtranslate('LBL_ACTION', $this->primarymodule)
+			|| $header == vtranslate('LBL ACTION', $this->primarymodule)
+			|| $header == vtranslate($this->primarymodule, $this->primarymodule) . " " . vtranslate('LBL ACTION', $this->primarymodule));
 	}
 
 	function getGroupByTimeList($reportId) {

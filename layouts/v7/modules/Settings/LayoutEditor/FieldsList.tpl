@@ -216,7 +216,7 @@
 																	<i class="fa fa-pencil" title="{vtranslate('LBL_EDIT', $QUALIFIED_MODULE)}"></i>
 																</a>
 															{/if}
-															{if $FIELD_MODEL->isCustomField() eq 'true'}
+															{if $FIELD_MODEL->isCustomField() eq 'true' && !$FIELD_MODEL->isDeletionRestricted()}
 																<a href="javascript:void(0)" class="deleteCustomField pull-right" data-field-id="{$FIELD_MODEL->get('id')}"
 																	data-one-one-relationship="{$FIELD_MODEL->isOneToOneRelationField()}" data-relationship-field="{$FIELD_MODEL->isRelationShipReponsibleField()}"
 																	{if $FIELD_MODEL->isOneToOneRelationField()}
@@ -389,7 +389,7 @@
 																	<i class="fa fa-pencil" title="{vtranslate('LBL_EDIT', $QUALIFIED_MODULE)}"></i>
 																</a>
 															{/if}
-															{if $FIELD_MODEL->isCustomField() eq 'true'}
+															{if $FIELD_MODEL->isCustomField() eq 'true' && !$FIELD_MODEL->isDeletionRestricted()}
 																<a href="javascript:void(0)" class="deleteCustomField pull-right" data-field-id="{$FIELD_MODEL->get('id')}"
 																	data-one-one-relationship="{$FIELD_MODEL->isOneToOneRelationField()}" data-relationship-field="{$FIELD_MODEL->isRelationShipReponsibleField()}"
 																	{if $FIELD_MODEL->isOneToOneRelationField()}

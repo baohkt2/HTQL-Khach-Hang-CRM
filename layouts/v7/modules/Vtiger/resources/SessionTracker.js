@@ -11,18 +11,116 @@
     var SessionTracker = {
         HEARTBEAT_INTERVAL: Number(trackerConfig.heartbeatIntervalMs) > 0 ? Number(trackerConfig.heartbeatIntervalMs) : 5 * 60 * 1000,
         INACTIVITY_LIMIT: Number(trackerConfig.inactivityLimitMs) > 0 ? Number(trackerConfig.inactivityLimitMs) : 15 * 60 * 1000,
+        GLOBAL_ACTIVITY_KEY: 'CUSC_SESSION_GLOBAL_ACTIVITY_TS',
+        LOGOUT_SIGNAL_KEY: 'CUSC_SESSION_LOGOUT_SIGNAL',
+        LOGOUT_SIGNAL_TTL: 10 * 1000,
+        tabId: 'tab_' + Math.random().toString(36).slice(2),
         lastActivityTime: Date.now(),
         heartbeatTimer: null,
         inactivityTimer: null,
         isLoggingOut: false,
+        storageAvailable: null,
 
         init: function() {
+            this.storageAvailable = this.isStorageAvailable();
+            this.seedGlobalActivity();
             this.registerActivity();
             this.setupActivityListeners();
+            this.setupCrossTabListeners();
             this.setupPageStateListeners();
             this.startServerHeartbeat();
             this.resetInactivityTimer();
             this.setupBeforeUnload();
+        },
+
+        isStorageAvailable: function() {
+            if (this.storageAvailable !== null) {
+                return this.storageAvailable;
+            }
+
+            try {
+                var testKey = 'CUSC_SESSION_TRACKER_TEST_KEY';
+                window.localStorage.setItem(testKey, '1');
+                window.localStorage.removeItem(testKey);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        },
+
+        seedGlobalActivity: function() {
+            var globalTime;
+
+            if (!this.storageAvailable) {
+                return;
+            }
+
+            globalTime = this.readGlobalActivityTime();
+            if (!globalTime) {
+                this.writeGlobalActivityTime(this.lastActivityTime);
+            }
+        },
+
+        readGlobalActivityTime: function() {
+            var value;
+            var parsedValue;
+
+            if (!this.storageAvailable) {
+                return 0;
+            }
+
+            try {
+                value = window.localStorage.getItem(this.GLOBAL_ACTIVITY_KEY);
+                parsedValue = Number(value);
+                return parsedValue > 0 ? parsedValue : 0;
+            } catch (e) {
+                return 0;
+            }
+        },
+
+        writeGlobalActivityTime: function(timestamp) {
+            if (!this.storageAvailable) {
+                return;
+            }
+
+            try {
+                window.localStorage.setItem(this.GLOBAL_ACTIVITY_KEY, String(timestamp));
+            } catch (e) {
+                // Ignore storage write issues and continue with tab-local tracking.
+            }
+        },
+
+        getEffectiveLastActivityTime: function() {
+            return Math.max(this.lastActivityTime, this.readGlobalActivityTime());
+        },
+
+        setupCrossTabListeners: function() {
+            var self = this;
+
+            if (!this.storageAvailable) {
+                return;
+            }
+
+            window.addEventListener('storage', function(event) {
+                var newTimestamp;
+
+                if (!event || self.isLoggingOut) {
+                    return;
+                }
+
+                if (event.key === self.GLOBAL_ACTIVITY_KEY) {
+                    newTimestamp = Number(event.newValue);
+                    if (newTimestamp > 0) {
+                        self.lastActivityTime = Math.max(self.lastActivityTime, newTimestamp);
+                        self.resetInactivityTimer();
+                    }
+                    return;
+                }
+
+                if (event.key === self.LOGOUT_SIGNAL_KEY && event.newValue) {
+                    self.handleCrossTabLogout(event.newValue);
+                }
+            });
         },
 
         setupActivityListeners: function() {
@@ -53,11 +151,15 @@
         },
 
         registerActivity: function() {
+            var now;
+
             if (this.isLoggingOut) {
                 return;
             }
 
-            this.lastActivityTime = Date.now();
+            now = Date.now();
+            this.lastActivityTime = now;
+            this.writeGlobalActivityTime(now);
             this.resetInactivityTimer();
         },
 
@@ -69,7 +171,7 @@
                 clearTimeout(this.inactivityTimer);
             }
 
-            remainingMs = this.INACTIVITY_LIMIT - (Date.now() - this.lastActivityTime);
+            remainingMs = this.INACTIVITY_LIMIT - (Date.now() - this.getEffectiveLastActivityTime());
             if (remainingMs <= 0) {
                 this.handleInactivityLogout();
                 return;
@@ -81,7 +183,7 @@
         },
 
         isInactive: function() {
-            return (Date.now() - this.lastActivityTime) >= this.INACTIVITY_LIMIT;
+            return (Date.now() - this.getEffectiveLastActivityTime()) >= this.INACTIVITY_LIMIT;
         },
 
         checkInactivity: function() {
@@ -123,14 +225,45 @@
             var self = this;
 
             window.addEventListener('beforeunload', function() {
-                if (!self.isLoggingOut) {
-                    self.sendLogout('beforeunload');
-                }
+                self.destroy();
             });
         },
 
-        handleInactivityLogout: function() {
-            var self = this;
+        broadcastLogoutSignal: function() {
+            var payload;
+
+            if (!this.storageAvailable) {
+                return;
+            }
+
+            payload = JSON.stringify({
+                tabId: this.tabId,
+                timestamp: Date.now()
+            });
+
+            try {
+                window.localStorage.setItem(this.LOGOUT_SIGNAL_KEY, payload);
+            } catch (e) {
+                // Ignore storage write issues; server logout still proceeds in this tab.
+            }
+        },
+
+        handleCrossTabLogout: function(payload) {
+            var signal;
+
+            try {
+                signal = JSON.parse(payload);
+            } catch (e) {
+                return;
+            }
+
+            if (!signal || !signal.timestamp || signal.tabId === this.tabId) {
+                return;
+            }
+
+            if ((Date.now() - Number(signal.timestamp)) > this.LOGOUT_SIGNAL_TTL) {
+                return;
+            }
 
             if (this.isLoggingOut) {
                 return;
@@ -138,11 +271,30 @@
 
             this.isLoggingOut = true;
             this.destroy();
-            this.sendLogout('inactive');
+            this.redirectToLogout();
+        },
 
+        redirectToLogout: function() {
             window.setTimeout(function() {
                 window.location.href = 'index.php?module=Users&action=Logout&autoLogout=1';
             }, 150);
+        },
+
+        handleInactivityLogout: function() {
+            if (this.isLoggingOut) {
+                return;
+            }
+
+            if (!this.isInactive()) {
+                this.resetInactivityTimer();
+                return;
+            }
+
+            this.isLoggingOut = true;
+            this.destroy();
+            this.broadcastLogoutSignal();
+            this.sendLogout('inactive');
+            this.redirectToLogout();
         },
 
         sendLogout: function(reason) {
@@ -156,7 +308,7 @@
             }
 
             var xhr = new XMLHttpRequest();
-            xhr.open('POST', 'index.php?module=Users&action=AutoLogout', reason === 'beforeunload' ? false : true);
+            xhr.open('POST', 'index.php?module=Users&action=AutoLogout', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.send('reason=' + encodeURIComponent(reason));
         },

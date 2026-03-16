@@ -152,6 +152,12 @@ class Settings_LayoutEditor_Field_Action extends Settings_Vtiger_Index_Action {
         $fieldInstance = Settings_LayoutEditor_Field_Model::getInstance($fieldId);
         $response = new Vtiger_Response();
 
+        if ($fieldInstance && $fieldInstance->isDeletionRestricted()) {
+            $response->setError('123', 'Cannot delete protected system field');
+            $response->emit();
+            return;
+        }
+
         if(!$fieldInstance->isCustomField()) {
             $response->setError('122', 'Cannot delete Non custom field');
             $response->emit();

@@ -46,16 +46,16 @@ class Users_AutoLogout_Action extends Vtiger_Action_Controller {
             }
             
             if ($loginId) {
-                if ($reason === 'beforeunload' || $reason === 'inactive') {
-                    // Browser tab closed or client-side inactivity timeout elapsed.
+                if ($reason === 'inactive') {
+                    // Only true inactivity should sign the session off.
                     $adb->pquery(
                         "UPDATE vtiger_loginhistory SET logout_time = ?, status = 'Signed off' 
                          WHERE login_id = ? AND status IN ('Signed in','Signed off')",
                         array($currentTime, $loginId)
                     );
                 } else {
-                    // Heartbeat or any other reason → only touch logout_time,
-                    // keep status 'Signed in' so the session stays active.
+                    // Heartbeat, beforeunload, or any other reason only refreshes activity.
+                    // In multi-tab usage, closing one tab must not sign off the whole session.
                     $adb->pquery(
                         "UPDATE vtiger_loginhistory SET logout_time = ? 
                          WHERE login_id = ? AND status = 'Signed in'",

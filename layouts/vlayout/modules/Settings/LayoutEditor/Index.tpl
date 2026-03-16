@@ -246,7 +246,7 @@
                                     </form>
                                 </div>
                             {/if}
-                            {if $FIELD_MODEL->isCustomField() eq 'true'}
+                            {if $FIELD_MODEL->isCustomField() eq 'true' && !$FIELD_MODEL->isDeletionRestricted()}
                                 <a href="javascript:void(0)" class="deleteCustomField" data-field-id="{$FIELD_MODEL->get('id')}">
                                     <i class="icon-trash alignMiddle" title="{vtranslate('LBL_DELETE', $QUALIFIED_MODULE)}"></i>
                                 </a>
@@ -407,7 +407,7 @@
     </form>
 </div>
 {/if}
-{if $FIELD_MODEL->isCustomField() eq 'true'}
+{if $FIELD_MODEL->isCustomField() eq 'true' && !$FIELD_MODEL->isDeletionRestricted()}
     <a href="javascript:void(0)" class="deleteCustomField" data-field-id="{$FIELD_MODEL->get('id')}">
         <i class="icon-trash alignMiddle" title="{vtranslate('LBL_DELETE', $QUALIFIED_MODULE)}"></i>
     </a>

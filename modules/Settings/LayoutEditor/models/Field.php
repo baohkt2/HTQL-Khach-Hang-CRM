@@ -245,6 +245,13 @@ class Settings_LayoutEditor_Field_Model extends Vtiger_Field_Model {
 	}
 
 	/**
+	 * Prevent deletion of protected custom fields that must be system-managed.
+	 */
+	public function isDeletionRestricted() {
+		return ($this->getModuleName() === 'Contacts' && $this->getName() === 'cf_2115');
+	}
+
+	/**
 	 * Function to get instance
 	 * @param <String> $value - fieldname or fieldid
 	 * @param <type> $module - optional - module instance
