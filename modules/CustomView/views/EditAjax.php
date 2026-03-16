@@ -28,6 +28,9 @@ Class CustomView_EditAjax_View extends Vtiger_IndexAjax_View {
 
 		if(!empty($record)) {
 			$customViewModel = CustomView_Record_Model::getInstanceById($record);
+			if (!$customViewModel->isEditable()) {
+				throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+			}
 			$viewer->assign('MODE', 'edit');
 		} else if(!empty($sourceRecord)) {
 			$customViewModel = CustomView_Record_Model::getInstanceById($sourceRecord);

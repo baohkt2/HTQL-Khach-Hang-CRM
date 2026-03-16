@@ -163,10 +163,11 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 	}
 
 	public function isEditable() {
-		if($this->get('viewname') == 'All') {
-			return false;
-		}
 		$currentUser = Users_Record_Model::getCurrentUserModel();
+		if($this->get('viewname') == 'All') {
+			// Allow only admins to edit the default All filter.
+			return $currentUser->isAdminUser();
+		}
 		if($currentUser->isAdminUser()) {
 			return true;
 		}
@@ -178,6 +179,9 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 	}
 
 	public function isDeletable() {
+		if($this->get('viewname') == 'All') {
+			return false;
+		}
 		return $this->isEditable();
 	}
 

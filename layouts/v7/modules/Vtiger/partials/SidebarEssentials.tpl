@@ -64,7 +64,7 @@
                                             <div class="pull-right">
                                                 <span class="js-popover-container" style="cursor:pointer;">
                                                     <span  class="fa fa-angle-down" rel="popover" data-toggle="popover" aria-expanded="true" 
-                                                        {if ($CUSTOM_VIEW->isMine() || $IS_ADMIN) && $CUSTOM_VIEW->get('viewname') neq 'All'}
+                                                            {if ($CUSTOM_VIEW->isMine() || $IS_ADMIN) && ($CUSTOM_VIEW->get('viewname') neq 'All' || $IS_ADMIN)}
                                                             data-deletable="{if $CUSTOM_VIEW->isDeletable()}true{else}false{/if}" 
                                                             data-editable="{if $CUSTOM_VIEW->isEditable()}true{else}false{/if}" 
                                                             {if $CUSTOM_VIEW->isEditable()} data-editurl="{$CUSTOM_VIEW->getEditUrl()}{/if}" 

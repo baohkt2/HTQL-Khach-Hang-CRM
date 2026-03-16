@@ -87,6 +87,11 @@ class CustomView_Save_Action extends Vtiger_Action_Controller {
 
 		$customViewModel = $this->getCVModelFromRequest($request);
 		$response = new Vtiger_Response();
+		if (!empty($request->get('record')) && !$customViewModel->isEditable()) {
+			$response->setError(vtranslate('LBL_PERMISSION_DENIED'));
+			$response->emit();
+			return;
+		}
 		
 		if (!$customViewModel->checkDuplicate()) {
 			$isNew = empty($request->get('record'));
