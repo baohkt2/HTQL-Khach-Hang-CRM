@@ -26,6 +26,8 @@
                     <input type="hidden" id="flag" name="flag" value="" />
                     <input type="hidden" id="maxUploadSize" value="{$MAX_UPLOAD_SIZE}" />
                     <input type="hidden" id="documentIds" name="documentids" value="" />
+                    <input type="hidden" id="pdfTemplateId" name="pdf_template_id" value="{if !empty($PDF_TEMPLATE_ID)}{$PDF_TEMPLATE_ID}{/if}" />
+                    <input type="hidden" id="pdfTemplateName" name="pdf_template_name" value="{if !empty($PDF_TEMPLATE_NAME)}{$PDF_TEMPLATE_NAME|escape:html}{/if}" />
                     <input type="hidden" name="emailMode" value="{if isset($EMAIL_MODE)}{$EMAIL_MODE}{/if}" />
                     <input type="hidden" name="source_module" value="{$SOURCE_MODULE}" />
                     {if !empty($PARENT_EMAIL_ID)}
@@ -125,16 +127,31 @@
                             </div>
                             <div class="col-lg-9">
                                 <div class="row">
-                                    <div class="col-lg-4 browse">
+                                    <div class="col-lg-3 browse">
                                         <input type="file" {if isset($FILE_ATTACHED)}class="removeNoFileChosen"{/if} id="multiFile" name="file[]"/>&nbsp;
                                     </div>
-                                    <div class="col-lg-4 brownseInCrm">
+                                    <div class="col-lg-3 brownseInCrm">
                                         <button type="button" class="btn btn-small btn-default" id="browseCrm" data-url="{$DOCUMENTS_URL}" title="{vtranslate('LBL_BROWSE_CRM',$MODULE)}">{vtranslate('LBL_BROWSE_CRM',$MODULE)}</button>
                                     </div>
-                                    <div class="col-lg-4 insertTemplate">
+                                    <div class="col-lg-3 insertTemplate">
                                         <button id="selectEmailTemplate" class="btn btn-success" data-url="module=EmailTemplates&view=Popup">{vtranslate('LBL_SELECT_EMAIL_TEMPLATE',$MODULE)}</button>
                                     </div>
+                                    {if $PDFMAKER2_MODULE_ACTIVE}
+                                        <div class="col-lg-3 insertTemplate">
+                                            <button type="button" id="selectPdfTemplate" class="btn btn-warning">Dinh kem mau PDF</button>
+                                        </div>
+                                    {/if}
                                 </div>
+                                {if $PDFMAKER2_MODULE_ACTIVE}
+                                    <div class="row" style="margin-top: 8px;">
+                                        <div class="col-lg-12">
+                                            <div id="pdfTemplateAttachment" class="MultiFile-label{if empty($PDF_TEMPLATE_ID)} hide{/if}">
+                                                <a href="#" class="cursorPointer" id="removePdfTemplate">x </a>
+                                                <span class="pdfTemplateName">{if !empty($PDF_TEMPLATE_NAME)}[PDF] {$PDF_TEMPLATE_NAME|escape:html}{/if}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {/if}
                                 <div id="attachments">
                                     {if isset($ATTACHMENTS) && $ATTACHMENTS|@count > 0}
                                         {foreach item=ATTACHMENT from=$ATTACHMENTS}

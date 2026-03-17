@@ -29,6 +29,9 @@
 		<input type="hidden" id="flag" name="flag" value="" />
 		<input type="hidden" id="maxUploadSize" value="{$MAX_UPLOAD_SIZE}" />
 		<input type="hidden" id="documentIds" name="documentids" value="" />
+		<input type="hidden" id="pdfTemplateId" name="pdf_template_id" value="{if !empty($PDF_TEMPLATE_ID)}{$PDF_TEMPLATE_ID}{/if}" />
+		<input type="hidden" id="pdfTemplateName" name="pdf_template_name" value="{if !empty($PDF_TEMPLATE_NAME)}{$PDF_TEMPLATE_NAME|escape:html}{/if}" />
+		<input type="hidden" name="source_module" value="{$SOURCE_MODULE}" />
 		<input type="hidden" name="emailMode" value="{$EMAIL_MODE}" />
 		{if !empty($PARENT_EMAIL_ID)}
 			<input type="hidden" name="parent_id" value="{$PARENT_EMAIL_ID}" />
@@ -127,6 +130,15 @@
 					<span class="span10">
 						<input type="file" id="multiFile" name="file[]"/>&nbsp;
 						<button type="button" class="btn btn-small" id="browseCrm" data-url="{$DOCUMENTS_URL}" title="{vtranslate('LBL_BROWSE_CRM',$MODULE)}">{vtranslate('LBL_BROWSE_CRM',$MODULE)}</button>
+						{if $PDFMAKER2_MODULE_ACTIVE}
+							<button type="button" class="btn btn-small" id="selectPdfTemplate">Dinh kem mau PDF</button>
+						{/if}
+						{if $PDFMAKER2_MODULE_ACTIVE}
+							<div id="pdfTemplateAttachment" class="MultiFile-label{if empty($PDF_TEMPLATE_ID)} hide{/if}">
+								<a id="removePdfTemplate" class="cursorPointer">x </a>
+								<span class="pdfTemplateName">{if !empty($PDF_TEMPLATE_NAME)}[PDF] {$PDF_TEMPLATE_NAME|escape:html}{/if}</span>
+							</div>
+						{/if}
 						<div id="attachments" class="row-fluid">
 							{foreach item=ATTACHMENT from=$ATTACHMENTS}
 								{if ('docid'|array_key_exists:$ATTACHMENT)}

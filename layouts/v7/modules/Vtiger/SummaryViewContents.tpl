@@ -18,7 +18,7 @@
 	{foreach item=FIELD_MODEL key=FIELD_NAME from=$SUMMARY_RECORD_STRUCTURE['SUMMARY_FIELDS']}
         {assign var=fieldDataType value=$FIELD_MODEL->getFieldDataType()}
 			<tr class="summaryViewEntries">
-				<td class="fieldLabel" >
+				<td class="fieldLabel">
                         <label class="muted textOverflowEllipsis" title="{vtranslate($FIELD_MODEL->get('label'),$MODULE_NAME)}">
                             {vtranslate($FIELD_MODEL->get('label'),$MODULE_NAME)}
                             {if $FIELD_MODEL->get('uitype') eq '71' || $FIELD_MODEL->get('uitype') eq '72'}
@@ -26,8 +26,8 @@
 							&nbsp;({$CURRENCY_INFO['symbol']})
                             {/if}
                         </label>
-                    </td>
-                <td class="fieldValue {if $FIELD_MODEL->isEditable() eq 'true' && $IS_AJAX_ENABLED && $FIELD_MODEL->isAjaxEditable() eq 'true' && $FIELD_MODEL->get('uitype') neq 69}inlineEditableField{/if}">
+				</td>
+                                <td class="fieldValue {if $FIELD_MODEL->isEditable() eq 'true' && $IS_AJAX_ENABLED && $FIELD_MODEL->isAjaxEditable() eq 'true' && $FIELD_MODEL->get('uitype') neq 69}inlineEditableField{/if}">
                     <div class="">
                         {assign var=DISPLAY_VALUE value="{$FIELD_MODEL->getDisplayValue($FIELD_MODEL->get("fieldvalue"))}"}                  
                         <span class="value textOverflowEllipsis" title="{strip_tags($DISPLAY_VALUE)}"  {if $FIELD_MODEL->get('uitype') eq '19' or $FIELD_MODEL->get('uitype') eq '20' or $FIELD_MODEL->get('uitype') eq '21'}style="word-wrap: break-word;"{/if}>

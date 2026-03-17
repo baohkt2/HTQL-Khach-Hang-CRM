@@ -265,6 +265,161 @@ jQuery.Class("Emails_MassEdit_Js",{},{
 			},'tempalteWindow');
 		});
 	},
+
+	registerSelectPdfTemplateEvent : function() {
+		var thisInstance = this;
+		var massEmailForm = this.getMassEmailForm();
+		massEmailForm.off('click.pdfTemplate', '#selectPdfTemplate').on('click.pdfTemplate', '#selectPdfTemplate', function(e) {
+			e.preventDefault();
+			var formContainer = jQuery(e.currentTarget).closest('form');
+			if (!formContainer.length) {
+				formContainer = massEmailForm;
+			}
+
+			var sourceModule = formContainer.find('[name="source_module"]').val();
+			if (!sourceModule && typeof app.getModuleName === 'function') {
+				sourceModule = app.getModuleName();
+			}
+			if (!sourceModule) {
+				Vtiger_Helper_Js.showPnotify('Khong xac dinh duoc module nguon de tai mau PDF.');
+				return;
+			}
+
+			var requestParams = {
+				module: 'PDFMaker2',
+				view: 'GetTemplates',
+				source_module: sourceModule
+			};
+
+			AppConnector.request(requestParams).then(function(response) {
+				var data = response;
+				if (typeof data === 'string') {
+					try {
+						data = JSON.parse(data);
+					} catch (e) {
+						data = {};
+					}
+				}
+				if (data && data.result) {
+					data = data.result;
+				}
+
+				if (!data || data.success !== true) {
+					Vtiger_Helper_Js.showPnotify('Khong tai duoc danh sach mau PDF.');
+					return;
+				}
+
+				var templates = data.templates || [];
+				if (!templates.length) {
+					Vtiger_Helper_Js.showPnotify('Khong co mau PDF nao cho module ' + sourceModule + '.');
+					return;
+				}
+
+				thisInstance.showPdfTemplatePopup(templates, formContainer);
+			}, function() {
+				Vtiger_Helper_Js.showPnotify('Khong tai duoc danh sach mau PDF. Vui long thu lai.');
+			});
+		});
+	},
+
+	showPdfTemplatePopup : function(templates, formContainer) {
+		var thisInstance = this;
+		if (!formContainer || !formContainer.length) {
+			formContainer = this.getMassEmailForm();
+		}
+		jQuery('#pdfTemplateSelectorOverlay, #pdfTemplateSelectorDialog').remove();
+		var popupHtml = '<div style="padding:12px 14px;border-bottom:1px solid #ddd;position:relative;">' +
+			'<button type="button" class="close" id="closePdfTemplateSelector" aria-hidden="true" style="position:absolute;right:10px;top:8px;">x</button>' +
+			'<h3 style="margin:0;line-height:1.4;">Dinh kem mau PDF</h3></div><div style="padding:14px;">' +
+			'<div class="row-fluid"><div class="span12">' +
+			'<select id="pdfTemplateSelect" style="width:100%;">';
+
+		for (var i = 0; i < templates.length; i++) {
+			var templateInfo = templates[i];
+			var selectedAttr = (String(templateInfo.is_default) === '1') ? ' selected="selected"' : '';
+			var templateName = thisInstance.escapeHtml(templateInfo.template_name || 'PDF Template');
+			popupHtml += '<option value="' + String(templateInfo.templateid) + '" data-template-name="' + templateName + '"' + selectedAttr + '>' + templateName + '</option>';
+		}
+
+		popupHtml += '</select></div></div></div><div style="padding:12px 14px;border-top:1px solid #ddd;text-align:right;">' +
+			'<button type="button" class="btn btn-success" id="confirmPdfTemplateSelection">Chon</button>' +
+			'<button type="button" class="btn" id="cancelPdfTemplateSelection">Huy</button>' +
+			'</div>';
+
+		var overlay = jQuery('<div id="pdfTemplateSelectorOverlay" style="position:fixed;left:0;top:0;right:0;bottom:0;background:#000;opacity:.35;z-index:11000;"></div>');
+		var dialog = jQuery('<div id="pdfTemplateSelectorDialog" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:11001;width:520px;max-width:92vw;background:#fff;border:1px solid #bbb;border-radius:2px;box-shadow:0 8px 24px rgba(0,0,0,.35);"></div>');
+		dialog.html(popupHtml);
+		jQuery('body').append(overlay).append(dialog);
+
+		var closeSelector = function() {
+			dialog.remove();
+			overlay.remove();
+		};
+
+		dialog.find('#confirmPdfTemplateSelection').on('click', function() {
+			var selectedOption = dialog.find('#pdfTemplateSelect option:selected');
+			var templateId = selectedOption.val();
+			var templateName = selectedOption.data('templateName') || selectedOption.text();
+			if (!templateId) {
+				Vtiger_Helper_Js.showPnotify('Vui long chon mau PDF.');
+				return;
+			}
+
+			formContainer.find('#pdfTemplateId').val(templateId);
+			formContainer.find('#pdfTemplateName').val(templateName);
+			thisInstance.renderSelectedPdfTemplate(formContainer);
+			closeSelector();
+		});
+
+		dialog.find('#cancelPdfTemplateSelection, #closePdfTemplateSelector').on('click', function(e) {
+			e.preventDefault();
+			closeSelector();
+		});
+
+		overlay.on('click', function() {
+			closeSelector();
+		});
+	},
+
+	renderSelectedPdfTemplate : function(formContainer) {
+		if (!formContainer || !formContainer.length) {
+			formContainer = this.getMassEmailForm();
+		}
+
+		var templateId = formContainer.find('#pdfTemplateId').val();
+		var templateName = formContainer.find('#pdfTemplateName').val();
+		var container = formContainer.find('#pdfTemplateAttachment');
+		if (!container.length) {
+			return;
+		}
+
+		if (!templateId) {
+			container.addClass('hide');
+			container.find('.pdfTemplateName').text('');
+			return;
+		}
+
+		container.removeClass('hide');
+		container.find('.pdfTemplateName').text('[PDF] ' + templateName);
+	},
+
+	registerRemovePdfTemplateEvent : function() {
+		var thisInstance = this;
+		this.getMassEmailForm().off('click.pdfTemplate', '#removePdfTemplate').on('click.pdfTemplate', '#removePdfTemplate', function(e) {
+			e.preventDefault();
+			var formContainer = jQuery(e.currentTarget).closest('form');
+			if (!formContainer.length) {
+				formContainer = thisInstance.getMassEmailForm();
+			}
+			formContainer.find('#pdfTemplateId').val('');
+			formContainer.find('#pdfTemplateName').val('');
+			thisInstance.renderSelectedPdfTemplate(formContainer);
+		});
+	},
+
+	escapeHtml : function(value) {
+		return jQuery('<div/>').text(value || '').html();
+	},
 	getDocumentAttachmentElement : function(selectedFileName,id,selectedFileSize){
 		return '<div class="MultiFile-label"><a class="removeAttachment cursorPointer" data-id='+id+' data-file-size='+selectedFileSize+'>x </a><span>'+selectedFileName+'</span></div>';
 	},
@@ -942,6 +1097,9 @@ jQuery.Class("Emails_MassEdit_Js",{},{
 			this.registerEventsToGetFlagValue();
 			this.registerCcAndBccEvents();
 			this.registerSendEmailTemplateEvent();
+			this.registerSelectPdfTemplateEvent();
+			this.registerRemovePdfTemplateEvent();
+			this.renderSelectedPdfTemplate(composeEmailForm);
 			this.registerBrowseCrmEvent();
 			this.registerEventsForToField();
 			this.registerEventForRemoveCustomAttachments();

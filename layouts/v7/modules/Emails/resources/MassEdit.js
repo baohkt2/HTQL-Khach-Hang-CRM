@@ -148,6 +148,150 @@ jQuery.Class("Emails_MassEdit_Js",{},{
 		});
 	},
 
+	registerSelectPdfTemplateEvent : function() {
+		var thisInstance = this;
+		this.getMassEmailForm().off('click.pdfTemplate', '#selectPdfTemplate').on('click.pdfTemplate', '#selectPdfTemplate', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var formContainer = jQuery(e.currentTarget).closest('form');
+			if (!formContainer.length) {
+				formContainer = thisInstance.getMassEmailForm();
+			}
+
+			var sourceModule = formContainer.find('[name="source_module"]').val();
+			if (!sourceModule) {
+				app.helper.showErrorNotification({message: 'Khong xac dinh duoc module nguon de tai mau PDF.'});
+				return;
+			}
+
+			app.helper.showProgress();
+			app.request.get({
+				data: {
+					module: 'PDFMaker2',
+					view: 'GetTemplates',
+					source_module: sourceModule
+				}
+			}).then(function(err, data) {
+				app.helper.hideProgress();
+				if (err !== null || !data || data.success !== true) {
+					app.helper.showErrorNotification({message: 'Khong tai duoc danh sach mau PDF.'});
+					return;
+				}
+
+				var templates = data.templates || [];
+				if (!templates.length) {
+					app.helper.showAlertBox({
+						title: 'Thong bao',
+						message: 'Khong co mau PDF nao cho module ' + sourceModule + '.'
+					});
+					return;
+				}
+
+				thisInstance.showPdfTemplateSelectorModal(templates, formContainer);
+			});
+		});
+	},
+
+	showPdfTemplateSelectorModal : function(templates, formContainer) {
+		var thisInstance = this;
+		if (!formContainer || !formContainer.length) {
+			formContainer = this.getMassEmailForm();
+		}
+
+		jQuery('.popupModal.pdfTemplatePopup').remove();
+		var optionsHtml = '';
+		for (var i = 0; i < templates.length; i++) {
+			var templateInfo = templates[i];
+			var templateName = thisInstance.escapeHtml(templateInfo.template_name || 'PDF Template');
+			var isDefault = String(templateInfo.is_default) === '1';
+			var selectedAttr = isDefault ? ' selected="selected"' : '';
+			var defaultLabel = isDefault ? ' (Mac dinh)' : '';
+			optionsHtml += '<option value="' + String(templateInfo.templateid) + '" data-template-name="' + templateName + '"' + selectedAttr + '>' + templateName + defaultLabel + '</option>';
+		}
+
+		var modalHtml = '<div class="modal popupModal pdfTemplatePopup">' +
+			'<div class="modal-dialog modal-md">' +
+			'<div class="modal-content">' +
+			'<div class="modal-header">' +
+			'<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>' +
+			'<h4 class="modal-title">Dinh kem mau PDF</h4>' +
+			'</div>' +
+			'<div class="modal-body">' +
+			'<div class="form-group">' +
+			'<label><strong>Chon mau PDF</strong></label>' +
+			'<select id="pdfTemplateSelect" class="inputElement form-control">' + optionsHtml + '</select>' +
+			'</div>' +
+			'</div>' +
+			'<div class="modal-footer">' +
+			'<button type="button" class="btn btn-success" id="confirmPdfTemplateSelection">Chon</button>' +
+			'<button type="button" class="btn btn-default" data-dismiss="modal">Huy</button>' +
+			'</div>' +
+			'</div>' +
+			'</div>' +
+			'</div>';
+
+		jQuery('body').append(modalHtml);
+		this.showpopupModal();
+
+		var pdfPopupContainer = jQuery('.popupModal.pdfTemplatePopup');
+		pdfPopupContainer.find('#confirmPdfTemplateSelection').on('click', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var selectedOption = pdfPopupContainer.find('#pdfTemplateSelect option:selected');
+					var templateId = selectedOption.val();
+					var templateName = selectedOption.data('templateName') || selectedOption.text();
+					if (!templateId) {
+						app.helper.showErrorNotification({message: 'Vui long chon mau PDF.'});
+						return;
+					}
+
+					formContainer.find('#pdfTemplateId').val(templateId);
+					formContainer.find('#pdfTemplateName').val(templateName);
+					thisInstance.renderSelectedPdfTemplate(formContainer);
+					pdfPopupContainer.modal('hide');
+		});
+	},
+
+	renderSelectedPdfTemplate : function(formContainer) {
+		if (!formContainer || !formContainer.length) {
+			formContainer = this.getMassEmailForm();
+		}
+
+		var templateId = formContainer.find('#pdfTemplateId').val();
+		var templateName = formContainer.find('#pdfTemplateName').val();
+		var container = formContainer.find('#pdfTemplateAttachment');
+		if (!container.length) {
+			return;
+		}
+
+		if (!templateId) {
+			container.addClass('hide');
+			container.find('.pdfTemplateName').text('');
+			return;
+		}
+
+		container.find('.pdfTemplateName').text('[PDF] ' + templateName);
+		container.removeClass('hide');
+	},
+
+	registerRemovePdfTemplateEvent : function() {
+		var thisInstance = this;
+		this.getMassEmailForm().off('click.pdfTemplate', '#removePdfTemplate').on('click.pdfTemplate', '#removePdfTemplate', function(e) {
+			e.preventDefault();
+			var formContainer = jQuery(e.currentTarget).closest('form');
+			if (!formContainer.length) {
+				formContainer = thisInstance.getMassEmailForm();
+			}
+			formContainer.find('#pdfTemplateId').val('');
+			formContainer.find('#pdfTemplateName').val('');
+			thisInstance.renderSelectedPdfTemplate(formContainer);
+		});
+	},
+
+	escapeHtml : function(value) {
+		return jQuery('<div/>').text(value || '').html();
+	},
+
 	showpopupModal : function(){
 		var thisInstance = this;
 		vtUtils.applyFieldElementsView(jQuery('.popupModal'));
@@ -855,6 +999,9 @@ jQuery.Class("Emails_MassEdit_Js",{},{
 				this.loadCkEditor(jQuery('#description').data('isCkeditorApplied',true));
 			}
 			this.registerSelectEmailTemplateEvent();
+			this.registerSelectPdfTemplateEvent();
+			this.registerRemovePdfTemplateEvent();
+			this.renderSelectedPdfTemplate(container);
 			this.registerEventsForToField();
 			this.registerEventForRemoveCustomAttachments();
 

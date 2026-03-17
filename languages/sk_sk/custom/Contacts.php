@@ -37,4 +37,5 @@ $languageStrings = array(
 'Đợt 38'	=>	'Đợt 38',
 'Đợt 39'	=>	'Đợt 39',
 'Đợt 40'	=>	'Đợt 40',
+'Chờ liên hệ'	=>	'Chờ liên hệ',
 );

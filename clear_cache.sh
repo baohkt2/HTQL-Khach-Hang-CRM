@@ -1,4 +1,3 @@
-#!/bin/bash
 # Clear Vtiger cache
 
 echo "Clearing Vtiger cache..."

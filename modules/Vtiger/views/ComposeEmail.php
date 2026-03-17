@@ -60,6 +60,8 @@ class Vtiger_ComposeEmail_View extends Vtiger_Footer_View {
 		$viewer->assign('MAX_UPLOAD_SIZE', Vtiger_Util_Helper::getMaxUploadSizeInBytes());
 		$viewer->assign('RELATED_MODULES', $moduleModel->getEmailRelatedModules());
 		$viewer->assign('SOURCE_MODULE', $request->get('source_module'));
+		$viewer->assign('PDF_TEMPLATE_ID', $request->get('pdf_template_id'));
+		$viewer->assign('PDF_TEMPLATE_NAME', $request->get('pdf_template_name'));
 
 		if ($documentIds) {
 			$attachements = array();
@@ -224,6 +226,12 @@ class Vtiger_ComposeEmail_View extends Vtiger_Footer_View {
 		//EmailTemplate module percission check
 		$userPrevilegesModel = Users_Privileges_Model::getCurrentUserPrivilegesModel();
 		$viewer->assign('MODULE_IS_ACTIVE', $userPrevilegesModel->hasModulePermission(Vtiger_Module_Model::getInstance('EmailTemplates')->getId()));
+		$pdfMaker2ModuleModel = Vtiger_Module_Model::getInstance('PDFMaker2');
+		$pdfMaker2ModuleActive = false;
+		if ($pdfMaker2ModuleModel) {
+			$pdfMaker2ModuleActive = $userPrevilegesModel->hasModulePermission($pdfMaker2ModuleModel->getId());
+		}
+		$viewer->assign('PDFMAKER2_MODULE_ACTIVE', $pdfMaker2ModuleActive);
 		//
 
 		if($relatedLoad){

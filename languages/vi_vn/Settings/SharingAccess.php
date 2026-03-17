@@ -8,7 +8,7 @@
  * All Rights Reserved.
  *************************************************************************************/
 $languageStrings = array(
-	'Accounts' => 'Khách hàng & Liên hệ',
+	'Accounts' => 'Trường học & Liên hệ',
 	'LBL_ADD_CUSTOM_RULE' => 'Thêm chia sẻ quyền tùy chỉnh',
 	'LBL_ADD_CUSTOM_RULE_TO' => 'Thêm chia sẻ quyền tùy chỉnh để',
 	'LBL_ADVANCED_SHARING_RULES' => 'Quyền truy cập mở rộng',
