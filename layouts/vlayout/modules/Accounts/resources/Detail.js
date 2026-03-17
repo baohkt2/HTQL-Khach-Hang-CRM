@@ -63,7 +63,87 @@ Vtiger_Detail_Js("Accounts_Detail_Js",{
                 callbackFunction(data);
             }
         });
-        }
+	},
+	
+	triggerCloseSchool : function(record) {
+		var popupParams = {
+			module: 'Accounts',
+			view: 'CloseSchoolPopup',
+			record: record
+		};
+
+		AppConnector.request(popupParams).then(function(data) {
+			app.showModalWindow(data, function(modalContainer) {
+				var container = jQuery(modalContainer);
+				var form = container.find('#closeSchoolForm');
+				if (!form.length) {
+					Vtiger_Helper_Js.showPnotify({
+						title: app.vtranslate('JS_CLOSE_SCHOOL_FAILED'),
+						type: 'error'
+					});
+					return;
+				}
+
+				container.find('#selectAllCloseSchoolFields').on('change', function() {
+					var checked = jQuery(this).is(':checked');
+					container.find('.inheritFieldCheckbox').not(':disabled').prop('checked', checked);
+				});
+
+				form.on('submit', function(submitEvent) {
+					submitEvent.preventDefault();
+					var submitData = form.serializeFormData();
+					Vtiger_Helper_Js.showConfirmationBox({message: app.vtranslate('JS_CLOSE_SCHOOL_CONFIRM')}).then(function() {
+						AppConnector.request(submitData).then(function(response) {
+							var hasResultPayload = response && typeof response.result !== 'undefined';
+							var result = hasResultPayload ? response.result : response;
+							var hasServerError = response && response.success === false;
+							var hasResultError = result && result.success === false;
+							if (hasServerError || hasResultError || !result) {
+								var errorMessage = app.vtranslate('JS_CLOSE_SCHOOL_FAILED');
+								if (response && response.error && response.error.message) {
+									errorMessage = response.error.message;
+								}
+								Vtiger_Helper_Js.showPnotify({
+									title: errorMessage,
+									type: 'error'
+								});
+								return;
+							}
+
+							app.hideModalWindow();
+							Vtiger_Helper_Js.showPnotify({
+								title: app.vtranslate('JS_CLOSE_SCHOOL_SUCCESS'),
+								type: 'info'
+							});
+							if (result.newRecordId) {
+								window.location.href = 'index.php?module=Accounts&view=Detail&record=' + result.newRecordId;
+							} else {
+								window.location.reload();
+							}
+						}, function(textStatus, errorThrown) {
+							if (textStatus === 'parsererror') {
+								window.location.reload();
+								return;
+							}
+							var errorMessage = app.vtranslate('JS_CLOSE_SCHOOL_FAILED');
+							if (errorThrown && errorThrown.message) {
+								errorMessage = errorThrown.message;
+							}
+							Vtiger_Helper_Js.showPnotify({
+								title: errorMessage,
+								type: 'error'
+							});
+						});
+					});
+				});
+			});
+		}, function() {
+			Vtiger_Helper_Js.showPnotify({
+				title: app.vtranslate('JS_CLOSE_SCHOOL_FAILED'),
+				type: 'error'
+			});
+		});
+	}
 },{
 	//Cache which will store account name and whether it is duplicate or not
 	accountDuplicationCheckCache : {},

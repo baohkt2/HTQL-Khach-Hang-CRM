@@ -97,10 +97,20 @@ $languageStrings = array(
 	'Planned Re-extraction of Information 1 - 2 - 3 - 4' => 'Kế hoạch tái khai thác thông tin 1 - 2 - 3 - 4',
 	'Tracking Status' => 'Trạng thái theo dõi',
 	'Contract Status' => 'Trạng thái hợp đồng',
+	'LBL_CLOSE_SCHOOL' => 'Đóng trường',
+	'LBL_CLOSE_SCHOOL_POPUP_TITLE' => 'Đóng trường và tạo trường mới',
+	'LBL_CLOSE_SCHOOL_WARNING' => 'Bản ghi trường hiện tại sẽ được đổi tên với hậu tố năm hiện tại và chuyển trạng thái hoạt động sang Đóng. Sau đó hệ thống sẽ tạo trường mới với tên gốc.',
+	'LBL_CLOSE_SCHOOL_OLD_NAME' => 'Tên trường hiện tại',
+	'LBL_CLOSE_SCHOOL_NEW_NAME_PREVIEW' => 'Tên trường cũ sau khi đóng (dự kiến)',
+	'LBL_CLOSE_SCHOOL_SELECT_ALL_FIELDS' => 'Chọn tất cả thông tin kế thừa',
+	'LBL_CLOSE_SCHOOL_STUDENT_LINK_NOTE' => 'Lưu ý: Liên kết học sinh và trường Số lượng học sinh sẽ không được kế thừa sang trường mới.',
 );
 $jsLanguageStrings = array(
 	'JS_DUPLICTAE_CREATION_CONFIRMATION' => 'Tên trường đã tồn tại.Bạn có muốn tạo một bản ghi mới không?',
 	'LBL_DELETE_CONFIRMATION' => 'Khi xóa trường này bạn sẽ bị mất cơ hội và các trích dẫn khác. Bạn có chắc muốn xóa nó không?',
 	'LBL_MASS_DELETE_CONFIRMATION' => 'Khi xóa trường này bạn sẽ bị mất cơ hội và các trích dẫn khác. Bạn có chắc muốn xóa nó không?',
 	'LBL_RELATED_RECORD_DELETE_CONFIRMATION' => 'Bạn có chắc muốn xóa nó không?',
+	'JS_CLOSE_SCHOOL_SUCCESS' => 'Đã đóng trường cũ và tạo trường mới thành công.',
+	'JS_CLOSE_SCHOOL_CONFIRM' => 'Thao tác này không thể hoàn tác. Bạn có chắc chắn muốn đóng trường hiện tại và tạo trường mới không?',
+	'JS_CLOSE_SCHOOL_FAILED' => 'Không thể thực hiện đóng trường. Vui lòng thử lại.',
 );

@@ -24,6 +24,67 @@ Vtiger_Detail_Js("Accounts_Detail_Js",{
 
 	},
 
+	triggerCloseSchool : function(recordId) {
+		var requestParams = {
+			module: 'Accounts',
+			view: 'CloseSchoolPopup',
+			record: recordId
+		};
+
+		app.helper.showProgress();
+		app.request.get({data: requestParams}).then(function(err, data) {
+			app.helper.hideProgress();
+			if (err !== null) {
+				app.helper.showErrorNotification({message: app.vtranslate('JS_CLOSE_SCHOOL_FAILED')});
+				return;
+			}
+
+			app.helper.showModal(data, {
+				cb: function(modalContainer) {
+					var form = modalContainer.find('form[name="closeSchoolForm"]');
+					modalContainer.find('#selectAllCloseSchoolFields').on('change', function(e) {
+						var checked = jQuery(e.currentTarget).is(':checked');
+						form.find('.inheritFieldCheckbox').not(':disabled').prop('checked', checked);
+					});
+
+					form.on('submit', function(submitEvent) {
+						submitEvent.preventDefault();
+						var submitPayload = form.serializeFormData();
+						app.helper.showConfirmationBox({message: app.vtranslate('JS_CLOSE_SCHOOL_CONFIRM')}).then(function() {
+							app.helper.showProgress();
+							app.request.post({data: submitPayload}).then(function(postErr, postData) {
+								app.helper.hideProgress();
+								if (postErr === 'parsererror') {
+									window.location.reload();
+									return;
+								}
+								var requestSucceeded = (postErr === null) && postData && (postData.success === true || typeof postData.result !== 'undefined');
+								if (!requestSucceeded) {
+									var errorMessage = app.vtranslate('JS_CLOSE_SCHOOL_FAILED');
+									if (postErr && postErr.message) {
+										errorMessage = postErr.message;
+									} else if (postData && postData.error && postData.error.message) {
+										errorMessage = postData.error.message;
+									}
+									app.helper.showErrorNotification({message: errorMessage});
+									return;
+								}
+
+								app.helper.hideModal();
+								app.helper.showSuccessNotification({message: app.vtranslate('JS_CLOSE_SCHOOL_SUCCESS')});
+								if (postData.result && postData.result.newRecordId) {
+									window.location.href = 'index.php?module=Accounts&view=Detail&record=' + postData.result.newRecordId;
+								} else {
+									window.location.reload();
+								}
+							});
+						});
+					});
+				}
+			});
+		});
+	},
+
 	/*
 	 * function to get the AccountHierarchy response data
 	 */

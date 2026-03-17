@@ -34,6 +34,20 @@ class Accounts_DetailView_Model extends Vtiger_DetailView_Model {
 			$linkModelList['DETAILVIEWBASIC'][] = Vtiger_Link_Model::getInstanceFromValues($basicActionLink);
 		}
 
+		$moduleModel = $this->getModule();
+		$canCloseSchool = $currentUserModel->hasModuleActionPermission($moduleModel->getId(), 'EditView')
+			&& $currentUserModel->hasModuleActionPermission($moduleModel->getId(), 'CreateView')
+			&& $recordModel->get('cf_2127') !== 'Đóng';
+		if ($canCloseSchool) {
+			$closeSchoolLink = array(
+				'linktype' => 'DETAILVIEWBASIC',
+				'linklabel' => 'LBL_CLOSE_SCHOOL',
+				'linkurl' => 'javascript:Accounts_Detail_Js.triggerCloseSchool('.$recordModel->getId().');',
+				'linkicon' => ''
+			);
+			$linkModelList['DETAILVIEWBASIC'][] = Vtiger_Link_Model::getInstanceFromValues($closeSchoolLink);
+		}
+
 		//TODO: update the database so that these separate handlings are not required
 		$index=0;
 		foreach($linkModelList['DETAILVIEW'] as $link) {
