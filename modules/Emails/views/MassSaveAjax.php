@@ -48,6 +48,8 @@ class Emails_MassSaveAjax_View extends Vtiger_Footer_View {
 		$signature = $request->get('signature');
 		// This is either SENT or SAVED
 		$flag = $request->get('flag');
+		$temporaryPdfFiles = array();
+		$perRecipientPdfAttachments = array();
 
 		$result = Vtiger_Util_Helper::transformUploadedFiles($_FILES, true);
 		$_FILES = $result['file'];
@@ -162,8 +164,72 @@ class Emails_MassSaveAjax_View extends Vtiger_Footer_View {
 		$_REQUEST['parent_id'] = $parentIds;
 
 		$success = false;
+		$message = '';
+		$selectedPdfTemplateId = 0;
+		$pdfSourceModule = '';
 		$viewer = $this->getViewer($request);
 		if ($recordModel->checkUploadSize($documentIds)) {
+			$canProceed = true;
+			$selectedPdfTemplateId = $this->sanitizePdfTemplateId($request->get('pdf_template_id'));
+			if ($flag === 'SENT' && !empty($selectedPdfTemplateId)) {
+				$pdfSourceModule = $request->get('source_module');
+				if (empty($pdfSourceModule)) {
+					$canProceed = false;
+					$message = vtranslate('LBL_RECORD_NOT_FOUND', $moduleName);
+				} else {
+					if (is_array($toMailInfo)) {
+						foreach ($toMailInfo as $recipientRecordId => $emailValueList) {
+							if (!is_numeric($recipientRecordId)) {
+								continue;
+							}
+							$recipientRecordId = (int) $recipientRecordId;
+							$recipientEntityType = getSalesEntityType($recipientRecordId);
+							if (!empty($recipientEntityType) && $recipientEntityType !== $pdfSourceModule) {
+								continue;
+							}
+
+							$pdfErrorMessage = '';
+							$generatedPdfAttachment = $this->createGeneratedPdfAttachment($selectedPdfTemplateId, $recipientRecordId, $pdfSourceModule, $pdfErrorMessage);
+							if ($generatedPdfAttachment === false) {
+								$canProceed = false;
+								$message = !empty($pdfErrorMessage) ? $pdfErrorMessage : 'Khong the tao file PDF tu mau da chon.';
+								break;
+							}
+
+							$recipientKey = (string) $recipientRecordId;
+							$perRecipientPdfAttachments[$recipientKey][] = $generatedPdfAttachment;
+							if (!empty($generatedPdfAttachment['filepath'])) {
+								$temporaryPdfFiles[] = $generatedPdfAttachment['filepath'];
+							} else {
+								$temporaryPdfFiles[] = $generatedPdfAttachment['path'] . '/' . $generatedPdfAttachment['storedname'];
+							}
+						}
+					}
+
+					if ($canProceed && empty($perRecipientPdfAttachments)) {
+						$pdfSourceRecordId = $this->resolvePdfSourceRecordId($request, $recordIds, $toMailInfo, $pdfSourceModule);
+						if (empty($pdfSourceRecordId)) {
+							$canProceed = false;
+							$message = vtranslate('LBL_RECORD_NOT_FOUND', $moduleName);
+						} else {
+							$pdfErrorMessage = '';
+							$generatedPdfAttachment = $this->createGeneratedPdfAttachment($selectedPdfTemplateId, $pdfSourceRecordId, $pdfSourceModule, $pdfErrorMessage);
+							if ($generatedPdfAttachment === false) {
+								$canProceed = false;
+								$message = !empty($pdfErrorMessage) ? $pdfErrorMessage : 'Khong the tao file PDF tu mau da chon.';
+							} else {
+								$perRecipientPdfAttachments['__default__'][] = $generatedPdfAttachment;
+								if (!empty($generatedPdfAttachment['filepath'])) {
+									$temporaryPdfFiles[] = $generatedPdfAttachment['filepath'];
+								} else {
+									$temporaryPdfFiles[] = $generatedPdfAttachment['path'] . '/' . $generatedPdfAttachment['storedname'];
+								}
+							}
+						}
+					}
+				}
+			}
+			if ($canProceed) {
 			// Fix content format acceptable to be preserved in table.
 			$decodedHtmlDescriptionToSend = $recordModel->get('description');
 			$recordModel->set('description', to_html($decodedHtmlDescriptionToSend));
@@ -222,7 +288,11 @@ class Emails_MassSaveAjax_View extends Vtiger_Footer_View {
 					$newFilePath = $upload_file_path . $current_id . "_" . $encryptFileName;
 
 					//expect attachment only from storage directory
-					Vtiger_Utils::checkFileAccessIn($oldFilePath, ["storage"]);
+					$allowedAttachmentFolders = array('storage');
+					if (!empty($existingAttachInfo['is_generated_pdf'])) {
+						$allowedAttachmentFolders[] = 'cache';
+					}
+					Vtiger_Utils::checkFileAccessIn($oldFilePath, $allowedAttachmentFolders);
 					
 					copy($oldFilePath, $newFilePath);
 
@@ -244,9 +314,15 @@ class Emails_MassSaveAjax_View extends Vtiger_Footer_View {
 				}
 			}
 			$success = true;
-			$message = '';
 			if($flag == 'SENT') {
-				$status = $recordModel->send();
+				$recordModel->set('perRecipientPdfAttachments', $perRecipientPdfAttachments);
+				$recordModel->set('pdf_template_id', $selectedPdfTemplateId);
+				$recordModel->set('pdf_source_module', $pdfSourceModule);
+				$status = $recordModel->send(false, array(
+					'perRecipientPdfAttachments' => $perRecipientPdfAttachments,
+					'pdf_template_id' => $selectedPdfTemplateId,
+					'pdf_source_module' => $pdfSourceModule
+				));
 				if ($status === true) {
 					// This is needed to set vtiger_email_track table as it is used in email reporting
 					$recordModel->setAccessCountValue();
@@ -255,10 +331,12 @@ class Emails_MassSaveAjax_View extends Vtiger_Footer_View {
 					$message = $status;
 				}
 			}
+			}
 
 		} else {
 			$message = vtranslate('LBL_MAX_UPLOAD_SIZE', $moduleName).' '.vtranslate('LBL_EXCEEDED', $moduleName);
 		}
+		$this->cleanupTemporaryFiles($temporaryPdfFiles);
 		$viewer->assign('SUCCESS', $success);
 		$viewer->assign('MESSAGE', $message);
 		$viewer->assign('FLAG', $flag);
@@ -268,6 +346,133 @@ class Emails_MassSaveAjax_View extends Vtiger_Footer_View {
 			$viewer->assign('RELATED_LOAD',true);
 		}
 		$viewer->view('SendEmailResult.tpl', $moduleName);
+	}
+
+	protected function sanitizePdfTemplateId($templateId) {
+		if (empty($templateId) || !is_numeric($templateId)) {
+			return 0;
+		}
+		return (int) $templateId;
+	}
+
+	protected function resolvePdfSourceRecordId(Vtiger_Request $request, $recordIds, $toMailInfo, $sourceModule) {
+		$sourceRecord = $request->get('sourceRecord');
+		if (!empty($sourceRecord) && is_numeric($sourceRecord)) {
+			return (int) $sourceRecord;
+		}
+
+		if (is_array($recordIds)) {
+			foreach ($recordIds as $recordId) {
+				if (!is_numeric($recordId)) {
+					continue;
+				}
+				$entityType = getSalesEntityType($recordId);
+				if (!empty($sourceModule) && $entityType === $sourceModule) {
+					return (int) $recordId;
+				}
+			}
+		}
+
+		if (is_array($toMailInfo)) {
+			foreach ($toMailInfo as $recordId => $emails) {
+				if (!is_numeric($recordId)) {
+					continue;
+				}
+				$entityType = getSalesEntityType($recordId);
+				if (!empty($sourceModule) && $entityType === $sourceModule) {
+					return (int) $recordId;
+				}
+			}
+		}
+
+		return 0;
+	}
+
+	protected function createGeneratedPdfAttachment($templateId, $recordId, $sourceModule, &$errorMessage) {
+		$errorMessage = '';
+		$templateId = (int) $templateId;
+		$recordId = (int) $recordId;
+
+		if ($templateId <= 0 || $recordId <= 0 || empty($sourceModule)) {
+			$errorMessage = 'Thieu thong tin de tao file PDF.';
+			return false;
+		}
+
+		if (!class_exists('PDFMaker2_Record_Model') && file_exists('modules/PDFMaker2/models/Record.php')) {
+			require_once 'modules/PDFMaker2/models/Record.php';
+		}
+		if (!class_exists('PDFMaker2_PDFRenderer_Model') && file_exists('modules/PDFMaker2/models/PDFRenderer.php')) {
+			require_once 'modules/PDFMaker2/models/PDFRenderer.php';
+		}
+
+		if (!class_exists('PDFMaker2_Record_Model') || !class_exists('PDFMaker2_PDFRenderer_Model')) {
+			$errorMessage = 'Khong tim thay module PDFMaker2.';
+			return false;
+		}
+
+		$templateModel = PDFMaker2_Record_Model::getInstanceById($templateId);
+		if (!$templateModel) {
+			$errorMessage = 'Mau PDF khong ton tai hoac da bi xoa.';
+			return false;
+		}
+
+		try {
+			$pdfContent = PDFMaker2_PDFRenderer_Model::render($templateId, $recordId, $sourceModule, 'string');
+		} catch (Exception $e) {
+			$errorMessage = $e->getMessage();
+			return false;
+		}
+
+		if ($pdfContent === false || $pdfContent === '') {
+			$errorMessage = 'Khong nhan duoc noi dung PDF tu bo render.';
+			return false;
+		}
+
+		$rootDirectory = rtrim(vglobal('root_directory'), '/');
+		$tempDirRelative = 'cache/pdfmaker2/email';
+		$tempDir = $rootDirectory . '/' . $tempDirRelative;
+		if (!is_dir($tempDir) && !mkdir($tempDir, 0755, true)) {
+			$errorMessage = 'Khong tao duoc thu muc tam de luu PDF.';
+			return false;
+		}
+
+		$templateName = decode_html($templateModel->get('template_name'));
+		$templateName = html_entity_decode($templateName, ENT_QUOTES, 'UTF-8');
+		$templateName = preg_replace('/[\\\\\/:"*?<>|]+/u', ' ', $templateName);
+		$templateName = preg_replace('/\s+/u', ' ', trim($templateName));
+		if (empty($templateName)) {
+			$templateName = 'PDF_Template';
+		}
+		$fileName = $templateName . '_' . $recordId . '_' . date('YmdHis') . '.pdf';
+		$filePath = $tempDir . '/' . $fileName;
+
+		if (file_put_contents($filePath, $pdfContent) === false) {
+			$errorMessage = 'Khong ghi duoc file PDF tam.';
+			return false;
+		}
+
+		return array(
+			'attachment' => $fileName,
+			'filepath' => $filePath,
+			'storedname' => $fileName,
+			'path' => $tempDirRelative,
+			'fileid' => '',
+			'type' => 'application/pdf',
+			'size' => filesize($filePath),
+			'pdf_content_base64' => base64_encode($pdfContent),
+			'is_generated_pdf' => true
+		);
+	}
+
+	protected function cleanupTemporaryFiles(array $paths) {
+		if (empty($paths)) {
+			return;
+		}
+		foreach ($paths as $path) {
+			if (!empty($path) && file_exists($path) && is_file($path)) {
+				@unlink($path);
+			}
+		}
 	}
 
 	/**

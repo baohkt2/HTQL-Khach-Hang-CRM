@@ -45,7 +45,7 @@ class Emails_Record_Model extends Vtiger_Record_Model {
 	/**
 	 * Function sends mail
 	 */
-	public function send($addToQueue = false) {
+	public function send($addToQueue = false, $runtimeContext = array()) {
 		$currentUserModel = Users_Record_Model::getCurrentUserModel();
 		$rootDirectory = vglobal('root_directory');
 		$logo = false;
@@ -78,6 +78,33 @@ class Emails_Record_Model extends Vtiger_Record_Model {
 			$toEmailInfo['to'.$i++] = array($value);
 		}
 		$attachments = $this->getAttachmentDetails();
+		$perRecipientPdfAttachments = array();
+		if (is_array($runtimeContext) && isset($runtimeContext['perRecipientPdfAttachments'])) {
+			$perRecipientPdfAttachments = $runtimeContext['perRecipientPdfAttachments'];
+		} else {
+			$perRecipientPdfAttachments = $this->get('perRecipientPdfAttachments');
+		}
+		if (is_string($perRecipientPdfAttachments)) {
+			$decodedPerRecipientPdfAttachments = json_decode($perRecipientPdfAttachments, true);
+			if (is_array($decodedPerRecipientPdfAttachments)) {
+				$perRecipientPdfAttachments = $decodedPerRecipientPdfAttachments;
+			}
+		}
+		if (!is_array($perRecipientPdfAttachments)) {
+			$perRecipientPdfAttachments = array();
+		}
+		$selectedPdfTemplateId = 0;
+		if (is_array($runtimeContext) && isset($runtimeContext['pdf_template_id'])) {
+			$selectedPdfTemplateId = (int) $runtimeContext['pdf_template_id'];
+		} else {
+			$selectedPdfTemplateId = (int) $this->get('pdf_template_id');
+		}
+		$pdfSourceModule = '';
+		if (is_array($runtimeContext) && isset($runtimeContext['pdf_source_module'])) {
+			$pdfSourceModule = $runtimeContext['pdf_source_module'];
+		} else {
+			$pdfSourceModule = $this->get('pdf_source_module');
+		}
 		$status = false;
 
 		// Merge Users module merge tags based on current user.
@@ -192,6 +219,85 @@ class Emails_Record_Model extends Vtiger_Record_Model {
                     }
                 }
             }
+
+			$recipientPdfAttachments = array();
+			$selectedRecipientKey = (string)$selectedId;
+			if (isset($perRecipientPdfAttachments[$selectedRecipientKey]) && is_array($perRecipientPdfAttachments[$selectedRecipientKey])) {
+				$recipientPdfAttachments = $perRecipientPdfAttachments[$selectedRecipientKey];
+			} else if (isset($perRecipientPdfAttachments[$selectedId]) && is_array($perRecipientPdfAttachments[$selectedId])) {
+				$recipientPdfAttachments = $perRecipientPdfAttachments[$selectedId];
+			} else if (isset($perRecipientPdfAttachments['__default__']) && is_array($perRecipientPdfAttachments['__default__'])) {
+				$recipientPdfAttachments = $perRecipientPdfAttachments['__default__'];
+			}
+
+			if (!empty($recipientPdfAttachments)) {
+				$recipientPdfAttached = false;
+				foreach ($recipientPdfAttachments as $recipientPdfAttachment) {
+					$recipientPdfFilePath = '';
+					if (!empty($recipientPdfAttachment['filepath'])) {
+						$recipientPdfFilePath = $recipientPdfAttachment['filepath'];
+					} else if (!empty($recipientPdfAttachment['path']) && !empty($recipientPdfAttachment['storedname'])) {
+						$recipientPdfFilePath = rtrim($recipientPdfAttachment['path'], '/') . '/' . $recipientPdfAttachment['storedname'];
+					}
+
+					$absoluteCandidatePath = '';
+					if (!empty($recipientPdfFilePath)) {
+						if (is_file($recipientPdfFilePath)) {
+							$absoluteCandidatePath = $recipientPdfFilePath;
+						} else {
+							$normalizedRelativePath = ltrim($recipientPdfFilePath, '/');
+							$rootPrefixedPath = rtrim($rootDirectory, '/') . '/' . $normalizedRelativePath;
+							if (is_file($rootPrefixedPath)) {
+								$absoluteCandidatePath = $rootPrefixedPath;
+							}
+						}
+					}
+
+					$recipientPdfDisplayName = !empty($recipientPdfAttachment['attachment']) ? $recipientPdfAttachment['attachment'] : basename($absoluteCandidatePath);
+					$isAttached = false;
+					if (!empty($absoluteCandidatePath)) {
+						$isAttached = (bool) $mailer->AddAttachment($absoluteCandidatePath, $recipientPdfDisplayName);
+						if ($isAttached) {
+							$recipientPdfAttached = true;
+						}
+					}
+
+					if (!$isAttached && !empty($recipientPdfAttachment['pdf_content_base64'])) {
+						$decodedPdfContent = base64_decode($recipientPdfAttachment['pdf_content_base64'], true);
+						if ($decodedPdfContent !== false) {
+							if (empty($recipientPdfDisplayName)) {
+								$recipientPdfDisplayName = 'attachment.pdf';
+							}
+							$recipientPdfAttached = (bool) $mailer->AddStringAttachment($decodedPdfContent, $recipientPdfDisplayName, 'base64', 'application/pdf');
+						}
+					}
+				}
+			} else {
+				$recipientPdfAttached = false;
+			}
+
+			if (!$recipientPdfAttached && $selectedPdfTemplateId > 0) {
+				$pdfRecordId = 0;
+				if (is_numeric($selectedId)) {
+					$selectedRecordId = (int) $selectedId;
+					$selectedRecordModule = getSalesEntityType($selectedRecordId);
+					if (empty($pdfSourceModule) || $selectedRecordModule === $pdfSourceModule) {
+						$pdfRecordId = $selectedRecordId;
+					}
+				}
+
+				if ($pdfRecordId <= 0) {
+					$pdfRecordId = $this->resolvePdfFallbackRecordId($pdfSourceModule);
+				}
+
+				if ($pdfRecordId > 0) {
+					$runtimePdfAttachment = $this->generateRuntimePdfAttachment($selectedPdfTemplateId, $pdfRecordId, $pdfSourceModule);
+					if ($runtimePdfAttachment !== false) {
+						$mailer->AddStringAttachment($runtimePdfAttachment['content'], $runtimePdfAttachment['name'], 'base64', 'application/pdf');
+					}
+				}
+			}
+
             if ($logo) {
                 $companyDetails = Vtiger_CompanyDetails_Model::getInstanceById();
                 $companyLogoDetails = $companyDetails->getLogo();
@@ -254,6 +360,86 @@ class Emails_Record_Model extends Vtiger_Record_Model {
 		}
 	}
 		return $status;
+	}
+
+	protected function resolvePdfFallbackRecordId($pdfSourceModule) {
+		$parentIdData = $this->get('parent_id');
+		if (empty($parentIdData)) {
+			return 0;
+		}
+
+		$relationPairs = explode('|', trim($parentIdData, '|'));
+		foreach ($relationPairs as $relationPair) {
+			if (empty($relationPair)) {
+				continue;
+			}
+
+			$pairData = explode('@', $relationPair);
+			$recordId = reset($pairData);
+			if (!is_numeric($recordId)) {
+				continue;
+			}
+
+			$recordId = (int) $recordId;
+			$recordModule = getSalesEntityType($recordId);
+			if (empty($pdfSourceModule) || $recordModule === $pdfSourceModule) {
+				return $recordId;
+			}
+		}
+
+		return 0;
+	}
+
+	protected function generateRuntimePdfAttachment($templateId, $recordId, $pdfSourceModule = '') {
+		$templateId = (int) $templateId;
+		$recordId = (int) $recordId;
+		if ($templateId <= 0 || $recordId <= 0) {
+			return false;
+		}
+
+		if (empty($pdfSourceModule)) {
+			$pdfSourceModule = getSalesEntityType($recordId);
+		}
+		if (empty($pdfSourceModule)) {
+			return false;
+		}
+
+		if (!class_exists('PDFMaker2_Record_Model') && file_exists('modules/PDFMaker2/models/Record.php')) {
+			require_once 'modules/PDFMaker2/models/Record.php';
+		}
+		if (!class_exists('PDFMaker2_PDFRenderer_Model') && file_exists('modules/PDFMaker2/models/PDFRenderer.php')) {
+			require_once 'modules/PDFMaker2/models/PDFRenderer.php';
+		}
+		if (!class_exists('PDFMaker2_Record_Model') || !class_exists('PDFMaker2_PDFRenderer_Model')) {
+			return false;
+		}
+
+		$templateModel = PDFMaker2_Record_Model::getInstanceById($templateId);
+		if (!$templateModel) {
+			return false;
+		}
+
+		try {
+			$pdfContent = PDFMaker2_PDFRenderer_Model::render($templateId, $recordId, $pdfSourceModule, 'string');
+		} catch (Exception $e) {
+			return false;
+		}
+		if ($pdfContent === false || $pdfContent === '') {
+			return false;
+		}
+
+		$templateName = decode_html($templateModel->get('template_name'));
+		$templateName = html_entity_decode($templateName, ENT_QUOTES, 'UTF-8');
+		$templateName = preg_replace('/[\\\\\/:"*?<>|]+/u', ' ', $templateName);
+		$templateName = preg_replace('/\s+/u', ' ', trim($templateName));
+		if (empty($templateName)) {
+			$templateName = 'PDF_Template';
+		}
+
+		return array(
+			'name' => $templateName . '_' . $recordId . '.pdf',
+			'content' => $pdfContent
+		);
 	}
 
 	/**
