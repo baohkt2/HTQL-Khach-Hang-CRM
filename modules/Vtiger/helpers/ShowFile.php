@@ -52,7 +52,8 @@ class Vtiger_ShowFile_Helper {
                     }
                 }
                 if ($isFileExist) {
-                    Vtiger_ShowFile_Helper::show($finalFilePath,$fileType, $sanitizedFileName);
+                    checkFileAccess($finalFilePath);
+                    self::show($finalFilePath,$fileType, $sanitizedFileName);
                 }
             }
 		}
