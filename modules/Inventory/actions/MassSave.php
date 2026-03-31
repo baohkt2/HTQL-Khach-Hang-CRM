@@ -11,6 +11,12 @@
 class Inventory_MassSave_Action extends Vtiger_MassSave_Action {
 
 	public function process(Vtiger_Request $request) {
+		$mode = $request->getMode();
+		if (in_array($mode, array('startMassEditProgress', 'processMassEditProgress', 'cancelMassEditProgress'))) {
+			parent::process($request);
+			return;
+		}
+
 		$response = new Vtiger_Response();
 		try {
 			vglobal('VTIGER_TIMESTAMP_NO_CHANGE_MODE', $request->get('_timeStampNoChangeMode',false));
@@ -31,5 +37,16 @@ class Inventory_MassSave_Action extends Vtiger_MassSave_Action {
 			$response->setError($e->getMessage());
 		}
 		$response->emit();
+	}
+
+	protected function saveMassEditedRecord($moduleName, $recordId, Vtiger_Record_Model $recordModel) {
+		if (!Users_Privileges_Model::isPermitted($moduleName, 'Save', $recordId)) {
+			return false;
+		}
+
+		// Prevent inventory line items from being reset on mass edit save.
+		$_REQUEST['ajxaction'] = 'DETAILVIEW';
+		$recordModel->save();
+		return true;
 	}
 }

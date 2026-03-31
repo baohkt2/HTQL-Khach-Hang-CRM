@@ -41,13 +41,6 @@ Vtiger.Class(
     },
     triggerMassEdit: function (url) {
       var listInstance = window.app.controller();
-      var selectedRecordCount = listInstance.getSelectedRecordCount();
-      if (selectedRecordCount > 500) {
-        app.helper.showErrorNotification({
-          message: app.vtranslate("JS_MASS_EDIT_LIMIT"),
-        });
-        return;
-      }
       app.event.trigger("post.listViewMassEdit.click", url);
       var params = listInstance.getListSelectAllParams(true);
       if (params) {
@@ -131,13 +124,25 @@ Vtiger.Class(
             app.helper.hideProgress();
             if (data) {
               var callback = function (data) {
-                var chagneOwnerForm = jQuery("#changeOwner");
-                chagneOwnerForm.vtValidate({
+                var changeOwnerForm = jQuery("#changeOwner");
+                changeOwnerForm.vtValidate({
                   submitHandler: function (form) {
                     listInstance.transferOwnershipSave(jQuery(form));
                     return false;
                   },
                 });
+                changeOwnerForm
+                  .off("click", ".js-cancel-transfer-ownership-progress")
+                  .on(
+                    "click",
+                    ".js-cancel-transfer-ownership-progress",
+                    function (e) {
+                      e.preventDefault();
+                      listInstance.cancelTransferOwnershipProgress(
+                        changeOwnerForm,
+                      );
+                    },
+                  );
               };
               var params = {};
               params.cb = callback;
@@ -398,15 +403,192 @@ Vtiger.Class(
       app.request.get({ data: postData }).then(function (error, data) {
         app.helper.loadPageContentOverlay(data).then(function (container) {
           listInstance.initializeCustomExportOverlay(container);
-          container.find("form#exportForm").on("submit", function () {
-            jQuery(this)
-              .find('button[type="submit"]')
-              .attr("disabled", "disabled");
-            app.helper.hidePageContentOverlay();
-          });
+          listInstance.registerExportFormTracking(container.find("form#exportForm"));
         });
         app.helper.hideProgress();
       });
+    },
+    registerExportFormTracking: function (form) {
+      var thisInstance = this;
+      if (!form || !form.length) {
+        return;
+      }
+
+      form.off("submit.exportTracking").on("submit.exportTracking", function (event) {
+        event.preventDefault();
+        thisInstance.submitExportFormWithTracking(jQuery(this));
+        return false;
+      });
+    },
+    submitExportFormWithTracking: function (form) {
+      var thisInstance = this;
+      if (!form || !form.length) {
+        return;
+      }
+
+      var widget = thisInstance.getExportProgressWidget(form);
+      var submitButton = form.find('button[type="submit"]');
+      var cancelLink = form.find(".cancelLink");
+      var frameName = "exportDownloadFrame_" + new Date().getTime();
+      var frame = jQuery("<iframe />", {
+        name: frameName,
+        style: "display:none;",
+      });
+      var progressValue = 3;
+      var completed = false;
+      var exportToken = "exp_" + new Date().getTime() + "_" + Math.floor(Math.random() * 1000000);
+      var cookieName = "cusc_export_done_" + exportToken;
+
+      var tokenInput = form.find('input[name="export_tracking_token"]');
+      if (!tokenInput.length) {
+        tokenInput = jQuery('<input type="hidden" name="export_tracking_token" />');
+        form.append(tokenInput);
+      }
+      tokenInput.val(exportToken);
+
+      document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+
+      var cleanup = function () {
+        window.clearInterval(progressInterval);
+        window.clearInterval(cookiePollInterval);
+        window.clearTimeout(progressTimeout);
+        window.setTimeout(function () {
+          widget.addClass("hide");
+          form.removeAttr("target");
+          submitButton.removeAttr("disabled");
+          cancelLink.removeClass("hide");
+          frame.remove();
+          app.helper.hidePageContentOverlay();
+          document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+        }, 650);
+      };
+
+      submitButton.attr("disabled", "disabled");
+      cancelLink.addClass("hide");
+      thisInstance.updateExportProgressWidget(
+        widget,
+        progressValue,
+        app.vtranslate("JS_EXPORT_PROGRESS_PREPARING"),
+      );
+      widget.removeClass("hide");
+
+      form.attr("target", frameName);
+      jQuery("body").append(frame);
+
+      var progressInterval = window.setInterval(function () {
+        if (completed) {
+          return;
+        }
+
+        progressValue = Math.min(
+          92,
+          progressValue + Math.max(1, Math.floor((92 - progressValue) / 6)),
+        );
+        thisInstance.updateExportProgressWidget(
+          widget,
+          progressValue,
+          app.vtranslate("JS_EXPORT_PROGRESS_PREPARING"),
+        );
+      }, 350);
+
+      var progressTimeout = window.setTimeout(function () {
+        if (completed) {
+          return;
+        }
+
+        completed = true;
+        thisInstance.updateExportProgressWidget(
+          widget,
+          100,
+          app.vtranslate("JS_EXPORT_PROGRESS_COMPLETED"),
+        );
+        cleanup();
+      }, 120000);
+
+      var cookiePollInterval = window.setInterval(function () {
+        if (completed) {
+          return;
+        }
+
+        if (document.cookie.indexOf(cookieName + "=1") !== -1) {
+          completed = true;
+          thisInstance.updateExportProgressWidget(
+            widget,
+            100,
+            app.vtranslate("JS_EXPORT_PROGRESS_COMPLETED"),
+          );
+          cleanup();
+        }
+      }, 250);
+
+      frame.one("load", function () {
+        if (completed) {
+          return;
+        }
+
+        completed = true;
+        thisInstance.updateExportProgressWidget(
+          widget,
+          100,
+          app.vtranslate("JS_EXPORT_PROGRESS_COMPLETED"),
+        );
+        cleanup();
+      });
+
+      form[0].submit();
+    },
+    getExportProgressWidget: function (form) {
+      var widget = form.find(".js-export-progress-widget");
+      if (widget.length) {
+        return widget;
+      }
+
+      widget = jQuery(
+        '<div class="js-export-progress-widget hide" style="margin:10px 0 0 0;">' +
+          '<div class="progress" style="margin-bottom:8px;">' +
+          '<div class="progress-bar progress-bar-striped active js-export-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%">0%</div>' +
+          "</div>" +
+          '<div class="js-export-progress-label text-muted" style="font-size:12px;"></div>' +
+          "</div>",
+      );
+
+      var footerContainer = form
+        .closest(".modal-content")
+        .find(".modal-overlay-footer .textAlignCenter > div")
+        .first();
+      if (!footerContainer.length) {
+        footerContainer = form
+          .closest(".modal-content")
+          .find(".modal-overlay-footer .textAlignCenter")
+          .first();
+      }
+      if (!footerContainer.length) {
+        footerContainer = form
+          .closest(".modal-content")
+          .find(".modal-overlay-footer")
+          .first();
+      }
+
+      footerContainer.prepend(widget);
+      return widget;
+    },
+    updateExportProgressWidget: function (widget, progress, label) {
+      if (!widget || !widget.length) {
+        return;
+      }
+
+      var percentage = parseInt(progress, 10);
+      if (isNaN(percentage)) {
+        percentage = 0;
+      }
+      percentage = Math.max(0, Math.min(100, percentage));
+
+      widget
+        .find(".js-export-progress-bar")
+        .css("width", percentage + "%")
+        .attr("aria-valuenow", percentage)
+        .text(percentage + "%");
+      widget.find(".js-export-progress-label").text(label || "");
     },
     initializeCustomExportOverlay: function (container) {
       var thisInstance = this;
@@ -461,8 +643,7 @@ Vtiger.Class(
               formObject
                 .find('button[type="submit"]')
                 .attr("disabled", "disabled");
-              app.helper.hidePageContentOverlay();
-              formElement.submit();
+              thisInstance.submitExportFormWithTracking(formObject);
             });
           return false;
         },
@@ -1765,11 +1946,19 @@ Vtiger.Class(
         );
         var editInstance = Vtiger_Edit_Js.getInstance();
         editInstance.registerBasicEvents(container);
-        var form_original_data = $("#massEdit").serialize();
-        $("#massEdit").on("submit", function (event) {
+        var form = $("#massEdit");
+        var form_original_data = form.serialize();
+        form.on("submit", function (event) {
           thisInstance.saveMassEdit(event, form_original_data, isOwnerChanged);
           isOwnerChanged = false;
         });
+        container
+          .off("click.massEditProgressCancel")
+          .on("click.massEditProgressCancel", ".js-cancel-mass-edit-progress", function (cancelEvent) {
+            cancelEvent.preventDefault();
+            thisInstance.cancelMassEditProgress(form);
+          });
+        thisInstance.resetMassEditProgressUI(form);
 
         thisInstance.registerAutoIncludeFieldsInMassEdit();
 
@@ -1997,60 +2186,264 @@ Vtiger.Class(
       event.preventDefault();
       var form = $("#massEdit");
       var changedFields = form.find("input[id^=include_in_mass_edit_]:checked");
-
-      app.helper.showProgress();
       if (changedFields.length > 0) {
-        var newData = app.convertUrlToDataParams(form.serialize());
-        var updateFieldsRequest = "";
+        var thisInstance = this;
+        var updateFieldsRequest = this.buildMassEditUpdateRequest(
+          form,
+          changedFields,
+        );
+        if (!updateFieldsRequest) {
+          app.event.trigger("post.save.failed");
+          return;
+        }
 
-        //add url params for hidden fields needed for the save request
-        var hiddenFields = form.children("input[type=hidden]");
-        hiddenFields.each(function (i, obj) {
-          key = $(this).attr("name");
-
-          if (typeof newData[key] !== "undefined") {
-            updateFieldsRequest += key + "=" + newData[key] + "&";
-          }
-        });
-
-        //add url params for fields that will be updated
-        changedFields.each(function (i, obj) {
-          var fieldName = $(this).data("update-field");
-          var fieldNameArray = fieldName + encodeURI("[]"); //fieldnames of fields like multipicklist have [] after the fieldname
-
-          var key = fieldName;
-          if (typeof newData[fieldNameArray] !== "undefined") {
-            key = fieldNameArray;
-          }
-
-          var value = newData[key];
-          updateFieldsRequest += key + "=";
-          if (typeof value !== "undefined") {
-            updateFieldsRequest += value;
-          }
-          updateFieldsRequest += "&";
-        });
+        this.toggleMassEditProgressUI(form, true);
+        this.updateMassEditProgressUI(
+          form,
+          {
+            percentage: 0,
+            message: app.vtranslate("JS_MASS_EDIT_PROGRESS_STARTED"),
+          },
+          false,
+        );
 
         app.request
-          .post({ data: updateFieldsRequest })
+          .post({ data: updateFieldsRequest + "mode=startMassEditProgress" })
           .then(function (err, data) {
-            app.helper.hideProgress();
-            if (data) {
-              jQuery(".vt-notification").remove();
-              app.helper.hidePageContentOverlay();
-              window.onbeforeunload = null;
-              app.event.trigger("post.listViewMassEditSave");
-            } else {
-              app.event.trigger("post.save.failed", err);
+            if (err || !data || !data.job_id) {
+              thisInstance.toggleMassEditProgressUI(form, false);
+              app.event.trigger("post.save.failed", err || data);
+              app.helper.showErrorNotification({
+                message:
+                  (data && data.message) || err || app.vtranslate("JS_ERROR"),
+              });
+              return;
             }
+
+            form.data("massEditProgressState", {
+              jobId: data.job_id,
+              cancelling: false,
+            });
+            thisInstance.updateMassEditProgressUI(form, data, false);
+            thisInstance.processMassEditProgressJob(form);
           });
       } else {
-        app.helper.hideProgress();
         app.helper.showAlertBox({
           message: app.vtranslate(
             "NONE_OF_THE_FIELD_VALUES_ARE_CHANGED_IN_MASS_EDIT",
           ),
         });
+      }
+    },
+
+    buildMassEditUpdateRequest: function (form, changedFields) {
+      var newData = app.convertUrlToDataParams(form.serialize());
+      var updateFieldsRequest = "";
+
+      // Add hidden fields needed for save request context.
+      var hiddenFields = form.children("input[type=hidden]");
+      hiddenFields.each(function () {
+        var key = $(this).attr("name");
+        if (typeof newData[key] !== "undefined") {
+          updateFieldsRequest += key + "=" + newData[key] + "&";
+        }
+      });
+
+      // Add only fields selected for mass update.
+      changedFields.each(function () {
+        var fieldName = $(this).data("update-field");
+        var fieldNameArray = fieldName + encodeURI("[]");
+        var key =
+          typeof newData[fieldNameArray] !== "undefined"
+            ? fieldNameArray
+            : fieldName;
+        var value = newData[key];
+
+        updateFieldsRequest += key + "=";
+        if (typeof value !== "undefined") {
+          updateFieldsRequest += value;
+        }
+        updateFieldsRequest += "&";
+      });
+
+      return updateFieldsRequest;
+    },
+
+    resetMassEditProgressUI: function (form) {
+      form.removeData("massEditProgressState");
+      this.toggleMassEditProgressUI(form, false);
+      this.updateMassEditProgressUI(
+        form,
+        { percentage: 0, message: "" },
+        false,
+      );
+    },
+
+    toggleMassEditProgressUI: function (form, showProgress) {
+      var progressContainer = form.find(".massEditProgressContainer");
+      if (!progressContainer.length) {
+        return;
+      }
+
+      var saveButton = form.find(".saveButton");
+      var cancelLink = form.find(".cancelLink");
+      var modalCloseButton = form
+        .closest(".fc-overlay-modal, .modal-content")
+        .find(".overlayHeader .close");
+      if (showProgress) {
+        form.find(".editViewContents").addClass("hide");
+        progressContainer.removeClass("hide");
+        saveButton.attr("disabled", "disabled");
+        cancelLink.addClass("hide");
+        modalCloseButton.addClass("hide");
+      } else {
+        form.find(".editViewContents").removeClass("hide");
+        progressContainer.addClass("hide");
+        saveButton.removeAttr("disabled");
+        cancelLink.removeClass("hide");
+        modalCloseButton.removeClass("hide");
+      }
+    },
+
+    updateMassEditProgressUI: function (form, progressData, forceCancelling) {
+      var progressContainer = form.find(".massEditProgressContainer");
+      if (!progressContainer.length) {
+        return;
+      }
+
+      var percentage = parseInt(progressData.percentage, 10);
+      if (isNaN(percentage)) {
+        percentage = 0;
+      }
+      percentage = Math.max(0, Math.min(100, percentage));
+
+      var processed = parseInt(progressData.processed, 10);
+      var total = parseInt(progressData.total, 10);
+      if (isNaN(processed)) {
+        processed = 0;
+      }
+      if (isNaN(total)) {
+        total = 0;
+      }
+
+      var message = progressData.message || "";
+      if (!message && total > 0) {
+        message =
+          app.vtranslate("JS_MASS_EDIT_PROGRESS_RUNNING") +
+          " (" +
+          processed +
+          "/" +
+          total +
+          ")";
+      }
+      if (forceCancelling) {
+        message = app.vtranslate("JS_MASS_EDIT_PROGRESS_CANCELLING");
+      }
+
+      progressContainer
+        .find(".js-mass-edit-progress-bar")
+        .css("width", percentage + "%")
+        .attr("aria-valuenow", percentage)
+        .text(percentage + "%");
+      progressContainer.find(".js-mass-edit-progress-label").text(message);
+
+      var cancelButton = progressContainer.find(".js-cancel-mass-edit-progress");
+      cancelButton
+        .prop("disabled", !!forceCancelling || !!progressData.completed)
+        .text(
+          forceCancelling
+            ? app.vtranslate("JS_MASS_EDIT_PROGRESS_CANCELLING")
+            : app.vtranslate("LBL_CANCEL"),
+        );
+    },
+
+    processMassEditProgressJob: function (form) {
+      var thisInstance = this;
+      var state = form.data("massEditProgressState") || {};
+      if (!state.jobId || state.cancelling) {
+        return;
+      }
+
+      app.request
+        .post({
+          data: {
+            module: this.getModuleName(),
+            action: "MassSave",
+            mode: "processMassEditProgress",
+            job_id: state.jobId,
+          },
+        })
+        .then(function (err, data) {
+          if (err || !data) {
+            thisInstance.toggleMassEditProgressUI(form, false);
+            app.event.trigger("post.save.failed", err);
+            app.helper.showErrorNotification({
+              message: err || app.vtranslate("JS_ERROR"),
+            });
+            return;
+          }
+
+          thisInstance.updateMassEditProgressUI(form, data, false);
+          if (data.completed) {
+            thisInstance.handleMassEditProgressCompletion(form, data);
+            return;
+          }
+
+          window.setTimeout(function () {
+            thisInstance.processMassEditProgressJob(form);
+          }, 75);
+        });
+    },
+
+    cancelMassEditProgress: function (form) {
+      var thisInstance = this;
+      var state = form.data("massEditProgressState") || {};
+      if (!state.jobId || state.cancelling) {
+        return;
+      }
+
+      state.cancelling = true;
+      form.data("massEditProgressState", state);
+      this.updateMassEditProgressUI(form, {}, true);
+
+      app.request
+        .post({
+          data: {
+            module: this.getModuleName(),
+            action: "MassSave",
+            mode: "cancelMassEditProgress",
+            job_id: state.jobId,
+          },
+        })
+        .then(function (err, data) {
+          if (err || !data) {
+            thisInstance.toggleMassEditProgressUI(form, false);
+            app.event.trigger("post.save.failed", err);
+            app.helper.showErrorNotification({
+              message: err || app.vtranslate("JS_ERROR"),
+            });
+            return;
+          }
+
+          thisInstance.updateMassEditProgressUI(form, data, true);
+          thisInstance.handleMassEditProgressCompletion(form, data);
+        });
+    },
+
+    handleMassEditProgressCompletion: function (form, progressData) {
+      this.updateMassEditProgressUI(form, progressData || {}, false);
+      form.removeData("massEditProgressState");
+      window.onbeforeunload = null;
+
+      if (progressData && progressData.message) {
+        app.helper.showSuccessNotification({ message: progressData.message });
+      }
+
+      app.helper.hidePageContentOverlay();
+
+      if (!progressData || !progressData.cancelled) {
+        jQuery(".vt-notification").remove();
+        app.event.trigger("post.listViewMassEditSave");
       }
     },
 
@@ -2380,28 +2773,242 @@ Vtiger.Class(
       var listInstance = window.app.controller();
       var listSelectParams = listInstance.getListSelectAllParams(false);
       if (listSelectParams) {
-        var formData = form.serializeFormData();
-        var data = jQuery.extend(formData, listSelectParams);
-        app.helper.showProgress();
-        app.request.post({ data: data }).then(function (err, data) {
-          app.helper.hideProgress();
-          if (err == null) {
-            jQuery(".vt-notification").remove();
-            app.helper.hideModal();
-            listInstance.loadListViewRecords().then(function (e) {
-              listInstance.clearList();
-              app.helper.showSuccessNotification({
-                message: app.vtranslate("JS_RECORDS_TRANSFERRED_SUCCESSFULLY"),
+        if (this.getModuleName() !== "Contacts") {
+          var formData = form.serializeFormData();
+          var data = jQuery.extend(formData, listSelectParams);
+          app.helper.showProgress();
+          app.request.post({ data: data }).then(function (err, data) {
+            app.helper.hideProgress();
+            if (err == null) {
+              jQuery(".vt-notification").remove();
+              app.helper.hideModal();
+              listInstance.loadListViewRecords().then(function (e) {
+                listInstance.clearList();
+                app.helper.showSuccessNotification({
+                  message: app.vtranslate("JS_RECORDS_TRANSFERRED_SUCCESSFULLY"),
+                });
               });
-            });
-          } else {
-            app.event.trigger("post.save.failed", err);
+            } else {
+              app.event.trigger("post.save.failed", err);
+              jQuery(form)
+                .find("button[name='saveButton']")
+                .removeAttr("disabled");
+            }
+          });
+          return;
+        }
+
+        var thisInstance = this;
+        var formData = form.serializeFormData();
+        var startData = jQuery.extend({}, formData, listSelectParams, {
+          mode: "startTransferProgress",
+        });
+
+        this.toggleTransferOwnershipProgressUI(form, true);
+        this.updateTransferOwnershipProgressUI(
+          form,
+          {
+            percentage: 0,
+            message: app.vtranslate("JS_MASS_EDIT_PROGRESS_STARTED"),
+          },
+          false,
+        );
+
+        app.request.post({ data: startData }).then(function (err, data) {
+          if (err || !data || !data.job_id) {
+            thisInstance.toggleTransferOwnershipProgressUI(form, false);
+            app.event.trigger("post.save.failed", err || data);
             jQuery(form)
               .find("button[name='saveButton']")
               .removeAttr("disabled");
+            app.helper.showErrorNotification({
+              message:
+                (data && data.message) || err || app.vtranslate("JS_ERROR"),
+            });
+            return;
           }
+
+          form.data("transferOwnershipProgressState", {
+            jobId: data.job_id,
+            cancelling: false,
+          });
+          thisInstance.updateTransferOwnershipProgressUI(form, data, false);
+          thisInstance.processTransferOwnershipProgressJob(form);
         });
       }
+    },
+
+    toggleTransferOwnershipProgressUI: function (form, showProgress) {
+      var progressContainer = form.find(".transferOwnershipProgressContainer");
+      if (!progressContainer.length) {
+        return;
+      }
+
+      var saveButton = form.find(".saveButton");
+      var cancelLink = form.find(".cancelLink");
+      var modalCloseButton = form
+        .closest(".fc-overlay-modal, .modal-content")
+        .find(".overlayHeader .close");
+
+      if (showProgress) {
+        form.find(".transferOwnershipEditContents").addClass("hide");
+        progressContainer.removeClass("hide");
+        saveButton.attr("disabled", "disabled");
+        cancelLink.addClass("hide");
+        modalCloseButton.addClass("hide");
+      } else {
+        form.find(".transferOwnershipEditContents").removeClass("hide");
+        progressContainer.addClass("hide");
+        saveButton.removeAttr("disabled");
+        cancelLink.removeClass("hide");
+        modalCloseButton.removeClass("hide");
+      }
+    },
+
+    updateTransferOwnershipProgressUI: function (
+      form,
+      progressData,
+      forceCancelling,
+    ) {
+      var progressContainer = form.find(".transferOwnershipProgressContainer");
+      if (!progressContainer.length) {
+        return;
+      }
+
+      var percentage = parseInt(progressData.percentage, 10);
+      if (isNaN(percentage)) {
+        percentage = 0;
+      }
+      percentage = Math.max(0, Math.min(100, percentage));
+
+      var processed = parseInt(progressData.processed, 10);
+      var total = parseInt(progressData.total, 10);
+      if (isNaN(processed)) {
+        processed = 0;
+      }
+      if (isNaN(total)) {
+        total = 0;
+      }
+
+      var message = progressData.message || "";
+      if (!message && total > 0) {
+        message =
+          app.vtranslate("JS_MASS_EDIT_PROGRESS_RUNNING") +
+          " (" +
+          processed +
+          "/" +
+          total +
+          ")";
+      }
+      if (forceCancelling) {
+        message = app.vtranslate("JS_MASS_EDIT_PROGRESS_CANCELLING");
+      }
+
+      progressContainer
+        .find(".js-transfer-progress-bar")
+        .css("width", percentage + "%")
+        .attr("aria-valuenow", percentage)
+        .text(percentage + "%");
+      progressContainer.find(".js-transfer-progress-label").text(message);
+
+      progressContainer
+        .find(".js-cancel-transfer-ownership-progress")
+        .prop("disabled", !!forceCancelling || !!progressData.completed)
+        .text(
+          forceCancelling
+            ? app.vtranslate("JS_MASS_EDIT_PROGRESS_CANCELLING")
+            : app.vtranslate("LBL_CANCEL"),
+        );
+    },
+
+    processTransferOwnershipProgressJob: function (form) {
+      var thisInstance = this;
+      var state = form.data("transferOwnershipProgressState") || {};
+      if (!state.jobId || state.cancelling) {
+        return;
+      }
+
+      app.request
+        .post({
+          data: {
+            module: this.getModuleName(),
+            action: "TransferOwnership",
+            mode: "processTransferProgress",
+            job_id: state.jobId,
+          },
+        })
+        .then(function (err, data) {
+          if (err || !data) {
+            thisInstance.toggleTransferOwnershipProgressUI(form, false);
+            app.event.trigger("post.save.failed", err || data);
+            app.helper.showErrorNotification({
+              message: err || app.vtranslate("JS_ERROR"),
+            });
+            return;
+          }
+
+          thisInstance.updateTransferOwnershipProgressUI(form, data, false);
+          if (data.completed) {
+            thisInstance.handleTransferOwnershipProgressCompletion(form, data);
+            return;
+          }
+
+          window.setTimeout(function () {
+            thisInstance.processTransferOwnershipProgressJob(form);
+          }, 75);
+        });
+    },
+
+    cancelTransferOwnershipProgress: function (form) {
+      var thisInstance = this;
+      var state = form.data("transferOwnershipProgressState") || {};
+      if (!state.jobId || state.cancelling) {
+        return;
+      }
+
+      state.cancelling = true;
+      form.data("transferOwnershipProgressState", state);
+      this.updateTransferOwnershipProgressUI(form, {}, true);
+
+      app.request
+        .post({
+          data: {
+            module: this.getModuleName(),
+            action: "TransferOwnership",
+            mode: "cancelTransferProgress",
+            job_id: state.jobId,
+          },
+        })
+        .then(function (err, data) {
+          if (err || !data) {
+            thisInstance.toggleTransferOwnershipProgressUI(form, false);
+            app.event.trigger("post.save.failed", err || data);
+            app.helper.showErrorNotification({
+              message: err || app.vtranslate("JS_ERROR"),
+            });
+            return;
+          }
+
+          thisInstance.updateTransferOwnershipProgressUI(form, data, true);
+          thisInstance.handleTransferOwnershipProgressCompletion(form, data);
+        });
+    },
+
+    handleTransferOwnershipProgressCompletion: function (form, progressData) {
+      var listInstance = window.app.controller();
+      this.updateTransferOwnershipProgressUI(form, progressData || {}, false);
+      form.removeData("transferOwnershipProgressState");
+      app.helper.hideModal();
+
+      jQuery(".vt-notification").remove();
+      listInstance.loadListViewRecords().then(function () {
+        listInstance.clearList();
+        app.helper.showSuccessNotification({
+          message:
+            (progressData && progressData.message) ||
+            app.vtranslate("JS_RECORDS_TRANSFERRED_SUCCESSFULLY"),
+        });
+      });
     },
     registerStarToggle: function () {
       var self = this;

@@ -29,6 +29,15 @@
                     <div class='datacontent editViewContents'>
                         {include file="partials/EditViewContents.tpl"|@vtemplate_path:$MODULE}
                     </div>
+                    <div class="massEditProgressContainer hide" style="padding: 10px 15px 0;">
+                        <div class="progress" style="margin-bottom:8px;">
+                            <div class="progress-bar progress-bar-striped active js-mass-edit-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%">0%</div>
+                        </div>
+                        <div class="clearfix">
+                            <span class="js-mass-edit-progress-label text-muted" style="line-height:30px;"></span>
+                            <button type="button" class="btn btn-danger btn-sm pull-right js-cancel-mass-edit-progress">{vtranslate('LBL_CANCEL', $MODULE)}</button>
+                        </div>
+                    </div>
                 </div>
                 <footer class='modal-footer overlayFooter'>
                    <center>

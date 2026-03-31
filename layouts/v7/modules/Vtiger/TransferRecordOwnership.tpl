@@ -20,47 +20,58 @@
                 {include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$HEADER_TITLE}
                 
                 <div class="modal-body">
-                    <div class="form-group">
-                            <label class="col-lg-4 control-label">{vtranslate('LBL_SELECT_RELATED_MODULES',$MODULE)}</label>
-                            <div class="col-lg-6">
-                                <select multiple class="form-control select2" id="related_modules" data-placeholder="{vtranslate('LBL_SELECT_RELATED_MODULES',$MODULE)}" name="related_modules[]" data-rule-required="true">
-                                    {foreach item=RELATED_MODULE from=$RELATED_MODULES}
-                                        {if !in_array($RELATED_MODULE->get('relatedModuleName'), $SKIP_MODULES)}
-                                            <option value="{$RELATED_MODULE->get('relation_id')}">{vtranslate($RELATED_MODULE->get('label'), $RELATED_MODULE->get('relatedModuleName'))}</option>
-                                        {/if}
-                                    {/foreach}
-                                </select>
-                            </div>
+                    <div class="transferOwnershipEditContents">
+                        <div class="form-group">
+                                <label class="col-lg-4 control-label">{vtranslate('LBL_SELECT_RELATED_MODULES',$MODULE)}</label>
+                                <div class="col-lg-6">
+                                    <select multiple class="form-control select2" id="related_modules" data-placeholder="{vtranslate('LBL_SELECT_RELATED_MODULES',$MODULE)}" name="related_modules[]"{if $MODULE neq 'Contacts'} data-rule-required="true"{/if}>
+                                        {foreach item=RELATED_MODULE from=$RELATED_MODULES}
+                                            {if !in_array($RELATED_MODULE->get('relatedModuleName'), $SKIP_MODULES)}
+                                                <option value="{$RELATED_MODULE->get('relation_id')}">{vtranslate($RELATED_MODULE->get('label'), $RELATED_MODULE->get('relatedModuleName'))}</option>
+                                            {/if}
+                                        {/foreach}
+                                    </select>
+                                </div>
+                        </div>
+                        <div class="form-group">
+                                <label class="col-lg-4 control-label">{vtranslate('LBL_ASSIGNED_TO', $MODULE)}</label>
+                                <div class="col-lg-6">
+                                    {assign var=ALL_ACTIVEUSER_LIST value=$USER_MODEL->getAccessibleUsers()}
+                                    {assign var=ALL_ACTIVEGROUP_LIST value=$USER_MODEL->getAccessibleGroups()}
+                                    {assign var=CURRENT_USER_ID value=$USER_MODEL->get('id')}
+                                    {assign var=ACCESSIBLE_USER_LIST value=$USER_MODEL->getAccessibleUsersForModule($MODULE)}
+                                    {assign var=ACCESSIBLE_GROUP_LIST value=$USER_MODEL->getAccessibleGroupForModule($MODULE)}
+                                    
+                                    <select class="form-control select2" name="transferOwnerId" id="transferOwnerId">
+                                        <optgroup label="{vtranslate('LBL_USERS')}">
+                                            {foreach key=OWNER_ID item=OWNER_NAME from=$ALL_ACTIVEUSER_LIST}
+                                                <option value="{$OWNER_ID}" data-picklistvalue= '{$OWNER_NAME}' {if $FIELD_VALUE eq $OWNER_ID} selected {/if}
+                                                        {if array_key_exists($OWNER_ID, $ACCESSIBLE_USER_LIST)} data-recordaccess=true {else} data-recordaccess=false {/if}
+                                                        data-userId="{$CURRENT_USER_ID}">
+                                                    {$OWNER_NAME}
+                                                </option>
+                                            {/foreach}
+                                        </optgroup>
+                                        <optgroup label="{vtranslate('LBL_GROUPS')}">
+                                            {foreach key=OWNER_ID item=OWNER_NAME from=$ALL_ACTIVEGROUP_LIST}
+                                                <option value="{$OWNER_ID}" data-picklistvalue= '{$OWNER_NAME}'
+                                                        {if array_key_exists($OWNER_ID, $ACCESSIBLE_GROUP_LIST)} data-recordaccess=true {else} data-recordaccess=false {/if} >
+                                                    {$OWNER_NAME}
+                                                </option>
+                                            {/foreach}
+                                        </optgroup>
+                                    </select>
+                                </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                            <label class="col-lg-4 control-label">{vtranslate('LBL_ASSIGNED_TO', $MODULE)}</label>
-                            <div class="col-lg-6">
-                                {assign var=ALL_ACTIVEUSER_LIST value=$USER_MODEL->getAccessibleUsers()}
-                                {assign var=ALL_ACTIVEGROUP_LIST value=$USER_MODEL->getAccessibleGroups()}
-                                {assign var=CURRENT_USER_ID value=$USER_MODEL->get('id')}
-                                {assign var=ACCESSIBLE_USER_LIST value=$USER_MODEL->getAccessibleUsersForModule($MODULE)}
-                                {assign var=ACCESSIBLE_GROUP_LIST value=$USER_MODEL->getAccessibleGroupForModule($MODULE)}
-                                
-                                <select class="form-control select2" name="transferOwnerId" id="transferOwnerId">
-                                    <optgroup label="{vtranslate('LBL_USERS')}">
-                                        {foreach key=OWNER_ID item=OWNER_NAME from=$ALL_ACTIVEUSER_LIST}
-                                            <option value="{$OWNER_ID}" data-picklistvalue= '{$OWNER_NAME}' {if $FIELD_VALUE eq $OWNER_ID} selected {/if}
-                                                    {if array_key_exists($OWNER_ID, $ACCESSIBLE_USER_LIST)} data-recordaccess=true {else} data-recordaccess=false {/if}
-                                                    data-userId="{$CURRENT_USER_ID}">
-                                                {$OWNER_NAME}
-                                            </option>
-                                        {/foreach}
-                                    </optgroup>
-                                    <optgroup label="{vtranslate('LBL_GROUPS')}">
-                                        {foreach key=OWNER_ID item=OWNER_NAME from=$ALL_ACTIVEGROUP_LIST}
-                                            <option value="{$OWNER_ID}" data-picklistvalue= '{$OWNER_NAME}'
-                                                    {if array_key_exists($OWNER_ID, $ACCESSIBLE_GROUP_LIST)} data-recordaccess=true {else} data-recordaccess=false {/if} >
-                                                {$OWNER_NAME}
-                                            </option>
-                                        {/foreach}
-                                    </optgroup>
-                                </select>
-                            </div>
+                    <div class="transferOwnershipProgressContainer hide" style="padding: 10px 15px 0;">
+                        <div class="progress" style="margin-bottom:8px;">
+                            <div class="progress-bar progress-bar-striped active js-transfer-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%">0%</div>
+                        </div>
+                        <div class="clearfix">
+                            <span class="js-transfer-progress-label text-muted" style="line-height:30px;"></span>
+                            <button type="button" class="btn btn-danger btn-sm pull-right js-cancel-transfer-ownership-progress">{vtranslate('LBL_CANCEL', $MODULE)}</button>
+                        </div>
                     </div>
                 </div>
                 {include file='ModalFooter.tpl'|@vtemplate_path:$MODULE}

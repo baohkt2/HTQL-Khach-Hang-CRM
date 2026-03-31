@@ -125,7 +125,12 @@ jQuery.Class("Vtiger_List_Js",{
 								}
 								return false;
 							}
-							jQuery('#changeOwner').validationEngine(app.validationEngineOptions);
+							var changeOwnerForm = jQuery('#changeOwner');
+							changeOwnerForm.validationEngine(app.validationEngineOptions);
+							changeOwnerForm.off('click', '.js-cancel-transfer-ownership-progress').on('click', '.js-cancel-transfer-ownership-progress', function(e){
+								e.preventDefault();
+								thisInstance.cancelTransferOwnershipProgress(changeOwnerForm);
+							});
 						}
 						app.showModalWindow(data, function(data){
 							var selectElement = thisInstance.getRelatedModuleContainer();
@@ -150,6 +155,35 @@ jQuery.Class("Vtiger_List_Js",{
 		var transferOwner = jQuery('#transferOwnerId').val();
 		var relatedModules = jQuery('#related_modules').val();
 
+		if(app.getModuleName() != 'Contacts') {
+			var params = {
+				'module': app.getModuleName(),
+				'action' : 'TransferOwnership',
+				"viewname" : cvId,
+				"selected_ids":selectedIds,
+				"excluded_ids" : excludedIds,
+				'transferOwnerId' : transferOwner,
+				'related_modules' : relatedModules
+			}
+			AppConnector.request(params).then(
+				function(data) {
+					if(data.success){
+						app.hideModalWindow();
+						var notifyParams = {
+							title : app.vtranslate('JS_MESSAGE'),
+							text: app.vtranslate('JS_RECORDS_TRANSFERRED_SUCCESSFULLY'),
+							animation: 'show',
+							type: 'info'
+						};
+						Vtiger_Helper_Js.showPnotify(notifyParams);
+						listInstance.getListViewRecords();
+						Vtiger_List_Js.clearList();
+					}
+				}
+			);
+			return;
+		}
+
 		var params = {
 			'module': app.getModuleName(),
 			'action' : 'TransferOwnership',
@@ -157,24 +191,214 @@ jQuery.Class("Vtiger_List_Js",{
 			"selected_ids":selectedIds,
 			"excluded_ids" : excludedIds,
 			'transferOwnerId' : transferOwner,
-			'related_modules' : relatedModules
+			'related_modules' : relatedModules,
+			'mode' : 'startTransferProgress'
 		}
+
+		this.toggleTransferOwnershipProgressUI(form, true);
+		this.updateTransferOwnershipProgressUI(form, {
+			percentage: 0,
+			message: app.vtranslate('JS_MASS_EDIT_PROGRESS_STARTED')
+		}, false);
+
+		var thisInstance = this;
 		AppConnector.request(params).then(
 			function(data) {
-				if(data.success){
-					app.hideModalWindow();
-					var params = {
+				var progressData = data && data.result ? data.result : data;
+				if(!progressData || !progressData.job_id) {
+					thisInstance.toggleTransferOwnershipProgressUI(form, false);
+					var errorParams = {
 						title : app.vtranslate('JS_MESSAGE'),
-						text: app.vtranslate('JS_RECORDS_TRANSFERRED_SUCCESSFULLY'),
-						animation: 'show',
-						type: 'info'
+						text: (progressData && progressData.message) || app.vtranslate('JS_MASS_EDIT_NOT_SUCCESSFULL'),
+						type: 'error'
 					};
-					Vtiger_Helper_Js.showPnotify(params);
-					listInstance.getListViewRecords();
-					Vtiger_List_Js.clearList();
+					Vtiger_Helper_Js.showPnotify(errorParams);
+					return;
 				}
+
+				form.data('transferOwnershipProgressState', {
+					jobId: progressData.job_id,
+					cancelling: false
+				});
+				thisInstance.updateTransferOwnershipProgressUI(form, progressData, false);
+				thisInstance.processTransferOwnershipProgressJob(form);
 			}
 		);
+	},
+
+	ensureTransferOwnershipProgressContainer : function(form) {
+		var progressContainer = form.find('.transferOwnershipProgressContainer');
+		if(progressContainer.length) {
+			return progressContainer;
+		}
+
+		progressContainer = jQuery(
+			'<div class="transferOwnershipProgressContainer hide" style="padding:10px 15px 0;">' +
+				'<div class="progress" style="margin-bottom:8px;">' +
+					'<div class="bar js-transfer-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%">0%</div>' +
+				'</div>' +
+				'<div class="js-transfer-progress-label muted" style="margin-bottom:10px;"></div>' +
+				'<button type="button" class="btn btn-warning js-cancel-transfer-ownership-progress">' + app.vtranslate('LBL_CANCEL') + '</button>' +
+			'</div>'
+		);
+
+		var modalFooter = form.find('.modal-footer');
+		if(modalFooter.length) {
+			progressContainer.insertBefore(modalFooter);
+		} else {
+			form.append(progressContainer);
+		}
+
+		return progressContainer;
+	},
+
+	toggleTransferOwnershipProgressUI : function(form, showProgress) {
+		var progressContainer = this.ensureTransferOwnershipProgressContainer(form);
+		var saveButton = form.find('[name="saveButton"]');
+		var cancelLink = form.find('.cancelLink');
+		var modalCloseButton = form.closest('.modal-content, .modelContainer').find('.modal-header .close');
+
+		if(showProgress) {
+			form.find('.transferOwnershipEditContents').addClass('hide');
+			progressContainer.removeClass('hide');
+			saveButton.attr('disabled', 'disabled');
+			cancelLink.addClass('hide');
+			modalCloseButton.addClass('hide');
+		} else {
+			form.find('.transferOwnershipEditContents').removeClass('hide');
+			progressContainer.addClass('hide');
+			saveButton.removeAttr('disabled');
+			cancelLink.removeClass('hide');
+			modalCloseButton.removeClass('hide');
+		}
+	},
+
+	updateTransferOwnershipProgressUI : function(form, progressData, forceCancelling) {
+		var progressContainer = this.ensureTransferOwnershipProgressContainer(form);
+		if(!progressContainer.length) {
+			return;
+		}
+
+		var percentage = parseInt(progressData.percentage, 10);
+		if(isNaN(percentage)) {
+			percentage = 0;
+		}
+		percentage = Math.max(0, Math.min(100, percentage));
+
+		var processed = parseInt(progressData.processed, 10);
+		var total = parseInt(progressData.total, 10);
+		if(isNaN(processed)) {
+			processed = 0;
+		}
+		if(isNaN(total)) {
+			total = 0;
+		}
+
+		var message = progressData.message || '';
+		if(!message && total > 0) {
+			message = app.vtranslate('JS_MASS_EDIT_PROGRESS_RUNNING') + ' (' + processed + '/' + total + ')';
+		}
+		if(forceCancelling) {
+			message = app.vtranslate('JS_MASS_EDIT_PROGRESS_CANCELLING');
+		}
+
+		progressContainer.find('.js-transfer-progress-bar')
+			.css('width', percentage + '%')
+			.attr('aria-valuenow', percentage)
+			.text(percentage + '%');
+		progressContainer.find('.js-transfer-progress-label').text(message);
+
+		progressContainer.find('.js-cancel-transfer-ownership-progress')
+			.prop('disabled', !!forceCancelling || !!progressData.completed)
+			.text(forceCancelling ? app.vtranslate('JS_MASS_EDIT_PROGRESS_CANCELLING') : app.vtranslate('LBL_CANCEL'));
+	},
+
+	processTransferOwnershipProgressJob : function(form) {
+		var thisInstance = this;
+		var state = form.data('transferOwnershipProgressState') || {};
+		if(!state.jobId || state.cancelling) {
+			return;
+		}
+
+		AppConnector.request({
+			module: app.getModuleName(),
+			action: 'TransferOwnership',
+			mode: 'processTransferProgress',
+			job_id: state.jobId
+		}).then(
+			function(data) {
+				var progressData = data && data.result ? data.result : data;
+				if(!progressData) {
+					thisInstance.toggleTransferOwnershipProgressUI(form, false);
+					Vtiger_Helper_Js.showPnotify({
+						title : app.vtranslate('JS_MESSAGE'),
+						text: app.vtranslate('JS_MASS_EDIT_NOT_SUCCESSFULL'),
+						type: 'error'
+					});
+					return;
+				}
+
+				thisInstance.updateTransferOwnershipProgressUI(form, progressData, false);
+				if(progressData.completed) {
+					thisInstance.handleTransferOwnershipProgressCompletion(form, progressData);
+					return;
+				}
+
+				window.setTimeout(function() {
+					thisInstance.processTransferOwnershipProgressJob(form);
+				}, 75);
+			}
+		);
+	},
+
+	cancelTransferOwnershipProgress : function(form) {
+		var thisInstance = this;
+		var state = form.data('transferOwnershipProgressState') || {};
+		if(!state.jobId || state.cancelling) {
+			return;
+		}
+
+		state.cancelling = true;
+		form.data('transferOwnershipProgressState', state);
+		this.updateTransferOwnershipProgressUI(form, {}, true);
+
+		AppConnector.request({
+			module: app.getModuleName(),
+			action: 'TransferOwnership',
+			mode: 'cancelTransferProgress',
+			job_id: state.jobId
+		}).then(
+			function(data) {
+				var progressData = data && data.result ? data.result : data;
+				if(!progressData) {
+					thisInstance.toggleTransferOwnershipProgressUI(form, false);
+					Vtiger_Helper_Js.showPnotify({
+						title : app.vtranslate('JS_MESSAGE'),
+						text: app.vtranslate('JS_MASS_EDIT_NOT_SUCCESSFULL'),
+						type: 'error'
+					});
+					return;
+				}
+
+				thisInstance.updateTransferOwnershipProgressUI(form, progressData, true);
+				thisInstance.handleTransferOwnershipProgressCompletion(form, progressData);
+			}
+		);
+	},
+
+	handleTransferOwnershipProgressCompletion : function(form, progressData) {
+		var listInstance = Vtiger_List_Js.getInstance();
+		this.updateTransferOwnershipProgressUI(form, progressData || {}, false);
+		form.removeData('transferOwnershipProgressState');
+		app.hideModalWindow();
+
+		listInstance.getListViewRecords();
+		Vtiger_List_Js.clearList();
+		Vtiger_Helper_Js.showPnotify({
+			title : app.vtranslate('JS_MESSAGE'),
+			text: (progressData && progressData.message) || app.vtranslate('JS_RECORDS_TRANSFERRED_SUCCESSFULLY'),
+			type: 'info'
+		});
 	},
 
 	/*
@@ -380,17 +604,6 @@ jQuery.Class("Vtiger_List_Js",{
 	},
 
 	triggerMassEdit : function(massEditUrl) {
-		var selectedCount = this.getSelectedRecordCount();
-		if(selectedCount > 500) {
-		    var params = {
-			    title : app.vtranslate('JS_MESSAGE'),
-			    text: app.vtranslate('JS_MASS_EDIT_LIMIT'),
-			    animation: 'show',
-			    type: 'error'
-		    };
-		    Vtiger_Helper_Js.showPnotify(params);
-		    return;
-		}
 		Vtiger_List_Js.triggerMassAction(massEditUrl, function(container){
 			var massEditForm = container.find('#massEdit');
 			massEditForm.validationEngine(app.validationEngineOptions);
@@ -448,7 +661,145 @@ jQuery.Class("Vtiger_List_Js",{
             exportActionUrl += '&search_key='+listViewInstance.getAlphabetSearchField()+'&search_value='+searchValue+'&operator=s';
         }
         exportActionUrl += '&search_params='+JSON.stringify(listInstance.getListSearchParams());
-        window.location.href = exportActionUrl;
+		if(/(?:\?|&)view=(Export|CustomExport)(?:&|$)/.test(exportActionUrl)) {
+			window.location.href = exportActionUrl;
+			return;
+		}
+		Vtiger_List_Js.triggerExportDownloadWithProgress(exportActionUrl);
+	},
+
+	getExportProgressOverlay : function() {
+		var overlay = jQuery('#js-export-progress-overlay');
+		if(overlay.length) {
+			return overlay;
+		}
+
+		overlay = jQuery(
+			'<div id="js-export-progress-overlay" class="hide" style="position:fixed;top:0;right:0;bottom:0;left:0;z-index:12000;background:rgba(0,0,0,0.35);">' +
+				'<div style="position:absolute;top:50%;left:50%;width:360px;max-width:90%;padding:18px 20px;background:#ffffff;border-radius:4px;box-shadow:0 4px 18px rgba(0,0,0,0.2);transform:translate(-50%,-50%);">' +
+					'<div class="progress" style="margin-bottom:8px;">' +
+						'<div class="bar js-export-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%;">0%</div>' +
+					'</div>' +
+					'<div class="js-export-progress-label muted" style="font-size:12px;"></div>' +
+				'</div>' +
+			'</div>'
+		);
+
+		jQuery('body').append(overlay);
+		return overlay;
+	},
+
+	updateExportProgressOverlay : function(overlay, progress, label) {
+		if(!overlay || !overlay.length) {
+			return;
+		}
+
+		var percentage = parseInt(progress, 10);
+		if(isNaN(percentage)) {
+			percentage = 0;
+		}
+		percentage = Math.max(0, Math.min(100, percentage));
+
+		overlay.find('.js-export-progress-bar')
+			.css('width', percentage + '%')
+			.attr('aria-valuenow', percentage)
+			.text(percentage + '%');
+		overlay.find('.js-export-progress-label').text(label || '');
+	},
+
+	triggerExportDownloadWithProgress : function(exportActionUrl) {
+		var overlay = Vtiger_List_Js.getExportProgressOverlay();
+		var frameName = 'exportDownloadFrame_' + new Date().getTime();
+		var frame = jQuery('<iframe />', {
+			name: frameName,
+			style: 'display:none;'
+		});
+		var progressValue = 3;
+		var completed = false;
+		var exportToken = 'exp_' + new Date().getTime() + '_' + Math.floor(Math.random() * 1000000);
+		var cookieName = 'cusc_export_done_' + exportToken;
+		var separator = exportActionUrl.indexOf('?') === -1 ? '?' : '&';
+		exportActionUrl = exportActionUrl + separator + 'export_tracking_token=' + encodeURIComponent(exportToken);
+		document.cookie = cookieName + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+
+		var cleanup = function() {
+			window.clearInterval(progressInterval);
+			window.clearInterval(cookiePollInterval);
+			window.clearTimeout(progressTimeout);
+			window.setTimeout(function() {
+				overlay.addClass('hide');
+				frame.remove();
+				document.cookie = cookieName + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+			}, 650);
+		};
+
+		overlay.removeClass('hide');
+		Vtiger_List_Js.updateExportProgressOverlay(
+			overlay,
+			progressValue,
+			app.vtranslate('JS_EXPORT_PROGRESS_PREPARING')
+		);
+
+		jQuery('body').append(frame);
+
+		var progressInterval = window.setInterval(function() {
+			if(completed) {
+				return;
+			}
+
+			progressValue = Math.min(92, progressValue + Math.max(1, Math.floor((92 - progressValue) / 6)));
+			Vtiger_List_Js.updateExportProgressOverlay(
+				overlay,
+				progressValue,
+				app.vtranslate('JS_EXPORT_PROGRESS_PREPARING')
+			);
+		}, 350);
+
+		var progressTimeout = window.setTimeout(function() {
+			if(completed) {
+				return;
+			}
+
+			completed = true;
+			Vtiger_List_Js.updateExportProgressOverlay(
+				overlay,
+				100,
+				app.vtranslate('JS_EXPORT_PROGRESS_COMPLETED')
+			);
+			cleanup();
+		}, 120000);
+
+		var cookiePollInterval = window.setInterval(function() {
+			if(completed) {
+				return;
+			}
+
+			if(document.cookie.indexOf(cookieName + '=1') !== -1) {
+				completed = true;
+				Vtiger_List_Js.updateExportProgressOverlay(
+					overlay,
+					100,
+					app.vtranslate('JS_EXPORT_PROGRESS_COMPLETED')
+				);
+				cleanup();
+			}
+		}, 250);
+
+		frame.one('load', function() {
+			if(completed) {
+				return;
+			}
+
+			completed = true;
+			Vtiger_List_Js.updateExportProgressOverlay(
+				overlay,
+				100,
+				app.vtranslate('JS_EXPORT_PROGRESS_COMPLETED')
+			);
+			cleanup();
+		});
+
+		frame.attr('src', exportActionUrl);
 	},
 
 	/**
@@ -689,6 +1040,7 @@ jQuery.Class("Vtiger_List_Js",{
 		if(typeof isMassEdit == 'undefined') {
 			isMassEdit = false;
 		}
+		var thisInstance = this;
 		var aDeferred = jQuery.Deferred();
 		var massActionUrl = form.serializeFormData();
 		if(isMassEdit) {
@@ -738,6 +1090,51 @@ jQuery.Class("Vtiger_List_Js",{
 				aDeferred.reject();
 				return aDeferred.promise();
 			}
+
+			this.toggleMassEditProgressUI(form, true);
+			this.updateMassEditProgressUI(form, {
+				percentage: 0,
+				message: app.vtranslate('JS_MASS_EDIT_PROGRESS_STARTED')
+			}, false);
+
+			var startRequestData = jQuery.extend({}, massActionUrl, {
+				mode: 'startMassEditProgress'
+			});
+
+			AppConnector.request(startRequestData).then(
+				function(data) {
+					var progressData = data && data.result ? data.result : data;
+					if(!progressData || !progressData.job_id) {
+						thisInstance.toggleMassEditProgressUI(form, false);
+						Vtiger_Helper_Js.showPnotify({
+							title : app.vtranslate('JS_MESSAGE'),
+							text: (progressData && progressData.message) || app.vtranslate('JS_MASS_EDIT_NOT_SUCCESSFULL'),
+							type: 'error'
+						});
+						aDeferred.reject(progressData || data);
+						return;
+					}
+
+					form.data('massEditProgressState', {
+						jobId: progressData.job_id,
+						cancelling: false,
+						deferred: aDeferred
+					});
+					thisInstance.updateMassEditProgressUI(form, progressData, false);
+					thisInstance.processMassEditProgressJob(form);
+				},
+				function(error,err){
+					thisInstance.toggleMassEditProgressUI(form, false);
+					Vtiger_Helper_Js.showPnotify({
+						title : app.vtranslate('JS_MESSAGE'),
+						text: error || app.vtranslate('JS_MASS_EDIT_NOT_SUCCESSFULL'),
+						type: 'error'
+					});
+					aDeferred.reject(error,err);
+				}
+			);
+
+			return aDeferred.promise();
 		}
         var progressIndicatorElement = jQuery.progressIndicator({
             'position' : 'html',
@@ -767,6 +1164,225 @@ jQuery.Class("Vtiger_List_Js",{
 			}
 		);
 		return aDeferred.promise();
+	},
+
+	ensureMassEditProgressContainer : function(form) {
+		var progressContainer = form.find('.massEditProgressContainer');
+		if(progressContainer.length) {
+			return progressContainer;
+		}
+
+		progressContainer = jQuery(
+			'<div class="massEditProgressContainer hide" style="padding:15px 20px 5px 20px;">' +
+				'<div class="progress" style="margin-bottom:8px;">' +
+					'<div class="bar js-mass-edit-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%;">0%</div>' +
+				'</div>' +
+				'<div class="js-mass-edit-progress-label muted" style="margin-bottom:10px;"></div>' +
+				'<button type="button" class="btn btn-warning js-cancel-mass-edit-progress">' + app.vtranslate('LBL_CANCEL') + '</button>' +
+			'</div>'
+		);
+
+		var modalFooter = form.find('.modal-footer');
+		if(modalFooter.length) {
+			progressContainer.insertBefore(modalFooter);
+		} else {
+			form.append(progressContainer);
+		}
+
+		return progressContainer;
+	},
+
+	toggleMassEditProgressUI : function(form, showProgress) {
+		var progressContainer = this.ensureMassEditProgressContainer(form);
+		var saveButton = form.find('[name="saveButton"]');
+		var cancelLink = form.find('.cancelLink');
+		var modalCloseButton = form.closest('.modal-content, .modelContainer').find('.modal-header .close');
+
+		if(showProgress) {
+			form.find('div[name="massEditContent"]').addClass('hide');
+			progressContainer.removeClass('hide');
+			saveButton.attr('disabled', 'disabled');
+			cancelLink.addClass('hide');
+			modalCloseButton.addClass('hide');
+		} else {
+			form.find('div[name="massEditContent"]').removeClass('hide');
+			progressContainer.addClass('hide');
+			saveButton.removeAttr('disabled');
+			cancelLink.removeClass('hide');
+			modalCloseButton.removeClass('hide');
+		}
+	},
+
+	updateMassEditProgressUI : function(form, progressData, forceCancelling) {
+		var progressContainer = this.ensureMassEditProgressContainer(form);
+		if(!progressContainer.length) {
+			return;
+		}
+
+		var percentage = parseInt(progressData.percentage, 10);
+		if(isNaN(percentage)) {
+			percentage = 0;
+		}
+		percentage = Math.max(0, Math.min(100, percentage));
+
+		var processed = parseInt(progressData.processed, 10);
+		var total = parseInt(progressData.total, 10);
+		if(isNaN(processed)) {
+			processed = 0;
+		}
+		if(isNaN(total)) {
+			total = 0;
+		}
+
+		var message = progressData.message || '';
+		if(!message && total > 0) {
+			message = app.vtranslate('JS_MASS_EDIT_PROGRESS_RUNNING') + ' (' + processed + '/' + total + ')';
+		}
+		if(forceCancelling) {
+			message = app.vtranslate('JS_MASS_EDIT_PROGRESS_CANCELLING');
+		}
+
+		progressContainer.find('.js-mass-edit-progress-bar')
+			.css('width', percentage + '%')
+			.attr('aria-valuenow', percentage)
+			.text(percentage + '%');
+		progressContainer.find('.js-mass-edit-progress-label').text(message);
+
+		progressContainer.find('.js-cancel-mass-edit-progress')
+			.prop('disabled', !!forceCancelling || !!progressData.completed)
+			.text(forceCancelling ? app.vtranslate('JS_MASS_EDIT_PROGRESS_CANCELLING') : app.vtranslate('LBL_CANCEL'));
+	},
+
+	processMassEditProgressJob : function(form) {
+		var thisInstance = this;
+		var state = form.data('massEditProgressState') || {};
+		if(!state.jobId || state.cancelling) {
+			return;
+		}
+
+		AppConnector.request({
+			module: app.getModuleName(),
+			action: 'MassSave',
+			mode: 'processMassEditProgress',
+			job_id: state.jobId
+		}).then(
+			function(data) {
+				var progressData = data && data.result ? data.result : data;
+				if(!progressData) {
+					thisInstance.toggleMassEditProgressUI(form, false);
+					Vtiger_Helper_Js.showPnotify({
+						title : app.vtranslate('JS_MESSAGE'),
+						text: app.vtranslate('JS_MASS_EDIT_NOT_SUCCESSFULL'),
+						type: 'error'
+					});
+					if(state.deferred) {
+						state.deferred.reject(data);
+					}
+					return;
+				}
+
+				thisInstance.updateMassEditProgressUI(form, progressData, false);
+				if(progressData.completed) {
+					thisInstance.handleMassEditProgressCompletion(form, progressData);
+					return;
+				}
+
+				window.setTimeout(function() {
+					thisInstance.processMassEditProgressJob(form);
+				}, 75);
+			},
+			function(error,err){
+				thisInstance.toggleMassEditProgressUI(form, false);
+				Vtiger_Helper_Js.showPnotify({
+					title : app.vtranslate('JS_MESSAGE'),
+					text: error || app.vtranslate('JS_MASS_EDIT_NOT_SUCCESSFULL'),
+					type: 'error'
+				});
+				if(state.deferred) {
+					state.deferred.reject(error,err);
+				}
+			}
+		);
+	},
+
+	cancelMassEditProgress : function(form) {
+		var thisInstance = this;
+		var state = form.data('massEditProgressState') || {};
+		if(!state.jobId || state.cancelling) {
+			return;
+		}
+
+		state.cancelling = true;
+		form.data('massEditProgressState', state);
+		this.updateMassEditProgressUI(form, {}, true);
+
+		AppConnector.request({
+			module: app.getModuleName(),
+			action: 'MassSave',
+			mode: 'cancelMassEditProgress',
+			job_id: state.jobId
+		}).then(
+			function(data) {
+				var progressData = data && data.result ? data.result : data;
+				if(!progressData) {
+					thisInstance.toggleMassEditProgressUI(form, false);
+					Vtiger_Helper_Js.showPnotify({
+						title : app.vtranslate('JS_MESSAGE'),
+						text: app.vtranslate('JS_MASS_EDIT_NOT_SUCCESSFULL'),
+						type: 'error'
+					});
+					if(state.deferred) {
+						state.deferred.reject(data);
+					}
+					return;
+				}
+
+				thisInstance.updateMassEditProgressUI(form, progressData, true);
+				thisInstance.handleMassEditProgressCompletion(form, progressData);
+			},
+			function(error,err){
+				thisInstance.toggleMassEditProgressUI(form, false);
+				Vtiger_Helper_Js.showPnotify({
+					title : app.vtranslate('JS_MESSAGE'),
+					text: error || app.vtranslate('JS_MASS_EDIT_NOT_SUCCESSFULL'),
+					type: 'error'
+				});
+				if(state.deferred) {
+					state.deferred.reject(error,err);
+				}
+			}
+		);
+	},
+
+	handleMassEditProgressCompletion : function(form, progressData) {
+		var state = form.data('massEditProgressState') || {};
+		var deferred = state.deferred;
+		var isCancelled = !!(progressData && progressData.cancelled);
+
+		this.updateMassEditProgressUI(form, progressData || {}, false);
+		form.removeData('massEditProgressState');
+		window.onbeforeunload = null;
+
+		if(progressData && progressData.message) {
+			Vtiger_Helper_Js.showPnotify({
+				title : app.vtranslate('JS_MESSAGE'),
+				text: progressData.message,
+				type: isCancelled ? 'info' : 'success'
+			});
+		}
+
+		app.hideModalWindow();
+
+		if(!deferred) {
+			return;
+		}
+
+		if(isCancelled) {
+			deferred.reject(progressData);
+			return;
+		}
+
+		deferred.resolve(progressData);
 	},
 
 	/*
@@ -955,7 +1571,14 @@ jQuery.Class("Vtiger_List_Js",{
 
 	postMassEdit : function(massEditContainer) {
 		var thisInstance = this;
-		massEditContainer.find('form').on('submit', function(e){
+		var massEditForm = massEditContainer.find('form');
+		this.ensureMassEditProgressContainer(massEditForm);
+		massEditForm.off('click.massEditProgressCancel').on('click.massEditProgressCancel', '.js-cancel-mass-edit-progress', function(e) {
+			e.preventDefault();
+			thisInstance.cancelMassEditProgress(massEditForm);
+		});
+
+		massEditForm.on('submit', function(e){
 			e.preventDefault();
 			var form = jQuery(e.currentTarget);
 			var invalidFields = form.data('jqv').InvalidFields;

@@ -103,6 +103,13 @@
 				</div>
 			</div>
 		</div>
+		<div class="massEditProgressContainer hide" style="padding:15px 20px 5px 20px;">
+			<div class="progress" style="margin-bottom:8px;">
+				<div class="bar js-mass-edit-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%;">0%</div>
+			</div>
+			<div class="js-mass-edit-progress-label muted" style="margin-bottom:10px;"></div>
+			<button type="button" class="btn btn-warning js-cancel-mass-edit-progress">{vtranslate('LBL_CANCEL', $MODULE)}</button>
+		</div>
 		{include file='ModalFooter.tpl'|@vtemplate_path:$MODULE}
 	</form>
 </div>
