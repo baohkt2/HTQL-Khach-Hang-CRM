@@ -250,8 +250,12 @@ class Webforms_Model {
 		global $adb, $log;
 		$webforms = array();
 
-		$sql = "SELECT * FROM vtiger_webforms";
-		$result = $adb->pquery($sql, array());
+		$sql = "SELECT id, name, targetmodule, returnurl, enabled, ownerid, publicid
+				FROM vtiger_webforms
+				ORDER BY id DESC
+				LIMIT ?";
+		$limit = 1000;
+		$result = $adb->pquery($sql, array($limit));
 
 		for ($index = 0, $len = $adb->num_rows($result); $index < $len; $index++) {
 			$webform = new Webforms_Model($adb->fetch_array($result));
