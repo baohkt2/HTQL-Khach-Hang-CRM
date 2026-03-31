@@ -1598,6 +1598,18 @@ $jsLanguageStrings = array(
 	'JS_SHORTCUT_ALREADY_ADDED' => 'This shortcut is already added',
 	'JS_MESSAGE' => 'Message',
 	'JS_MASS_EDIT_LIMIT' => 'Mass Edit operation can be done on 500 or less records at a time',
+	'JS_MASS_EDIT_PROGRESS_STARTED' => 'Mass edit has started',
+	'JS_MASS_EDIT_PROGRESS_RUNNING' => 'Updating selected records',
+	'JS_MASS_EDIT_PROGRESS_COMPLETED' => 'Mass edit completed successfully',
+	'JS_MASS_EDIT_PROGRESS_CANCELLED' => 'Mass edit cancelled. Changes were rolled back.',
+	'JS_MASS_EDIT_PROGRESS_CANCELLING' => 'Cancelling and rolling back changes',
+	'JS_MASS_EDIT_PROGRESS_JOB_NOT_FOUND' => 'Mass edit job not found or expired',
+	'JS_MASS_EDIT_PROGRESS_RECORD_FAILED' => 'Failed to update record',
+	'JS_MASS_EDIT_PROGRESS_SAVE_SKIPPED' => 'Skipped record due to missing permission',
+	'JS_MASS_EDIT_PROGRESS_FILE_ERROR' => 'Unable to initialize rollback data for mass edit',
+	'JS_MASS_EDIT_PROGRESS_ROLLBACK_FAILED' => 'Failed to rollback record',
+	'JS_EXPORT_PROGRESS_PREPARING' => 'Preparing export file',
+	'JS_EXPORT_PROGRESS_COMPLETED' => 'Export file is ready',
 
 	//Module Manager
 	'JS_MODULE_ENABLED' => 'Module Enabled',
