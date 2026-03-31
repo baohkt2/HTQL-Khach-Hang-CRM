@@ -2,7 +2,7 @@
 
 
 //This is the sharing access privilege file
-$defaultOrgSharingPermission=array('2'=>2,'4'=>3,'6'=>3,'7'=>2,'9'=>2,'13'=>2,'16'=>2,'20'=>2,'21'=>2,'22'=>3,'23'=>3,'26'=>2,'8'=>2,'14'=>2,'34'=>2,'35'=>2,'36'=>2,'38'=>2,'42'=>2,'43'=>2,'44'=>2,'45'=>2,'47'=>2,'18'=>2,'10'=>2,'50'=>3,'51'=>3,'52'=>3,'55'=>2,'56'=>2,'58'=>3,);
+$defaultOrgSharingPermission=array('2'=>2,'4'=>3,'6'=>2,'7'=>2,'9'=>2,'13'=>2,'16'=>2,'20'=>2,'21'=>2,'22'=>3,'23'=>3,'26'=>2,'8'=>2,'14'=>2,'34'=>2,'35'=>2,'36'=>2,'38'=>2,'42'=>2,'43'=>2,'44'=>2,'45'=>2,'47'=>2,'18'=>2,'10'=>2,'50'=>3,'51'=>3,'52'=>3,'55'=>2,'56'=>2,'58'=>3,);
 
 $related_module_share=array(2=>array(6,),13=>array(6,),20=>array(6,2,),22=>array(6,2,20,),23=>array(6,22,),);
 
@@ -18,9 +18,9 @@ $Accounts_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
 
 $Accounts_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
 
-$Contacts_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
+$Contacts_share_read_permission=array('ROLE'=>array('H6'=>array(18,25,26,27,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,),),'GROUP'=>array());
 
-$Contacts_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
+$Contacts_share_write_permission=array('ROLE'=>array('H6'=>array(18,25,26,27,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,),),'GROUP'=>array());
 
 $Accounts_Potentials_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
 
@@ -113,6 +113,10 @@ $Services_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
 $ModComments_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
 
 $ModComments_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
+
+$Project_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
+
+$Project_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
 
 $SMSNotifier_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
 
