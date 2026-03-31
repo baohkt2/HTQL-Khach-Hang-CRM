@@ -8,12 +8,19 @@
  * All Rights Reserved.
  * ***********************************************************************************/
 
+if (!function_exists('env')) {
+	require_once dirname(__FILE__) . '/../../../env.loader.php';
+}
+
 Class Google_Config_Connector {
-	static $clientId = '1077298873984-cknfeqdcspf4alldfk4ukc29rut28sot.apps.googleusercontent.com';
-	static $clientSecret = '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';
+	static $clientId = '';
+	static $clientSecret = '';
 
 	static function getRedirectUrl() {
 		global $site_URL;
 		return $site_URL.'/index.php?module=Google&view=Authenticate&service=Google';
 	}
 }
+
+Google_Config_Connector::$clientId = env('GOOGLE_CLIENT_ID', '');
+Google_Config_Connector::$clientSecret = env('GOOGLE_CLIENT_SECRET', '');
