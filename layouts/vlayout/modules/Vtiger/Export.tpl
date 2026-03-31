@@ -26,6 +26,8 @@
             <input type="hidden" name="operator" value="{$OPERATOR}" />
             <input type="hidden" name="search_value" value="{$ALPHABET_VALUE}" />
             <input type="hidden" name="search_params" value='{ZEND_JSON::encode($SEARCH_PARAMS)}' />
+            <input type="hidden" id="exportProgressPreparingLabel" value="{vtranslate('JS_EXPORT_PROGRESS_PREPARING', $MODULE)}" />
+            <input type="hidden" id="exportProgressCompletedLabel" value="{vtranslate('JS_EXPORT_PROGRESS_COMPLETED', $MODULE)}" />
             
             <div class="row-fluid">
                 <div class="span">&nbsp;</div>
@@ -81,10 +83,141 @@
                     <div class="textAlignCenter">
                         <button class="btn btn-success" type="submit"><strong>{vtranslate($MODULE, $MODULE)}&nbsp;{vtranslate($SOURCE_MODULE, $MODULE)}</strong></button>
                         <a class="cancelLink" type="reset" onclick='window.history.back()'>{vtranslate('LBL_CANCEL', $MODULE)}</a>
+                        <div class="js-export-progress-widget hide" style="margin-top:12px;">
+                            <div class="progress" style="margin-bottom:8px;">
+                                <div class="bar js-export-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%;">0%</div>
+                            </div>
+                            <div class="js-export-progress-label muted" style="font-size:12px;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </form>
 </div>
+{literal}
+<script type="text/javascript">
+jQuery(function() {
+    var exportForm = jQuery('#exportForm');
+    if(!exportForm.length) {
+        return;
+    }
+
+    var preparingLabel = jQuery.trim(exportForm.find('#exportProgressPreparingLabel').val()) || app.vtranslate('JS_EXPORT_PROGRESS_PREPARING');
+    var completedLabel = jQuery.trim(exportForm.find('#exportProgressCompletedLabel').val()) || app.vtranslate('JS_EXPORT_PROGRESS_COMPLETED');
+
+    var updateProgress = function(widget, progress, label) {
+        var percentage = parseInt(progress, 10);
+        if(isNaN(percentage)) {
+            percentage = 0;
+        }
+        percentage = Math.max(0, Math.min(100, percentage));
+
+        widget.find('.js-export-progress-bar')
+            .css('width', percentage + '%')
+            .attr('aria-valuenow', percentage)
+            .text(percentage + '%');
+        widget.find('.js-export-progress-label').text(label || '');
+    };
+
+    exportForm.off('submit.exportTracking').on('submit.exportTracking', function(event) {
+        if(exportForm.data('exportTrackingInProgress')) {
+            event.preventDefault();
+            return false;
+        }
+
+        event.preventDefault();
+        var widget = exportForm.find('.js-export-progress-widget');
+        var submitButton = exportForm.find('button[type="submit"]');
+        var cancelLink = exportForm.find('.cancelLink');
+        var frameName = 'exportDownloadFrame_' + new Date().getTime();
+        var frame = jQuery('<iframe />', {
+            name: frameName,
+            style: 'display:none;'
+        });
+        var progressValue = 3;
+        var completed = false;
+        var exportToken = 'exp_' + new Date().getTime() + '_' + Math.floor(Math.random() * 1000000);
+        var cookieName = 'cusc_export_done_' + exportToken;
+
+        var tokenInput = exportForm.find('input[name="export_tracking_token"]');
+        if(!tokenInput.length) {
+            tokenInput = jQuery('<input type="hidden" name="export_tracking_token" />');
+            exportForm.append(tokenInput);
+        }
+        tokenInput.val(exportToken);
+
+        document.cookie = cookieName + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+
+        var cleanup = function() {
+            window.clearInterval(progressInterval);
+            window.clearInterval(cookiePollInterval);
+            window.clearTimeout(progressTimeout);
+            window.setTimeout(function() {
+                exportForm.removeData('exportTrackingInProgress');
+                exportForm.removeAttr('target');
+                submitButton.removeAttr('disabled');
+                cancelLink.removeClass('hide');
+                widget.addClass('hide');
+                frame.remove();
+                document.cookie = cookieName + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+            }, 650);
+        };
+
+        exportForm.data('exportTrackingInProgress', true);
+        submitButton.attr('disabled', 'disabled');
+        cancelLink.addClass('hide');
+        widget.removeClass('hide');
+        updateProgress(widget, progressValue, preparingLabel);
+
+        exportForm.attr('target', frameName);
+        jQuery('body').append(frame);
+
+        var progressInterval = window.setInterval(function() {
+            if(completed) {
+                return;
+            }
+
+            progressValue = Math.min(92, progressValue + Math.max(1, Math.floor((92 - progressValue) / 6)));
+            updateProgress(widget, progressValue, preparingLabel);
+        }, 350);
+
+        var progressTimeout = window.setTimeout(function() {
+            if(completed) {
+                return;
+            }
+
+            completed = true;
+            updateProgress(widget, 100, completedLabel);
+            cleanup();
+        }, 120000);
+
+        var cookiePollInterval = window.setInterval(function() {
+            if(completed) {
+                return;
+            }
+
+            if(document.cookie.indexOf(cookieName + '=1') !== -1) {
+                completed = true;
+                updateProgress(widget, 100, completedLabel);
+                cleanup();
+            }
+        }, 250);
+
+        frame.one('load', function() {
+            if(completed) {
+                return;
+            }
+
+            completed = true;
+            updateProgress(widget, 100, completedLabel);
+            cleanup();
+        });
+
+        exportForm[0].submit();
+        return false;
+    });
+});
+</script>
+{/literal}
 {/strip}

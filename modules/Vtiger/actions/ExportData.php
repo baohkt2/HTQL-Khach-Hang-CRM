@@ -280,6 +280,7 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 		$moduleName = $request->get('source_module');
 		$fileName = $this->getExportFileName($request, $moduleName);
 		$currentUser = Users_Record_Model::getCurrentUserModel();
+		$this->sendExportCompletionCookie($request);
 		
 		$exportFormat = $request->get('export_format');
 
@@ -455,6 +456,20 @@ class Vtiger_ExportData_Action extends Vtiger_Mass_Action {
 				fputcsv($fp, Vtiger_Functions::sanitizeForCSVExport($row));
 			}
 		}
+	}
+
+	protected function sendExportCompletionCookie(Vtiger_Request $request) {
+		$token = trim((string) $request->get('export_tracking_token'));
+		if ($token === '') {
+			return;
+		}
+
+		$cookieName = 'cusc_export_done_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $token);
+		if ($cookieName === 'cusc_export_done_') {
+			return;
+		}
+
+		setcookie($cookieName, '1', 0, '/');
 	}
 
 	private $picklistValues;
