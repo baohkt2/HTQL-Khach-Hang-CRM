@@ -22,10 +22,11 @@
 	{assign var=ACCESSIBLE_USER_LIST value=$USER_MODEL->getAccessibleUsersForModule($MODULE)}
 	{assign var=ACCESSIBLE_GROUP_LIST value=$USER_MODEL->getAccessibleGroupForModule($MODULE)}
 
-	{if $FIELD_VALUE eq ''}
+	{if $FIELD_VALUE eq '' && $ASSIGNED_USER_ID neq 'assigned_to_2'}
 		{assign var=FIELD_VALUE value=$CURRENT_USER_ID}
 	{/if}
 	<select class="chzn-select {$ASSIGNED_USER_ID}" data-validation-engine="validate[{if $FIELD_MODEL->isMandatory() eq true} required,{/if}funcCall[Vtiger_Base_Validator_Js.invokeValidation]]" data-name="{$ASSIGNED_USER_ID}" name="{$ASSIGNED_USER_ID}" data-fieldinfo='{$FIELD_INFO}' {if !empty($SPECIAL_VALIDATOR)}data-validator={Zend_Json::encode($SPECIAL_VALIDATOR)}{/if}>
+		{if $ASSIGNED_USER_ID eq 'assigned_to_2'} <option value="">{vtranslate('LBL_SELECT_OPTION','Vtiger')}</option> {/if}
 		<optgroup label="{vtranslate('LBL_USERS')}">
 			{foreach key=OWNER_ID item=OWNER_NAME from=$ALL_ACTIVEUSER_LIST}
                     <option value="{$OWNER_ID}" data-picklistvalue= '{$OWNER_NAME}' {if $FIELD_VALUE eq $OWNER_ID} selected {/if}

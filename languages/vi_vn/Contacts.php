@@ -39,6 +39,7 @@ $languageStrings = array(
 	'Support End Date' => 'Ngày kết thúc hỗ trợ',
 	'Support Start Date' => 'Ngày bắt đầu hỗ trợ',
 	'Title' => 'Chức danh',
+	'LBL_ASSIGNED_TO_2' => 'Phụ trách 2',
 	'User List' => 'Danh sách người dùng',
 	'Dr.' => 'Dr.',
 	'Mr.' => 'Mr.',

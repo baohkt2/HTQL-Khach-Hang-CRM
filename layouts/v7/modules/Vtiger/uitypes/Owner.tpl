@@ -22,7 +22,7 @@
 	{assign var=ACCESSIBLE_USER_LIST value=$USER_MODEL->getAccessibleUsersForModule($MODULE)}
 	{assign var=ACCESSIBLE_GROUP_LIST value=$USER_MODEL->getAccessibleGroupForModule($MODULE)}
 
-	{if $FIELD_VALUE eq ''}
+	{if $FIELD_VALUE eq '' && $ASSIGNED_USER_ID neq 'assigned_to_2'}
 		{assign var=FIELD_VALUE value=$CURRENT_USER_ID}
 	{/if}
 	<select class="inputElement select2" type="owner" data-fieldtype="owner" data-fieldname="{$ASSIGNED_USER_ID}" data-name="{$ASSIGNED_USER_ID}" name="{$ASSIGNED_USER_ID}" 
@@ -31,7 +31,7 @@
                 data-specific-rules='{ZEND_JSON::encode($FIELD_INFO["validator"])}'
             {/if}
             >
-		{if $FIELD_MODEL->isCustomField() || $VIEW_SOURCE eq 'MASSEDIT'} <option value="">{vtranslate('LBL_SELECT_OPTION','Vtiger')}</option> {/if}
+		{if $ASSIGNED_USER_ID eq 'assigned_to_2' || $FIELD_MODEL->isCustomField() || $VIEW_SOURCE eq 'MASSEDIT'} <option value="">{vtranslate('LBL_SELECT_OPTION','Vtiger')}</option> {/if}
 		<optgroup label="{vtranslate('LBL_USERS')}">
 			{foreach key=OWNER_ID item=OWNER_NAME from=$ALL_ACTIVEUSER_LIST}
                     <option value="{$OWNER_ID}" data-picklistvalue= '{$OWNER_NAME}' {if $FIELD_VALUE eq $OWNER_ID && $VIEW_SOURCE neq 'MASSEDIT'} selected {/if}
