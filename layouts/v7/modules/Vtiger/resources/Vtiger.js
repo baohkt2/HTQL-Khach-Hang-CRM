@@ -375,6 +375,24 @@ Vtiger.Class(
     },
 
     registerListEssentialsToggleEvent: function () {
+      var syncListEssentialsToggle = function () {
+        var toggleElement = jQuery(".essentials-toggle");
+        if (!toggleElement.length) {
+          return;
+        }
+
+        // Keep toggle visible even when the left panel has no list entries.
+        toggleElement.removeClass("hide").css("display", "inline-block");
+
+        var marker = toggleElement.find(".essentials-toggle-marker");
+        if (jQuery(".sidebar-essentials").hasClass("hide")) {
+          marker.removeClass("fa-chevron-left").addClass("fa-chevron-right");
+        } else {
+          marker.removeClass("fa-chevron-right").addClass("fa-chevron-left");
+        }
+      };
+
+      syncListEssentialsToggle();
       jQuery(".main-container").on("click", ".essentials-toggle", function () {
         jQuery(".sidebar-essentials").toggleClass("hide");
         jQuery(".content-area").toggleClass("full-width");
@@ -394,6 +412,7 @@ Vtiger.Class(
             .removeClass("fa-chevron-right")
             .addClass("fa-chevron-left");
         }
+        syncListEssentialsToggle();
         app.event.trigger("Vtiger.Post.MenuToggle");
       });
     },
