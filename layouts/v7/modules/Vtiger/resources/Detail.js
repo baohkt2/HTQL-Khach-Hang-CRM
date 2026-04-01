@@ -1324,19 +1324,21 @@ Vtiger.Class(
         editElement.append(ele);
       }
 
-      // for reference fields, actual value will be ID but we need to show related name of that ID
+      // for reference fields, actual value will be ID on the hidden .sourceField; display name goes on *_display
       if (fieldType === "reference") {
-        if (value !== 0) {
-          jQuery('input[name="' + fieldName + '"]', editElement).prop(
+        if (value !== 0 && value !== "" && value !== "0") {
+          var displayText = jQuery.trim(detailViewValue.text());
+          jQuery('input[name="' + fieldName + '_display"]', editElement).prop(
             "value",
-            jQuery.trim(detailViewValue.text()),
+            displayText,
           );
-          var referenceElement = jQuery(
-            'input[name="' + fieldName + '"]',
+          jQuery('input[name="' + fieldName + '"]', editElement).val(value);
+          var referenceDisplayElement = jQuery(
+            'input[name="' + fieldName + '_display"]',
             editElement,
           );
-          if (!referenceElement.attr("disabled")) {
-            referenceElement.attr("disabled", "disabled");
+          if (!referenceDisplayElement.attr("disabled")) {
+            referenceDisplayElement.attr("disabled", "disabled");
             editElement.find(".clearReferenceSelection").removeClass("hide");
           }
         }
@@ -1463,7 +1465,7 @@ Vtiger.Class(
           }
           fieldElement = fieldElement.filter('[type="checkbox"]');
         } else if (fieldType == "reference") {
-          ajaxEditNewValue = fieldElement.data("value");
+          ajaxEditNewValue = fieldElement.val();
         }
 
         // prev Value should be taken based on field Type
@@ -3820,7 +3822,7 @@ Vtiger.Class(
       if (fieldElement.is("input:checkbox")) {
         currentValue = fieldElement.is(":checked") ? "1" : "0";
       } else if (fieldType == "reference") {
-        currentValue = fieldElement.data("value");
+        currentValue = fieldElement.val();
       }
 
       var customHandlingFields = [
