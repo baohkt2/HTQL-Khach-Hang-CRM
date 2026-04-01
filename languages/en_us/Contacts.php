@@ -53,6 +53,7 @@ $languageStrings = array(
     'Support Start Date' => 'Support Start Date',
     'Support End Date'   => 'Support End Date',
 	'LBL_ASSIGNED_TO_2' => 'Assigned To 2',
+	'LBL_TRANSFER_OWNERSHIP_2' => 'Transfer Assigned To 2',
 	
 	//Added for Picklist Values
 	'Mr.'=>'Mr.',

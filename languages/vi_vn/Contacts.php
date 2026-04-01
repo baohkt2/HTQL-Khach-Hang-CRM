@@ -40,6 +40,7 @@ $languageStrings = array(
 	'Support Start Date' => 'Ngày bắt đầu hỗ trợ',
 	'Title' => 'Chức danh',
 	'LBL_ASSIGNED_TO_2' => 'Phụ trách 2',
+	'LBL_TRANSFER_OWNERSHIP_2' => 'Chuyển người phụ trách 2',
 	'User List' => 'Danh sách người dùng',
 	'Dr.' => 'Dr.',
 	'Mr.' => 'Mr.',

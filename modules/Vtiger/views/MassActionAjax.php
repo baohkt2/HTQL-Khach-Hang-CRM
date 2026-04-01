@@ -501,6 +501,10 @@ class Vtiger_MassActionAjax_View extends Vtiger_IndexAjax_View {
 	function transferOwnership(Vtiger_Request $request){
 		$module = $request->getModule();
 		$moduleModel = Vtiger_Module_Model::getInstance($module);
+		$transferField = $request->get('transfer_field');
+		if ($transferField !== 'assigned_to_2') {
+			$transferField = 'assigned_user_id';
+		}
 
 		$relatedModules = $moduleModel->getRelations();
 		//User doesn't have the permission to edit related module,
@@ -510,12 +514,25 @@ class Vtiger_MassActionAjax_View extends Vtiger_IndexAjax_View {
 				unset($relatedModules[$key]);
 			}
 		}
+
+		$showRelatedModules = true;
+		$headerTitleLabel = 'LBL_TRANSFER_OWNERSHIP';
+		$transferOwnerLabel = 'LBL_ASSIGNED_TO';
+		if ($module === 'Contacts' && $transferField === 'assigned_to_2') {
+			$showRelatedModules = false;
+			$headerTitleLabel = 'LBL_TRANSFER_OWNERSHIP_2';
+			$transferOwnerLabel = 'LBL_ASSIGNED_TO_2';
+		}
 		
 		$viewer = $this->getViewer($request);
 		$skipModules = array('Emails');
 		$viewer->assign('MODULE',$module);
 		$viewer->assign('RELATED_MODULES', $relatedModules);
 		$viewer->assign('SKIP_MODULES', $skipModules);
+		$viewer->assign('TRANSFER_FIELD', $transferField);
+		$viewer->assign('SHOW_RELATED_MODULES', $showRelatedModules);
+		$viewer->assign('HEADER_TITLE_LABEL', $headerTitleLabel);
+		$viewer->assign('TRANSFER_OWNER_LABEL', $transferOwnerLabel);
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
 		$viewer->view('TransferRecordOwnership.tpl', $module);
 	}

@@ -15,12 +15,15 @@
             <form class="form-horizontal" id="changeOwner" name="changeOwner" method="post" action="index.php">
                 <input type="hidden" name="module" value="{$MODULE}" />
                 <input type="hidden" name="action" value="TransferOwnership" />
+                <input type="hidden" name="transferField" value="{$TRANSFER_FIELD|default:'assigned_user_id'}" />
             
-                {assign var=HEADER_TITLE value={vtranslate('LBL_TRANSFER_OWNERSHIP', $MODULE)}}
+                {assign var=HEADER_TITLE_KEY value=$HEADER_TITLE_LABEL|default:'LBL_TRANSFER_OWNERSHIP'}
+                {assign var=HEADER_TITLE value={vtranslate($HEADER_TITLE_KEY, $MODULE)}}
                 {include file="ModalHeader.tpl"|vtemplate_path:$MODULE TITLE=$HEADER_TITLE}
                 
                 <div class="modal-body">
                     <div class="transferOwnershipEditContents">
+                        {if $SHOW_RELATED_MODULES|default:true}
                         <div class="form-group">
                                 <label class="col-lg-4 control-label">{vtranslate('LBL_SELECT_RELATED_MODULES',$MODULE)}</label>
                                 <div class="col-lg-6">
@@ -33,8 +36,10 @@
                                     </select>
                                 </div>
                         </div>
+                        {/if}
                         <div class="form-group">
-                                <label class="col-lg-4 control-label">{vtranslate('LBL_ASSIGNED_TO', $MODULE)}</label>
+                                {assign var=TRANSFER_OWNER_LABEL_KEY value=$TRANSFER_OWNER_LABEL|default:'LBL_ASSIGNED_TO'}
+                                <label class="col-lg-4 control-label">{vtranslate($TRANSFER_OWNER_LABEL_KEY, $MODULE)}</label>
                                 <div class="col-lg-6">
                                     {assign var=ALL_ACTIVEUSER_LIST value=$USER_MODEL->getAccessibleUsers()}
                                     {assign var=ALL_ACTIVEGROUP_LIST value=$USER_MODEL->getAccessibleGroups()}
