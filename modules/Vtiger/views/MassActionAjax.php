@@ -502,7 +502,8 @@ class Vtiger_MassActionAjax_View extends Vtiger_IndexAjax_View {
 		$module = $request->getModule();
 		$moduleModel = Vtiger_Module_Model::getInstance($module);
 		$transferField = $request->get('transfer_field');
-		if ($transferField !== 'assigned_to_2') {
+		$allowedTransferFields = array('assigned_user_id', 'assigned_to_2', 'assigned_to_zalo', 'assigned_to_facebook');
+		if (!in_array($transferField, $allowedTransferFields)) {
 			$transferField = 'assigned_user_id';
 		}
 
@@ -518,10 +519,23 @@ class Vtiger_MassActionAjax_View extends Vtiger_IndexAjax_View {
 		$showRelatedModules = true;
 		$headerTitleLabel = 'LBL_TRANSFER_OWNERSHIP';
 		$transferOwnerLabel = 'LBL_ASSIGNED_TO';
-		if ($module === 'Contacts' && $transferField === 'assigned_to_2') {
-			$showRelatedModules = false;
-			$headerTitleLabel = 'LBL_TRANSFER_OWNERSHIP_2';
-			$transferOwnerLabel = 'LBL_ASSIGNED_TO_2';
+		if ($module === 'Contacts') {
+			if ($transferField === 'assigned_user_id') {
+				$headerTitleLabel = 'LBL_TRANSFER_OWNERSHIP_CTV';
+				$transferOwnerLabel = 'LBL_ASSIGNED_TO_CTV';
+			} elseif ($transferField === 'assigned_to_2') {
+				$showRelatedModules = false;
+				$headerTitleLabel = 'LBL_TRANSFER_OWNERSHIP_2';
+				$transferOwnerLabel = 'LBL_ASSIGNED_TO_2';
+			} elseif ($transferField === 'assigned_to_zalo') {
+				$showRelatedModules = false;
+				$headerTitleLabel = 'LBL_TRANSFER_OWNERSHIP_ZALO';
+				$transferOwnerLabel = 'LBL_ASSIGNED_TO_ZALO';
+			} elseif ($transferField === 'assigned_to_facebook') {
+				$showRelatedModules = false;
+				$headerTitleLabel = 'LBL_TRANSFER_OWNERSHIP_FACEBOOK';
+				$transferOwnerLabel = 'LBL_ASSIGNED_TO_FACEBOOK';
+			}
 		}
 		
 		$viewer = $this->getViewer($request);

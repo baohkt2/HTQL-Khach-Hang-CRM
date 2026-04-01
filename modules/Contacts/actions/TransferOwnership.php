@@ -16,6 +16,8 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 	const OWNER_ONLY_MAX_BATCH_LIMIT = 2000;
 	const PRIMARY_OWNER_FIELD_NAME = 'assigned_user_id';
 	const SECONDARY_OWNER_FIELD_NAME = 'assigned_to_2';
+	const ZALO_OWNER_FIELD_NAME = 'assigned_to_zalo';
+	const FACEBOOK_OWNER_FIELD_NAME = 'assigned_to_facebook';
 	const SECONDARY_OWNER_COLUMN_NAME = 'cf_2134';
 
 	public function checkPermission(Vtiger_Request $request) {
@@ -69,6 +71,12 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 			$moduleName = $request->getModule();
 			$transferOwnerId = (int) $request->get('transferOwnerId');
 			$transferFieldName = $this->resolveTransferFieldName($request->get('transferField'));
+			if (!$this->isSupportedTransferField($transferFieldName)) {
+				throw new Exception('Unsupported transfer field for Contacts', 400);
+			}
+			if ($transferFieldName !== self::PRIMARY_OWNER_FIELD_NAME && !$this->isCustomOwnerFieldAvailable($transferFieldName)) {
+				throw new Exception('Requested owner field is not available for Contacts', 404);
+			}
 			if ($transferOwnerId <= 0) {
 				$response->setError(vtranslate('LBL_INVALID_DATA'));
 				$response->emit();
@@ -145,8 +153,8 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 		try {
 			if ($this->canUseOwnerOnlyFastPath($jobData)) {
 				$this->processOwnerOnlyFastBatch($recordBatch, $jobData);
-			} elseif ($this->canUseSecondaryOwnerFastPath($jobData)) {
-				$this->processSecondaryOwnerFastBatch($recordBatch, $jobData);
+			} elseif ($this->canUseCustomOwnerFastPath($jobData)) {
+				$this->processCustomOwnerFastBatch($recordBatch, $jobData);
 			} else {
 				$this->processStandardTransferBatch($recordBatch, $jobData);
 			}
@@ -210,10 +218,12 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 			&& (int) $jobData['transfer_owner_id'] > 0;
 	}
 
-	protected function canUseSecondaryOwnerFastPath(array $jobData) {
+	protected function canUseCustomOwnerFastPath(array $jobData) {
+		$transferFieldName = $this->getTransferFieldNameFromJobData($jobData);
 		return empty($jobData['has_related_modules'])
 			&& strcasecmp((string) $jobData['module'], 'Contacts') === 0
-			&& $this->getTransferFieldNameFromJobData($jobData) === self::SECONDARY_OWNER_FIELD_NAME
+			&& $transferFieldName !== self::PRIMARY_OWNER_FIELD_NAME
+			&& $this->isCustomOwnerFieldAvailable($transferFieldName)
 			&& (int) $jobData['transfer_owner_id'] > 0;
 	}
 
@@ -228,7 +238,7 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 		foreach ($recordBatch as $recordId) {
 			$recordId = (int) $recordId;
 			$recordModule = getSalesEntityType($recordId);
-			if ($transferFieldName === self::SECONDARY_OWNER_FIELD_NAME && strcasecmp((string) $recordModule, 'Contacts') !== 0) {
+			if ($transferFieldName !== self::PRIMARY_OWNER_FIELD_NAME && strcasecmp((string) $recordModule, 'Contacts') !== 0) {
 				$jobData['failed']++;
 				$jobData['errors'][] = vtranslate('JS_MASS_EDIT_PROGRESS_SAVE_SKIPPED', 'Vtiger') . ' #' . $recordId;
 				continue;
@@ -303,19 +313,25 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 		$jobData['successful'] += php7_count($eligibleRecordIds);
 	}
 
-	protected function processSecondaryOwnerFastBatch(array $recordBatch, array &$jobData) {
+	protected function processCustomOwnerFastBatch(array $recordBatch, array &$jobData) {
 		if (empty($recordBatch)) {
 			return;
 		}
 
+		$transferFieldName = $this->getTransferFieldNameFromJobData($jobData);
+		$customOwnerColumnName = $this->getContactCustomOwnerColumnNameForField($transferFieldName);
+		if (empty($customOwnerColumnName)) {
+			throw new Exception('Unsupported transfer field for Contacts', 400);
+		}
+
 		$newOwnerId = (int) $jobData['transfer_owner_id'];
-		$ownerMap = $this->getSecondaryOwnerMapForRecords($recordBatch);
+		$ownerMap = $this->getContactCustomOwnerMapForRecords($recordBatch, $customOwnerColumnName);
 		$eligibleRecordIds = array();
 		$updateRecordIds = array();
 
 		foreach ($recordBatch as $recordId) {
 			$recordId = (int) $recordId;
-			if (!isset($ownerMap[$recordId])) {
+			if (!array_key_exists($recordId, $ownerMap)) {
 				$jobData['failed']++;
 				$jobData['errors'][] = vtranslate('JS_MASS_EDIT_PROGRESS_RECORD_FAILED', 'Vtiger') . ' #' . $recordId . ': missing contact custom field row';
 				continue;
@@ -337,7 +353,7 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 			$db = PearDatabase::getInstance();
 			try {
 				$db->startTransaction();
-				$this->updateSecondaryOwnerByChunks($db, $updateRecordIds, $newOwnerId);
+				$this->updateContactCustomOwnerByChunks($db, $updateRecordIds, $newOwnerId, $customOwnerColumnName);
 				$hasFailedTransaction = $db->hasFailedTransaction();
 				$db->completeTransaction();
 
@@ -373,14 +389,18 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 		return $ownerMap;
 	}
 
-	protected function getSecondaryOwnerMapForRecords(array $recordIds) {
+	protected function getContactCustomOwnerMapForRecords(array $recordIds, $customOwnerColumnName) {
 		$recordIds = array_values(array_unique(array_map('intval', $recordIds)));
 		if (empty($recordIds)) {
 			return array();
 		}
 
+		if (empty($customOwnerColumnName)) {
+			return array();
+		}
+
 		$db = PearDatabase::getInstance();
-		$query = 'SELECT vtiger_contactdetails.contactid AS contactid, vtiger_contactscf.' . self::SECONDARY_OWNER_COLUMN_NAME . ' AS secondary_owner '
+		$query = 'SELECT vtiger_contactdetails.contactid AS contactid, vtiger_contactscf.' . $customOwnerColumnName . ' AS custom_owner '
 			. 'FROM vtiger_contactdetails '
 			. 'LEFT JOIN vtiger_contactscf ON vtiger_contactdetails.contactid = vtiger_contactscf.contactid '
 			. 'WHERE vtiger_contactdetails.contactid IN (' . generateQuestionMarks($recordIds) . ')';
@@ -389,7 +409,7 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 		$ownerMap = array();
 		for ($i = 0; $i < $db->num_rows($result); $i++) {
 			$recordId = (int) $db->query_result($result, $i, 'contactid');
-			$ownerMap[$recordId] = (int) $db->query_result($result, $i, 'secondary_owner');
+			$ownerMap[$recordId] = (int) $db->query_result($result, $i, 'custom_owner');
 		}
 
 		return $ownerMap;
@@ -413,7 +433,11 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 		}
 	}
 
-	protected function updateSecondaryOwnerByChunks($db, array $recordIds, $newOwnerId) {
+	protected function updateContactCustomOwnerByChunks($db, array $recordIds, $newOwnerId, $customOwnerColumnName) {
+		if (empty($customOwnerColumnName)) {
+			return;
+		}
+
 		$recordIdChunks = array_chunk($recordIds, self::OWNER_ONLY_DEFAULT_BATCH_LIMIT);
 		$modifiedBy = $this->getCurrentUserIdForMassUpdate();
 		$modifiedTime = date('Y-m-d H:i:s');
@@ -425,9 +449,9 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 			}
 
 			$placeholders = generateQuestionMarks($recordIdChunk);
-			$updateSecondaryOwnerSql = 'UPDATE vtiger_contactscf SET ' . self::SECONDARY_OWNER_COLUMN_NAME . '=? WHERE contactid IN (' . $placeholders . ')';
-			$updateSecondaryOwnerParams = array_merge(array($newOwnerId), $recordIdChunk);
-			$db->pquery($updateSecondaryOwnerSql, $updateSecondaryOwnerParams);
+			$updateCustomOwnerSql = 'UPDATE vtiger_contactscf SET ' . $customOwnerColumnName . '=? WHERE contactid IN (' . $placeholders . ')';
+			$updateCustomOwnerParams = array_merge(array($newOwnerId), $recordIdChunk);
+			$db->pquery($updateCustomOwnerSql, $updateCustomOwnerParams);
 
 			$updateAuditSql = 'UPDATE vtiger_crmentity SET modifiedtime=?, modifiedby=? WHERE crmid IN (' . $placeholders . ')';
 			$updateAuditParams = array_merge(array($modifiedTime, $modifiedBy), $recordIdChunk);
@@ -436,7 +460,8 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 	}
 
 	public function getRecordIds(Vtiger_Request $request) {
-		if ($this->resolveTransferFieldName($request->get('transferField')) === self::SECONDARY_OWNER_FIELD_NAME) {
+		$transferFieldName = $this->resolveTransferFieldName($request->get('transferField'));
+		if ($transferFieldName !== null && $transferFieldName !== self::PRIMARY_OWNER_FIELD_NAME) {
 			$record = $request->get('record');
 			if (!empty($record)) {
 				return array((int) $record);
@@ -459,18 +484,86 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 
 	protected function getTransferFieldNameFromJobData(array $jobData) {
 		if (!empty($jobData['transfer_field'])) {
-			return $this->resolveTransferFieldName($jobData['transfer_field']);
+			$transferFieldName = $this->resolveTransferFieldName($jobData['transfer_field']);
+			if ($transferFieldName !== null) {
+				return $transferFieldName;
+			}
 		}
 
 		return self::PRIMARY_OWNER_FIELD_NAME;
 	}
 
 	protected function resolveTransferFieldName($transferField) {
-		if ($transferField === self::SECONDARY_OWNER_FIELD_NAME) {
-			return self::SECONDARY_OWNER_FIELD_NAME;
+		$supportedFields = array(
+			self::PRIMARY_OWNER_FIELD_NAME,
+			self::SECONDARY_OWNER_FIELD_NAME,
+			self::ZALO_OWNER_FIELD_NAME,
+			self::FACEBOOK_OWNER_FIELD_NAME,
+		);
+
+		if ($transferField === null || $transferField === '') {
+			return self::PRIMARY_OWNER_FIELD_NAME;
 		}
 
-		return self::PRIMARY_OWNER_FIELD_NAME;
+		return in_array($transferField, $supportedFields, true) ? $transferField : null;
+	}
+
+	protected function isSupportedTransferField($transferField) {
+		return in_array($transferField, array(
+			self::PRIMARY_OWNER_FIELD_NAME,
+			self::SECONDARY_OWNER_FIELD_NAME,
+			self::ZALO_OWNER_FIELD_NAME,
+			self::FACEBOOK_OWNER_FIELD_NAME,
+		), true);
+	}
+
+	protected function getContactCustomOwnerColumnNameForField($transferField) {
+		if ($transferField === self::SECONDARY_OWNER_FIELD_NAME) {
+			return self::SECONDARY_OWNER_COLUMN_NAME;
+		}
+
+		if ($transferField === self::ZALO_OWNER_FIELD_NAME) {
+			return $this->getContactsCustomFieldColumnNameByFieldName(self::ZALO_OWNER_FIELD_NAME);
+		}
+
+		if ($transferField === self::FACEBOOK_OWNER_FIELD_NAME) {
+			return $this->getContactsCustomFieldColumnNameByFieldName(self::FACEBOOK_OWNER_FIELD_NAME);
+		}
+
+		return null;
+	}
+
+	protected function isCustomOwnerFieldAvailable($transferField) {
+		if ($transferField === self::PRIMARY_OWNER_FIELD_NAME) {
+			return true;
+		}
+
+		$columnName = $this->getContactCustomOwnerColumnNameForField($transferField);
+		if (empty($columnName)) {
+			return false;
+		}
+
+		$db = PearDatabase::getInstance();
+		$query = 'SELECT 1 FROM vtiger_field WHERE tabid = ? AND fieldname = ? AND presence IN (0,2) LIMIT 1';
+		$result = $db->pquery($query, array(getTabid('Contacts'), $transferField));
+
+		return (bool) $result && $db->num_rows($result) > 0;
+	}
+
+	protected function getContactsCustomFieldColumnNameByFieldName($fieldName) {
+		if (empty($fieldName)) {
+			return null;
+		}
+
+		$db = PearDatabase::getInstance();
+		$query = 'SELECT columnname FROM vtiger_field WHERE tabid = ? AND fieldname = ? LIMIT 1';
+		$result = $db->pquery($query, array(getTabid('Contacts'), $fieldName));
+		if ($result && $db->num_rows($result) > 0) {
+			$columnName = $db->query_result($result, 0, 'columnname');
+			return !empty($columnName) ? $columnName : null;
+		}
+
+		return null;
 	}
 
 	protected function getTransferProgressJobs() {

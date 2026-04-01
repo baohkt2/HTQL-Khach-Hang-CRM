@@ -3,7 +3,7 @@ http_response_code(503);
 header('Content-Type: text/html; charset=UTF-8');
 header('Retry-After: 3600');
 
-$estimatedCompletionTime = '14:30';
+$estimatedCompletionTime = '15:00';
 ?>
 <!doctype html>
 <html lang="vi">

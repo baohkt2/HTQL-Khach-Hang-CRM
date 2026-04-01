@@ -2913,16 +2913,56 @@ class CRMEntity {
 				$tableName .= '_t' . $tabId;
 			}
 			$this->setupTemporaryTable($tableName, $sharedTabId, $user, $current_user_parent_role_seq, $current_user_groups);
+			$ownerJoinCondition = "$tableName$scope.id = vtiger_crmentity$scope.smownerid";
+			if ($module == 'Contacts') {
+				$contactOwnerColumns = $this->getContactsOwnerColumnNamesForAccessControl();
+				if (!empty($contactOwnerColumns)) {
+					$contactScfAlias = 'vtiger_contactscf_owner' . $scope;
+					$ownerColumnConditions = array();
+					foreach ($contactOwnerColumns as $columnName) {
+						$ownerColumnConditions[] = "$contactScfAlias.$columnName = $tableName$scope.id";
+					}
+
+					$ownerJoinCondition = '(' . $tableName . $scope . '.id = vtiger_crmentity' . $scope . '.smownerid OR EXISTS ('
+						. 'SELECT 1 FROM vtiger_contactscf ' . $contactScfAlias
+						. ' WHERE ' . $contactScfAlias . '.contactid = vtiger_crmentity' . $scope . '.crmid'
+						. ' AND (' . implode(' OR ', $ownerColumnConditions) . ')'
+						. '))';
+				}
+			}
 			// for secondary module we should join the records even if record is not there(primary module without related record)
 				if($scope == ''){
-					$query = " INNER JOIN $tableName $tableName$scope ON $tableName$scope.id = " .
-							"vtiger_crmentity$scope.smownerid ";
+					$query = " INNER JOIN $tableName $tableName$scope ON " .
+							$ownerJoinCondition . " ";
 				}else{
-					$query = " INNER JOIN $tableName $tableName$scope ON $tableName$scope.id = " .
-							"vtiger_crmentity$scope.smownerid OR vtiger_crmentity$scope.smownerid IS NULL";
+					$query = " INNER JOIN $tableName $tableName$scope ON " .
+							$ownerJoinCondition . " OR vtiger_crmentity$scope.smownerid IS NULL";
 				}
 			}
 		return $query;
+	}
+
+	protected function getContactsOwnerColumnNamesForAccessControl() {
+		static $ownerColumns = null;
+		if ($ownerColumns !== null) {
+			return $ownerColumns;
+		}
+
+		$ownerColumns = array();
+		$adb = PearDatabase::getInstance();
+		$result = $adb->pquery(
+			'SELECT columnname FROM vtiger_field WHERE tabid = ? AND fieldname IN (?, ?, ?) AND presence IN (0,2)',
+			array(getTabid('Contacts'), 'assigned_to_2', 'assigned_to_zalo', 'assigned_to_facebook')
+		);
+
+		for ($i = 0; $i < $adb->num_rows($result); $i++) {
+			$columnName = (string) $adb->query_result($result, $i, 'columnname');
+			if (preg_match('/^cf_[0-9]+$/', $columnName) && !in_array($columnName, $ownerColumns, true)) {
+				$ownerColumns[] = $columnName;
+			}
+		}
+
+		return $ownerColumns;
 	}
 
 	public function listQueryNonAdminChange($query, $scope = '') {

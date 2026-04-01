@@ -52,8 +52,16 @@ $languageStrings = array(
 	'Contact Id' => 'Contact Id',
     'Support Start Date' => 'Support Start Date',
     'Support End Date'   => 'Support End Date',
-	'LBL_ASSIGNED_TO_2' => 'Assigned To 2',
-	'LBL_TRANSFER_OWNERSHIP_2' => 'Transfer Assigned To 2',
+	'Assigned To' => 'Assigned CTV',
+	'LBL_ASSIGNED_TO' => 'Assigned CTV',
+	'LBL_ASSIGNED_TO_CTV' => 'Assigned CTV',
+	'LBL_ASSIGNED_TO_2' => 'Assigned Can Bo',
+	'LBL_ASSIGNED_TO_ZALO' => 'Assigned Zalo',
+	'LBL_ASSIGNED_TO_FACEBOOK' => 'Assigned Facebook',
+	'LBL_TRANSFER_OWNERSHIP_CTV' => 'Transfer Assigned CTV',
+	'LBL_TRANSFER_OWNERSHIP_2' => 'Transfer Assigned Can Bo',
+	'LBL_TRANSFER_OWNERSHIP_ZALO' => 'Transfer Assigned Zalo',
+	'LBL_TRANSFER_OWNERSHIP_FACEBOOK' => 'Transfer Assigned Facebook',
 	
 	//Added for Picklist Values
 	'Mr.'=>'Mr.',

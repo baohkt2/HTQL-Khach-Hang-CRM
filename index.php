@@ -10,11 +10,11 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-$maintenanceFlagFile = __DIR__ . '/storage/maintenance.flag';
-if (is_file($maintenanceFlagFile)) {
-    require __DIR__ . '/maintenance.php';
-    exit;
-}
+// $maintenanceFlagFile = __DIR__ . '/storage/maintenance.flag';
+// if (is_file($maintenanceFlagFile)) {
+//     require __DIR__ . '/maintenance.php';
+//     exit;
+// }
 
 
 if (!file_exists("vendor/autoload.php")) {

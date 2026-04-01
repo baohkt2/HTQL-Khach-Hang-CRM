@@ -414,6 +414,12 @@ function isPermitted($module,$actionname,$record_id='')
 			$recordOwnerArr['Groups'] = $groupId;
 		}
 
+		if ($module == 'Contacts' && isUserPartOfContactsOwnerMatrix($record_id, $current_user->id, $current_user_groups, $subordinate_roles_users)) {
+			$permission = 'yes';
+			$log->debug('Exiting isPermitted method ...');
+			return $permission;
+		}
+
 		foreach($recordOwnerArr as $type=>$id)
 		{
 			$recOwnType=$type;
@@ -586,6 +592,91 @@ function isPermitted($module,$actionname,$record_id='')
 	$log->debug("Exiting isPermitted method ...");
 	return $permission;
 
+}
+
+function getContactsOwnerColumnsForPermissionCheck() {
+	static $ownerColumns = null;
+	if ($ownerColumns !== null) {
+		return $ownerColumns;
+	}
+
+	$ownerColumns = array();
+	$adb = PearDatabase::getInstance();
+	$result = $adb->pquery(
+		'SELECT columnname FROM vtiger_field WHERE tabid = ? AND fieldname IN (?, ?, ?) AND presence IN (0,2)',
+		array(getTabid('Contacts'), 'assigned_to_2', 'assigned_to_zalo', 'assigned_to_facebook')
+	);
+
+	for ($i = 0; $i < $adb->num_rows($result); $i++) {
+		$columnName = (string) $adb->query_result($result, $i, 'columnname');
+		if (preg_match('/^cf_[0-9]+$/', $columnName) && !in_array($columnName, $ownerColumns, true)) {
+			$ownerColumns[] = $columnName;
+		}
+	}
+
+	return $ownerColumns;
+}
+
+function getContactsOwnerAssignments($recordId) {
+	$recordId = (int) $recordId;
+	if ($recordId <= 0) {
+		return array();
+	}
+
+	$ownerColumns = getContactsOwnerColumnsForPermissionCheck();
+	if (empty($ownerColumns)) {
+		return array();
+	}
+
+	$adb = PearDatabase::getInstance();
+	$selectColumns = implode(', ', $ownerColumns);
+	$result = $adb->pquery('SELECT ' . $selectColumns . ' FROM vtiger_contactscf WHERE contactid = ? LIMIT 1', array($recordId));
+	if (!$result || $adb->num_rows($result) === 0) {
+		return array();
+	}
+
+	$ownerIds = array();
+	foreach ($ownerColumns as $columnName) {
+		$ownerId = (int) $adb->query_result($result, 0, $columnName);
+		if ($ownerId > 0 && !in_array($ownerId, $ownerIds, true)) {
+			$ownerIds[] = $ownerId;
+		}
+	}
+
+	return $ownerIds;
+}
+
+function isUserPartOfContactsOwnerMatrix($recordId, $userId, array $currentUserGroups, array $subordinateRolesUsers) {
+	$ownerIds = getContactsOwnerAssignments($recordId);
+	if (empty($ownerIds)) {
+		return false;
+	}
+
+	$userId = (int) $userId;
+	if (in_array($userId, $ownerIds, true)) {
+		return true;
+	}
+
+	if (!empty($currentUserGroups)) {
+		foreach ($currentUserGroups as $groupId) {
+			if (in_array((int) $groupId, $ownerIds, true)) {
+				return true;
+			}
+		}
+	}
+
+	foreach ($subordinateRolesUsers as $userIds) {
+		if (!is_array($userIds)) {
+			continue;
+		}
+		foreach ($userIds as $subordinateUserId) {
+			if (in_array((int) $subordinateUserId, $ownerIds, true)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 /** Function to check if the currently logged in user has Read Access due to Sharing for the specified record

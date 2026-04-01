@@ -8,11 +8,11 @@
  * All Rights Reserved.
  *************************************************************************************/
 
-$maintenanceFlagFile = __DIR__ . '/storage/maintenance.flag';
-if (is_file($maintenanceFlagFile)) {
-	require __DIR__ . '/maintenance.php';
-	exit;
-}
+// $maintenanceFlagFile = __DIR__ . '/storage/maintenance.flag';
+// if (is_file($maintenanceFlagFile)) {
+// 	require __DIR__ . '/maintenance.php';
+// 	exit;
+// }
 
 include_once 'vendor/autoload.php';
 include_once 'vtlib/Vtiger/Module.php';
