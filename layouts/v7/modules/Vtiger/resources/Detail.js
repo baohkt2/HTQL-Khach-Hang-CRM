@@ -1465,7 +1465,10 @@ Vtiger.Class(
           }
           fieldElement = fieldElement.filter('[type="checkbox"]');
         } else if (fieldType == "reference") {
-          ajaxEditNewValue = fieldElement.val();
+          ajaxEditNewValue = thisInstance.getReferenceInlineEditId(
+            editElement,
+            fieldName,
+          );
         }
 
         // prev Value should be taken based on field Type
@@ -3762,6 +3765,31 @@ Vtiger.Class(
       }
     },
 
+    /**
+     * CRM id for reference inline edit. Reference.tpl uses a hidden input (id in .val());
+     * Vtiger_Reference_Field_Js.getUi() uses a single type=search .sourceField where
+     * setReferenceFieldValue stores the id in jQuery .data("value") and the label in .val().
+     */
+    getReferenceInlineEditId: function (editElement, fieldName) {
+      var named = editElement.find('input[name="' + fieldName + '"]');
+      var hidden = named.filter('input[type="hidden"]');
+      if (hidden.length) {
+        return hidden.first().val();
+      }
+      var source = named.filter("input.sourceField").first();
+      if (!source.length) {
+        source = named.first();
+      }
+      if (!source.length) {
+        return "";
+      }
+      var dv = source.data("value");
+      if (dv !== undefined && dv !== null && dv !== "") {
+        return String(dv);
+      }
+      return jQuery.trim(String(source.val() || ""));
+    },
+
     getComparableInlineValue: function (value, fieldType) {
       if (typeof value === "undefined" || value === null) {
         return "";
@@ -3822,7 +3850,7 @@ Vtiger.Class(
       if (fieldElement.is("input:checkbox")) {
         currentValue = fieldElement.is(":checked") ? "1" : "0";
       } else if (fieldType == "reference") {
-        currentValue = fieldElement.val();
+        currentValue = this.getReferenceInlineEditId(editElement, fieldName);
       }
 
       var customHandlingFields = [
