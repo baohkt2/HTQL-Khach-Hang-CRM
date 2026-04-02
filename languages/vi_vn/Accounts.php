@@ -20,6 +20,7 @@ $languageStrings = array(
 	'LBL_END_DATE' => 'Ngày hạn',
 	'LBL_RECORDS_LIST' => 'Danh sách trường',
 	'LBL_SHOW_ACCOUNT_HIERARCHY' => 'Phân cấp trường',
+	'LBL_BACKUP_EXPORT' => 'Sao lưu',
 	'LBL_START_DATE' => 'Ngày bắt đầu',
 	'Member Of' => 'Thành viên của',
 	'Other Email' => 'Email khác',

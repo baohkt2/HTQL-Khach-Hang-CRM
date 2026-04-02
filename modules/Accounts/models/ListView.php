@@ -53,6 +53,16 @@ class Accounts_ListView_Model extends Vtiger_ListView_Model {
 			$massActionLinks['LISTVIEWMASSACTION'][] = Vtiger_Link_Model::getInstanceFromValues($massActionLink);
 		}
 
+		if($currentUserModel->hasModuleActionPermission($moduleModel->getId(), 'Export')) {
+			$massActionLink = array(
+				'linktype' => 'LISTVIEWMASSACTION',
+				'linklabel' => 'LBL_BACKUP_EXPORT',
+				'linkurl' => 'javascript:Vtiger_List_Js.triggerBackupAction("index.php?module='.$moduleModel->getName().'&view=MassActionAjax&mode=showBackupExportForm")',
+				'linkicon' => ''
+			);
+			$massActionLinks['LISTVIEWMASSACTION'][] = Vtiger_Link_Model::getInstanceFromValues($massActionLink);
+		}
+
 		return $massActionLinks;
 	}
 	

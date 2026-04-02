@@ -153,6 +153,27 @@ Vtiger.Class(
         listInstance.noRecordSelectedAlert();
       }
     },
+    triggerBackupAction: function (backupActionUrl) {
+      var listInstance = window.app.controller();
+      app.helper.showProgress();
+      app.request
+        .get({ url: backupActionUrl })
+        .then(function (error, data) {
+          app.helper.hideProgress();
+          if (error || !data) {
+            app.helper.showErrorNotification({
+              message: error || app.vtranslate("JS_ERROR"),
+            });
+            return;
+          }
+
+          app.helper.showModal(data, {
+            cb: function (container) {
+              listInstance.registerBackupExportFormEvents(container);
+            },
+          });
+        });
+    },
     triggerMassAction: function (massActionUrl) {
       var listInstance = window.app.controller();
       var listSelectParams = listInstance.getListSelectAllParams(true);
@@ -1956,8 +1977,13 @@ Vtiger.Class(
           .off("click.massEditProgressCancel")
           .on("click.massEditProgressCancel", ".js-cancel-mass-edit-progress", function (cancelEvent) {
             cancelEvent.preventDefault();
-            thisInstance.cancelMassEditProgress(form);
+            var cancelButton = jQuery(cancelEvent.currentTarget);
+            cancelButton.prop("disabled", true).addClass("disabled");
           });
+        form
+          .find(".js-cancel-mass-edit-progress")
+          .prop("disabled", true)
+          .addClass("disabled");
         thisInstance.resetMassEditProgressUI(form);
 
         thisInstance.registerAutoIncludeFieldsInMassEdit();
@@ -2196,22 +2222,12 @@ Vtiger.Class(
           app.event.trigger("post.save.failed");
           return;
         }
-
-        this.toggleMassEditProgressUI(form, true);
-        this.updateMassEditProgressUI(
-          form,
-          {
-            percentage: 0,
-            message: app.vtranslate("JS_MASS_EDIT_PROGRESS_STARTED"),
-          },
-          false,
-        );
+        var moduleName = this.getModuleName();
 
         app.request
           .post({ data: updateFieldsRequest + "mode=startMassEditProgress" })
           .then(function (err, data) {
             if (err || !data || !data.job_id) {
-              thisInstance.toggleMassEditProgressUI(form, false);
               app.event.trigger("post.save.failed", err || data);
               app.helper.showErrorNotification({
                 message:
@@ -2224,8 +2240,27 @@ Vtiger.Class(
               jobId: data.job_id,
               cancelling: false,
             });
-            thisInstance.updateMassEditProgressUI(form, data, false);
-            thisInstance.processMassEditProgressJob(form);
+
+            var indexInstance = Vtiger_Index_Js.getInstance();
+            if (
+              indexInstance &&
+              typeof indexInstance.startGlobalMassEditProgressTracking ===
+                "function"
+            ) {
+              indexInstance.startGlobalMassEditProgressTracking(
+                data.job_id,
+                moduleName,
+                data,
+              );
+            }
+
+            app.helper.hideModal();
+            app.helper.hidePageContentOverlay();
+            app.helper.showSuccessNotification({
+              message:
+                data.message ||
+                app.vtranslate("JS_MASS_EDIT_PROGRESS_STARTED"),
+            });
           });
       } else {
         app.helper.showAlertBox({
@@ -2349,7 +2384,7 @@ Vtiger.Class(
 
       var cancelButton = progressContainer.find(".js-cancel-mass-edit-progress");
       cancelButton
-        .prop("disabled", !!forceCancelling || !!progressData.completed)
+        .prop("disabled", true)
         .text(
           forceCancelling
             ? app.vtranslate("JS_MASS_EDIT_PROGRESS_CANCELLING")
@@ -2396,38 +2431,10 @@ Vtiger.Class(
     },
 
     cancelMassEditProgress: function (form) {
-      var thisInstance = this;
-      var state = form.data("massEditProgressState") || {};
-      if (!state.jobId || state.cancelling) {
-        return;
-      }
-
-      state.cancelling = true;
-      form.data("massEditProgressState", state);
-      this.updateMassEditProgressUI(form, {}, true);
-
-      app.request
-        .post({
-          data: {
-            module: this.getModuleName(),
-            action: "MassSave",
-            mode: "cancelMassEditProgress",
-            job_id: state.jobId,
-          },
-        })
-        .then(function (err, data) {
-          if (err || !data) {
-            thisInstance.toggleMassEditProgressUI(form, false);
-            app.event.trigger("post.save.failed", err);
-            app.helper.showErrorNotification({
-              message: err || app.vtranslate("JS_ERROR"),
-            });
-            return;
-          }
-
-          thisInstance.updateMassEditProgressUI(form, data, true);
-          thisInstance.handleMassEditProgressCompletion(form, data);
-        });
+      form
+        .find(".js-cancel-mass-edit-progress")
+        .prop("disabled", true)
+        .addClass("disabled");
     },
 
     handleMassEditProgressCompletion: function (form, progressData) {
@@ -2768,6 +2775,82 @@ Vtiger.Class(
         aDeferred.resolve(response);
       });
       return aDeferred.promise();
+    },
+    registerBackupExportFormEvents: function (container) {
+      var thisInstance = this;
+      var form = container.find("#backupExportForm");
+      if (!form.length) {
+        return;
+      }
+
+      var toggleDateRange = function () {
+        var filterType = form.find('[name="filter_type"]:checked').val();
+        var dateRangeContainer = form.find(".js-backup-date-range");
+        if (filterType === "created_time_range") {
+          dateRangeContainer.removeClass("hide");
+        } else {
+          dateRangeContainer.addClass("hide");
+        }
+      };
+
+      toggleDateRange();
+      form
+        .off("change.backupFilterType")
+        .on("change.backupFilterType", '[name="filter_type"]', function () {
+          toggleDateRange();
+        });
+
+      form
+        .off("submit.backupExport")
+        .on("submit.backupExport", function (event) {
+          event.preventDefault();
+
+          var filterType = form.find('[name="filter_type"]:checked').val();
+          var fromDate = jQuery.trim(form.find('[name="from_date"]').val());
+          var toDate = jQuery.trim(form.find('[name="to_date"]').val());
+
+          if (filterType === "created_time_range") {
+            if (!fromDate || !toDate) {
+              app.helper.showErrorNotification({
+                message: app.vtranslate("JS_BACKUP_EXPORT_DATE_REQUIRED"),
+              });
+              return false;
+            }
+            if (fromDate > toDate) {
+              app.helper.showErrorNotification({
+                message: app.vtranslate("JS_BACKUP_EXPORT_INVALID_DATE_RANGE"),
+              });
+              return false;
+            }
+          }
+
+          var submitButton = form.find('button[name="saveButton"]');
+          submitButton.attr("disabled", "disabled");
+          app.helper.showProgress();
+
+          app.request
+            .post({ data: form.serializeFormData() })
+            .then(function (err, data) {
+              app.helper.hideProgress();
+              submitButton.removeAttr("disabled");
+
+              if (err || !data) {
+                app.helper.showErrorNotification({
+                  message: (data && data.message) || err || app.vtranslate("JS_ERROR"),
+                });
+                return;
+              }
+
+              app.helper.hideModal();
+              app.helper.showSuccessNotification({
+                message:
+                  data.message ||
+                  app.vtranslate("JS_BACKUP_EXPORT_REQUEST_ACCEPTED"),
+              });
+            });
+
+          return false;
+        });
     },
     transferOwnershipSave: function (form) {
       var listInstance = window.app.controller();

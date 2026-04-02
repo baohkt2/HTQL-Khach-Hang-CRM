@@ -62,6 +62,7 @@ $languageStrings = array(
 	'LBL_TRANSFER_OWNERSHIP_2' => 'Transfer Assigned Can Bo',
 	'LBL_TRANSFER_OWNERSHIP_ZALO' => 'Transfer Assigned Zalo',
 	'LBL_TRANSFER_OWNERSHIP_FACEBOOK' => 'Transfer Assigned Facebook',
+	'LBL_BACKUP_EXPORT' => 'Backup',
 	'LBL_MARK_ASSIGNMENT' => 'Mark Assignment',
 	'LBL_ASSIGNMENT_ACTION' => 'Action',
 	'LBL_MARK_AS_ASSIGNED' => 'Mark',

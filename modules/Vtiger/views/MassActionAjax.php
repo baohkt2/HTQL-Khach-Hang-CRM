@@ -17,6 +17,7 @@ class Vtiger_MassActionAjax_View extends Vtiger_IndexAjax_View {
 		$this->exposeMethod('showSendSMSForm');
 		$this->exposeMethod('showDuplicatesSearchForm');
 		$this->exposeMethod('transferOwnership');
+		$this->exposeMethod('showBackupExportForm');
 	}
 
 	public function requiresPermission(Vtiger_Request $request){
@@ -28,6 +29,9 @@ class Vtiger_MassActionAjax_View extends Vtiger_IndexAjax_View {
 				case 'showMassEditForm':
 					$permissions[] = array('module_parameter' => 'module', 'action' => 'EditView');
 					break;
+					case 'showBackupExportForm':
+						$permissions[] = array('module_parameter' => 'module', 'action' => 'Export');
+						break;
 				case 'showAddCommentForm':
 					$permissions[] = array('module_parameter' => 'custom_module', 'action' => 'CreateView');
 					$request->set('custom_module', 'ModComments');
@@ -549,5 +553,18 @@ class Vtiger_MassActionAjax_View extends Vtiger_IndexAjax_View {
 		$viewer->assign('TRANSFER_OWNER_LABEL', $transferOwnerLabel);
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
 		$viewer->view('TransferRecordOwnership.tpl', $module);
+	}
+
+	function showBackupExportForm(Vtiger_Request $request) {
+		$sourceModule = $request->getModule();
+		if (!in_array($sourceModule, array('Contacts', 'Accounts'), true)) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+
+		$viewer = $this->getViewer($request);
+		$viewer->assign('SOURCE_MODULE', $sourceModule);
+		$viewer->assign('SOURCE_MODULE_LABEL', vtranslate($sourceModule, $sourceModule));
+		$viewer->assign('REQUEST_USER_MODEL', Users_Record_Model::getCurrentUserModel());
+		$viewer->view('BackupExportForm.tpl', 'Vtiger');
 	}
 }

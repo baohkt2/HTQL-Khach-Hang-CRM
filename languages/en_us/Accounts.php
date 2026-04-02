@@ -19,6 +19,7 @@ $languageStrings = array(
 
 	// Mass Action
 	'LBL_SHOW_ACCOUNT_HIERARCHY' => 'Organization Hierarchy',
+	'LBL_BACKUP_EXPORT' => 'Backup',
 
 	//Field Labels
 	'industry' => 'Industry',

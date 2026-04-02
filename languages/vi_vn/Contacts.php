@@ -49,6 +49,7 @@ $languageStrings = array(
 	'LBL_TRANSFER_OWNERSHIP_2' => 'Chuyển Cán Bộ phụ trách',
 	'LBL_TRANSFER_OWNERSHIP_ZALO' => 'Chuyển Zalo phụ trách',
 	'LBL_TRANSFER_OWNERSHIP_FACEBOOK' => 'Chuyển Facebook phụ trách',
+	'LBL_BACKUP_EXPORT' => 'Sao lưu',
 	'LBL_MARK_ASSIGNMENT' => 'Đánh dấu phân công',
 	'LBL_ASSIGNMENT_ACTION' => 'Thao tác',
 	'LBL_MARK_AS_ASSIGNED' => 'Đánh dấu',
