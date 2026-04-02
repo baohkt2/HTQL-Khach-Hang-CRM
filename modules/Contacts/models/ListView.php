@@ -46,6 +46,14 @@ class Contacts_ListView_Model extends Vtiger_ListView_Model {
 		if($currentUserModel->hasModuleActionPermission($moduleModel->getId(), 'EditView')) {
 			$massActionLink = array(
 				'linktype' => 'LISTVIEWMASSACTION',
+				'linklabel' => 'LBL_MARK_ASSIGNMENT',
+				'linkurl' => 'javascript:Contacts_List_Js.triggerMarkAssignment("index.php?module='.$moduleModel->getName().'&view=MassActionAjax&mode=markAssignment")',
+				'linkicon' => ''
+			);
+			$massActionLinks['LISTVIEWMASSACTION'][] = Vtiger_Link_Model::getInstanceFromValues($massActionLink);
+
+			$massActionLink = array(
+				'linktype' => 'LISTVIEWMASSACTION',
 				'linklabel' => 'LBL_TRANSFER_OWNERSHIP_CTV',
 				'linkurl' => 'javascript:Vtiger_List_Js.triggerTransferOwnership("index.php?module='.$moduleModel->getName().'&view=MassActionAjax&mode=transferOwnership")',
 				'linkicon' => ''

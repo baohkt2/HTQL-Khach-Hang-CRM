@@ -62,6 +62,12 @@ $languageStrings = array(
 	'LBL_TRANSFER_OWNERSHIP_2' => 'Transfer Assigned Can Bo',
 	'LBL_TRANSFER_OWNERSHIP_ZALO' => 'Transfer Assigned Zalo',
 	'LBL_TRANSFER_OWNERSHIP_FACEBOOK' => 'Transfer Assigned Facebook',
+	'LBL_MARK_ASSIGNMENT' => 'Mark Assignment',
+	'LBL_ASSIGNMENT_ACTION' => 'Action',
+	'LBL_MARK_AS_ASSIGNED' => 'Mark',
+	'LBL_UNMARK_AS_ASSIGNED' => 'Unmark',
+	'LBL_MARK_ASSIGNMENT_MARKED_SUCCESS' => 'Assignment status updated successfully.',
+	'LBL_MARK_ASSIGNMENT_UNMARKED_SUCCESS' => 'Assignment status cleared successfully.',
 	
 	//Added for Picklist Values
 	'Mr.'=>'Mr.',
