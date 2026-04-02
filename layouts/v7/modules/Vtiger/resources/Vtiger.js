@@ -365,6 +365,9 @@ Vtiger.Class(
     usernames: [],
     userList: {},
     autoFillElement: false,
+    globalMassEditJobs: {},
+    globalMassEditPollTimers: {},
+    globalProgressWidgets: {},
 
     init: function () {
       this.addComponents();
@@ -452,8 +455,352 @@ Vtiger.Class(
       //reference preview event registeration
       this.registerReferencePreviewEvent();
       this.registerEventForPostSaveFail();
+      this.registerGlobalMassEditProgressWatcher();
 
       vtUtils.enableTooltips();
+    },
+
+    getGlobalBackgroundJobStorageKey: function () {
+      return "cusc_background_jobs";
+    },
+
+    getGlobalBackgroundJobsState: function () {
+      var rawData = "";
+      try {
+        rawData =
+          window.localStorage.getItem(this.getGlobalBackgroundJobStorageKey()) ||
+          "";
+      } catch (error) {
+        return { massEdits: {} };
+      }
+
+      if (!rawData) {
+        return { massEdits: {} };
+      }
+
+      try {
+        var parsed = JSON.parse(rawData);
+        parsed.massEdits = parsed.massEdits || {};
+        return parsed;
+      } catch (error) {
+        return { massEdits: {} };
+      }
+    },
+
+    saveGlobalBackgroundJobsState: function (state) {
+      try {
+        window.localStorage.setItem(
+          this.getGlobalBackgroundJobStorageKey(),
+          JSON.stringify(state || { massEdits: {} }),
+        );
+      } catch (error) {}
+    },
+
+    upsertGlobalBackgroundJobState: function (bucket, jobId, data) {
+      if (!jobId) {
+        return;
+      }
+
+      var state = this.getGlobalBackgroundJobsState();
+      if (!state[bucket]) {
+        state[bucket] = {};
+      }
+
+      var currentData = state[bucket][jobId] || {};
+      state[bucket][jobId] = jQuery.extend(
+        {
+          updatedAt: new Date().getTime(),
+        },
+        currentData,
+        data || {},
+      );
+
+      this.saveGlobalBackgroundJobsState(state);
+    },
+
+    removeGlobalBackgroundJobState: function (bucket, jobId) {
+      if (!jobId) {
+        return;
+      }
+
+      var state = this.getGlobalBackgroundJobsState();
+      if (state[bucket] && state[bucket][jobId]) {
+        delete state[bucket][jobId];
+        this.saveGlobalBackgroundJobsState(state);
+      }
+    },
+
+    getGlobalProgressHost: function () {
+      var host = jQuery("#js-global-progress-host");
+      if (host.length) {
+        return host;
+      }
+
+      host = jQuery("<div />", {
+        id: "js-global-progress-host",
+        style:
+          "position:fixed;right:18px;bottom:18px;z-index:11000;display:flex;flex-direction:column;gap:10px;max-width:340px;width:calc(100vw - 36px);",
+      });
+      jQuery("body").append(host);
+      return host;
+    },
+
+    getGlobalProgressWidgetDomId: function (widgetKey) {
+      return "js-global-progress-" + String(widgetKey || "").replace(/[^A-Za-z0-9_\-]/g, "_");
+    },
+
+    ensureGlobalProgressWidget: function (widgetKey, title) {
+      if (this.globalProgressWidgets[widgetKey]) {
+        return this.globalProgressWidgets[widgetKey];
+      }
+
+      var widgetDomId = this.getGlobalProgressWidgetDomId(widgetKey);
+      var existingWidget = jQuery("#" + widgetDomId);
+      if (existingWidget.length) {
+        this.globalProgressWidgets[widgetKey] = existingWidget;
+        return existingWidget;
+      }
+
+      var host = this.getGlobalProgressHost();
+      var container = jQuery(
+        '<div class="js-global-progress-item" id="' +
+          widgetDomId +
+          '" style="background:#fff;border:1px solid #dfe3e8;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.12);padding:10px 12px;">' +
+          '<div class="js-global-progress-title" style="font-weight:600;font-size:12px;margin-bottom:6px;color:#1f2937;"></div>' +
+          '<div class="progress" style="height:10px;margin-bottom:6px;">' +
+          '<div class="progress-bar progress-bar-striped active js-global-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%">0%</div>' +
+          "</div>" +
+          '<div class="js-global-progress-label text-muted" style="font-size:12px;line-height:1.4;"></div>' +
+          "</div>",
+      );
+
+      container.find(".js-global-progress-title").text(title || "Background Progress");
+      host.append(container);
+      this.globalProgressWidgets[widgetKey] = container;
+      return container;
+    },
+
+    updateGlobalProgressWidget: function (widgetKey, percentage, label, title) {
+      var widget = this.ensureGlobalProgressWidget(widgetKey, title || "Background Progress");
+      var safePercentage = parseInt(percentage, 10);
+      if (isNaN(safePercentage)) {
+        safePercentage = 0;
+      }
+      safePercentage = Math.max(0, Math.min(100, safePercentage));
+
+      widget
+        .find(".js-global-progress-bar")
+        .css("width", safePercentage + "%")
+        .attr("aria-valuenow", safePercentage)
+        .text(safePercentage + "%");
+      widget.find(".js-global-progress-label").text(label || "");
+      if (title) {
+        widget.find(".js-global-progress-title").text(title);
+      }
+    },
+
+    removeGlobalProgressWidget: function (widgetKey) {
+      var widget = this.globalProgressWidgets[widgetKey];
+      if (!widget) {
+        var widgetDomId = this.getGlobalProgressWidgetDomId(widgetKey);
+        widget = jQuery("#" + widgetDomId);
+      }
+
+      if (widget && widget.length) {
+        widget.remove();
+      }
+
+      delete this.globalProgressWidgets[widgetKey];
+    },
+
+    getMassEditProgressMessage: function (progressData) {
+      var processed = parseInt(progressData.processed, 10);
+      var total = parseInt(progressData.total, 10);
+      if (isNaN(processed)) {
+        processed = 0;
+      }
+      if (isNaN(total)) {
+        total = 0;
+      }
+
+      var message = progressData.message || "";
+      if (!message && total > 0) {
+        message =
+          app.vtranslate("JS_MASS_EDIT_PROGRESS_RUNNING") +
+          " (" +
+          processed +
+          "/" +
+          total +
+          ")";
+      }
+
+      return message;
+    },
+
+    startGlobalMassEditProgressTracking: function (jobId, moduleName, progressData) {
+      if (!jobId) {
+        return;
+      }
+
+      var safeModuleName = moduleName || app.getModuleName();
+      if (!this.globalMassEditJobs[jobId]) {
+        this.globalMassEditJobs[jobId] = {
+          module: safeModuleName,
+        };
+      } else {
+        this.globalMassEditJobs[jobId].module = safeModuleName;
+      }
+
+      var initialData = progressData || {};
+      var initialPercentage = parseInt(initialData.percentage, 10);
+      if (isNaN(initialPercentage)) {
+        initialPercentage = 0;
+      }
+      initialPercentage = Math.max(0, Math.min(100, initialPercentage));
+
+      this.upsertGlobalBackgroundJobState("massEdits", jobId, {
+        module: safeModuleName,
+        percentage: initialPercentage,
+        status: "processing",
+      });
+
+      this.updateGlobalProgressWidget(
+        "massedit_" + jobId,
+        initialPercentage,
+        this.getMassEditProgressMessage(initialData),
+        "Mass Edit - " + safeModuleName,
+      );
+
+      this.scheduleGlobalMassEditPoll(jobId, 600);
+    },
+
+    scheduleGlobalMassEditPoll: function (jobId, delay) {
+      var thisInstance = this;
+      if (!jobId) {
+        return;
+      }
+
+      if (this.globalMassEditPollTimers[jobId]) {
+        window.clearTimeout(this.globalMassEditPollTimers[jobId]);
+      }
+
+      this.globalMassEditPollTimers[jobId] = window.setTimeout(function () {
+        thisInstance.pollGlobalMassEditProgress(jobId);
+      }, delay || 1200);
+    },
+
+    clearGlobalMassEditPoll: function (jobId) {
+      if (!jobId) {
+        return;
+      }
+
+      if (this.globalMassEditPollTimers[jobId]) {
+        window.clearTimeout(this.globalMassEditPollTimers[jobId]);
+        delete this.globalMassEditPollTimers[jobId];
+      }
+    },
+
+    pollGlobalMassEditProgress: function (jobId) {
+      var thisInstance = this;
+      var runtimeState = this.globalMassEditJobs[jobId];
+      if (!runtimeState) {
+        var storedState = this.getGlobalBackgroundJobsState();
+        var storedJob = (storedState.massEdits || {})[jobId];
+        if (!storedJob) {
+          this.clearGlobalMassEditPoll(jobId);
+          return;
+        }
+
+        runtimeState = {
+          module: storedJob.module || app.getModuleName(),
+        };
+        this.globalMassEditJobs[jobId] = runtimeState;
+      }
+
+      app.request
+        .post({
+          data: {
+            module: runtimeState.module,
+            action: "MassSave",
+            mode: "processMassEditProgress",
+            job_id: jobId,
+          },
+        })
+        .then(function (err, data) {
+          if (err || !data) {
+            var normalizedError = String(err || "").toLowerCase();
+            if (normalizedError.indexOf("job_not_found") !== -1 || normalizedError.indexOf("not found") !== -1) {
+              thisInstance.clearGlobalMassEditPoll(jobId);
+              delete thisInstance.globalMassEditJobs[jobId];
+              thisInstance.removeGlobalBackgroundJobState("massEdits", jobId);
+              thisInstance.removeGlobalProgressWidget("massedit_" + jobId);
+              return;
+            }
+
+            thisInstance.scheduleGlobalMassEditPoll(jobId, 3000);
+            return;
+          }
+
+          var percentage = parseInt(data.percentage, 10);
+          if (isNaN(percentage)) {
+            percentage = 0;
+          }
+          percentage = Math.max(0, Math.min(100, percentage));
+
+          thisInstance.upsertGlobalBackgroundJobState("massEdits", jobId, {
+            module: runtimeState.module,
+            percentage: percentage,
+            status: data.completed ? "completed" : "processing",
+          });
+
+          thisInstance.updateGlobalProgressWidget(
+            "massedit_" + jobId,
+            percentage,
+            thisInstance.getMassEditProgressMessage(data),
+            "Mass Edit - " + runtimeState.module,
+          );
+
+          if (data.completed) {
+            thisInstance.clearGlobalMassEditPoll(jobId);
+            delete thisInstance.globalMassEditJobs[jobId];
+            thisInstance.removeGlobalBackgroundJobState("massEdits", jobId);
+
+            thisInstance.updateGlobalProgressWidget(
+              "massedit_" + jobId,
+              100,
+              thisInstance.getMassEditProgressMessage(data),
+              "Mass Edit - " + runtimeState.module,
+            );
+
+            if (data.message) {
+              app.helper.showSuccessNotification({ message: data.message });
+            }
+
+            if (typeof app.view === "function" && app.view() === "List") {
+              app.event.trigger("post.listViewMassEditSave");
+            }
+
+            window.setTimeout(function () {
+              thisInstance.removeGlobalProgressWidget("massedit_" + jobId);
+            }, 5000);
+            return;
+          }
+
+          thisInstance.scheduleGlobalMassEditPoll(jobId, 1200);
+        });
+    },
+
+    registerGlobalMassEditProgressWatcher: function () {
+      var thisInstance = this;
+      var state = this.getGlobalBackgroundJobsState();
+
+      jQuery.each(state.massEdits || {}, function (jobId, jobInfo) {
+        var moduleName = jobInfo.module || app.getModuleName();
+        thisInstance.startGlobalMassEditProgressTracking(jobId, moduleName, {
+          percentage: jobInfo.percentage || 0,
+          message: app.vtranslate("JS_MASS_EDIT_PROGRESS_RUNNING"),
+        });
+      });
     },
 
     addBodyScroll: function () {
