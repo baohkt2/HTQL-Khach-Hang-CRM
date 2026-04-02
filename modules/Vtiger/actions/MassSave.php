@@ -11,6 +11,7 @@
 class Vtiger_MassSave_Action extends Vtiger_Mass_Action {
 
 	const PROGRESS_JOBS_SESSION_KEY = 'VTIGER_MASS_EDIT_PROGRESS_JOBS';
+	const PROGRESS_JOBS_BASE_DIR = 'storage/mass_edit_jobs';
 	const DEFAULT_BATCH_LIMIT = 100;
 	const MAX_BATCH_LIMIT = 200;
 
@@ -22,6 +23,9 @@ class Vtiger_MassSave_Action extends Vtiger_Mass_Action {
 	
 	public function process(Vtiger_Request $request) {
 		$mode = $request->getMode();
+		if (in_array($mode, array('startMassEditProgress', 'processMassEditProgress', 'cancelMassEditProgress'))) {
+			$this->closeSessionLockIfNeeded();
+		}
 		if ($mode === 'startMassEditProgress') {
 			$this->startMassEditProgress($request);
 			return;
@@ -123,6 +127,7 @@ class Vtiger_MassSave_Action extends Vtiger_Mass_Action {
 		try {
 			$moduleName = $request->getModule();
 			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+			$currentUser = Users_Record_Model::getCurrentUserModel();
 			$recordIds = $this->getRecordsListFromRequest($request);
 
 			if (empty($recordIds)) {
@@ -148,6 +153,7 @@ class Vtiger_MassSave_Action extends Vtiger_Mass_Action {
 			$jobId = uniqid('mass_edit_', true);
 			$jobData = array(
 				'module' => $moduleName,
+				'user_id' => (int) $currentUser->getId(),
 				'record_ids' => $recordIds,
 				'field_values' => $fieldValues,
 				'total' => php7_count($recordIds),
@@ -156,16 +162,14 @@ class Vtiger_MassSave_Action extends Vtiger_Mass_Action {
 				'failed' => 0,
 				'completed' => false,
 				'cancelled' => false,
+				'cancel_requested' => false,
 				'batch_limit' => $batchLimit,
 				'timestamp_no_change_mode' => $request->get('_timeStampNoChangeMode', false),
 				'undo_file' => $this->createUndoFilePath($jobId),
 				'updated_at' => time(),
 				'errors' => array(),
 			);
-
-			$jobs = $this->getMassEditProgressJobs();
-			$jobs[$jobId] = $jobData;
-			$this->setMassEditProgressJobs($jobs);
+			$this->saveMassEditProgressJob($jobId, $jobData);
 
 			$response->setResult($this->buildMassEditProgressPayload($jobId, $jobData, vtranslate('JS_MASS_EDIT_PROGRESS_STARTED', 'Vtiger')));
 		} catch (Exception $e) {
@@ -177,125 +181,228 @@ class Vtiger_MassSave_Action extends Vtiger_Mass_Action {
 
 	protected function processMassEditProgress(Vtiger_Request $request) {
 		$response = new Vtiger_Response();
-		$jobId = $request->get('job_id');
-		$jobs = $this->getMassEditProgressJobs();
-
-		if (empty($jobId) || empty($jobs[$jobId])) {
+		$jobId = $this->sanitizeMassEditProgressJobId($request->get('job_id'));
+		if (empty($jobId)) {
 			$response->setError(vtranslate('JS_MASS_EDIT_PROGRESS_JOB_NOT_FOUND', 'Vtiger'));
 			$response->emit();
 			return;
 		}
 
-		$jobData = $jobs[$jobId];
-		if (!empty($jobData['completed'])) {
-			$response->setResult($this->buildMassEditProgressPayload($jobId, $jobData));
-			$response->emit();
-			return;
-		}
+		$thisInstance = $this;
+		$result = $this->withMassEditJobLock($jobId, function() use ($thisInstance, $jobId, $request) {
+			$jobData = $thisInstance->loadMassEditProgressJobForCurrentUser($jobId);
+			if (!$jobData) {
+				return array('error' => vtranslate('JS_MASS_EDIT_PROGRESS_JOB_NOT_FOUND', 'Vtiger'));
+			}
 
-		try {
+			if (!empty($jobData['completed'])) {
+				return array('payload' => $thisInstance->buildMassEditProgressPayload($jobId, $jobData));
+			}
+
 			vglobal('VTIGER_TIMESTAMP_NO_CHANGE_MODE', $jobData['timestamp_no_change_mode']);
-			$moduleName = $jobData['module'];
-			$offset = (int) $jobData['processed'];
-			$batchLimit = (int) $jobData['batch_limit'];
-			$recordBatch = array_slice($jobData['record_ids'], $offset, $batchLimit);
+			try {
+				$moduleName = $jobData['module'];
+				$offset = (int) $jobData['processed'];
+				$batchLimit = (int) $jobData['batch_limit'];
+				$recordBatch = array_slice($jobData['record_ids'], $offset, $batchLimit);
 
-			foreach ($recordBatch as $recordId) {
-				try {
-					$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
-					$originalValues = $this->collectOriginalFieldValues($recordModel, $jobData['field_values']);
-					$recordModel = $this->applyMassEditFieldValuesToRecord($recordModel, $jobData['field_values']);
-					$recordModel = $this->prepareRecordModelForMassSave($recordModel, $request);
+				foreach ($recordBatch as $recordId) {
+					try {
+						$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+						$originalValues = $thisInstance->collectOriginalFieldValues($recordModel, $jobData['field_values']);
+						$recordModel = $thisInstance->applyMassEditFieldValuesToRecord($recordModel, $jobData['field_values']);
+						$recordModel = $thisInstance->prepareRecordModelForMassSave($recordModel, $request);
 
-					if ($this->saveMassEditedRecord($moduleName, $recordId, $recordModel)) {
-						$this->appendUndoSnapshot($jobData['undo_file'], $recordId, $originalValues);
-						$jobData['successful']++;
-					} else {
+						if ($thisInstance->saveMassEditedRecord($moduleName, $recordId, $recordModel)) {
+							$thisInstance->appendUndoSnapshot($jobData['undo_file'], $recordId, $originalValues);
+							$jobData['successful']++;
+						} else {
+							$jobData['failed']++;
+							$jobData['errors'][] = vtranslate('JS_MASS_EDIT_PROGRESS_SAVE_SKIPPED', 'Vtiger') . ' #' . $recordId;
+						}
+					} catch (Exception $recordException) {
 						$jobData['failed']++;
-						$jobData['errors'][] = vtranslate('JS_MASS_EDIT_PROGRESS_SAVE_SKIPPED', 'Vtiger') . ' #' . $recordId;
+						$jobData['errors'][] = vtranslate('JS_MASS_EDIT_PROGRESS_RECORD_FAILED', 'Vtiger') . ' #' . $recordId . ': ' . $recordException->getMessage();
 					}
-				} catch (Exception $recordException) {
-					$jobData['failed']++;
-					$jobData['errors'][] = vtranslate('JS_MASS_EDIT_PROGRESS_RECORD_FAILED', 'Vtiger') . ' #' . $recordId . ': ' . $recordException->getMessage();
+
+					$jobData['processed']++;
 				}
 
-				$jobData['processed']++;
-			}
+				$jobData['updated_at'] = time();
+				if ((int) $jobData['processed'] >= (int) $jobData['total']) {
+					$jobData['completed'] = true;
+					$thisInstance->cleanupUndoFile($jobData);
+					$payload = $thisInstance->buildMassEditProgressPayload($jobId, $jobData, vtranslate('JS_MASS_EDIT_PROGRESS_COMPLETED', 'Vtiger'));
+				} else {
+					$payload = $thisInstance->buildMassEditProgressPayload($jobId, $jobData);
+				}
 
-			$jobData['updated_at'] = time();
-			if ((int) $jobData['processed'] >= (int) $jobData['total']) {
-				$jobData['completed'] = true;
-				$this->cleanupUndoFile($jobData);
-				$payload = $this->buildMassEditProgressPayload($jobId, $jobData, vtranslate('JS_MASS_EDIT_PROGRESS_COMPLETED', 'Vtiger'));
-			} else {
-				$payload = $this->buildMassEditProgressPayload($jobId, $jobData);
+				$thisInstance->saveMassEditProgressJob($jobId, $jobData);
+				return array('payload' => $payload);
+			} catch (Exception $e) {
+				return array('error' => $e->getMessage());
+			} finally {
+				vglobal('VTIGER_TIMESTAMP_NO_CHANGE_MODE', false);
 			}
+		});
 
-			$jobs[$jobId] = $jobData;
-			$this->setMassEditProgressJobs($jobs);
-			$response->setResult($payload);
-		} catch (Exception $e) {
-			$response->setError($e->getMessage());
+		if (!empty($result['error'])) {
+			$response->setError($result['error']);
+		} else {
+			$response->setResult($result['payload']);
 		}
-
-		vglobal('VTIGER_TIMESTAMP_NO_CHANGE_MODE', false);
 		$response->emit();
 	}
 
 	protected function cancelMassEditProgress(Vtiger_Request $request) {
 		$response = new Vtiger_Response();
-		$jobId = $request->get('job_id');
-		$jobs = $this->getMassEditProgressJobs();
-
-		if (empty($jobId) || empty($jobs[$jobId])) {
+		$jobId = $this->sanitizeMassEditProgressJobId($request->get('job_id'));
+		if (empty($jobId)) {
 			$response->setError(vtranslate('JS_MASS_EDIT_PROGRESS_JOB_NOT_FOUND', 'Vtiger'));
 			$response->emit();
 			return;
 		}
 
-		$jobData = $jobs[$jobId];
-		if (!empty($jobData['completed'])) {
-			$response->setResult($this->buildMassEditProgressPayload($jobId, $jobData));
-			$response->emit();
-			return;
-		}
-
-		try {
-			vglobal('VTIGER_TIMESTAMP_NO_CHANGE_MODE', $jobData['timestamp_no_change_mode']);
-			$rollbackStats = $this->rollbackMassEditProgressJob($jobData);
-			$jobData['completed'] = true;
-			$jobData['cancelled'] = true;
-			$jobData['updated_at'] = time();
-			$jobData['rollback_successful'] = $rollbackStats['successful'];
-			$jobData['rollback_failed'] = $rollbackStats['failed'];
-
-			if (!empty($rollbackStats['errors'])) {
-				$jobData['errors'] = array_merge($jobData['errors'], $rollbackStats['errors']);
+		$thisInstance = $this;
+		$result = $this->withMassEditJobLock($jobId, function() use ($thisInstance, $jobId) {
+			$jobData = $thisInstance->loadMassEditProgressJobForCurrentUser($jobId);
+			if (!$jobData) {
+				return array('error' => vtranslate('JS_MASS_EDIT_PROGRESS_JOB_NOT_FOUND', 'Vtiger'));
 			}
 
-			$this->cleanupUndoFile($jobData);
-			$jobs[$jobId] = $jobData;
-			$this->setMassEditProgressJobs($jobs);
+			if (!empty($jobData['completed'])) {
+				return array('payload' => $thisInstance->buildMassEditProgressPayload($jobId, $jobData));
+			}
 
-			$response->setResult($this->buildMassEditProgressPayload($jobId, $jobData, vtranslate('JS_MASS_EDIT_PROGRESS_CANCELLED', 'Vtiger')));
-		} catch (Exception $e) {
-			$response->setError($e->getMessage());
+			vglobal('VTIGER_TIMESTAMP_NO_CHANGE_MODE', $jobData['timestamp_no_change_mode']);
+			try {
+				$rollbackStats = $thisInstance->rollbackMassEditProgressJob($jobData);
+				$jobData['completed'] = true;
+				$jobData['cancelled'] = true;
+				$jobData['cancel_requested'] = true;
+				$jobData['updated_at'] = time();
+				$jobData['rollback_successful'] = $rollbackStats['successful'];
+				$jobData['rollback_failed'] = $rollbackStats['failed'];
+
+				if (!empty($rollbackStats['errors'])) {
+					$jobData['errors'] = array_merge($jobData['errors'], $rollbackStats['errors']);
+				}
+
+				$thisInstance->cleanupUndoFile($jobData);
+				$thisInstance->saveMassEditProgressJob($jobId, $jobData);
+				return array('payload' => $thisInstance->buildMassEditProgressPayload($jobId, $jobData, vtranslate('JS_MASS_EDIT_PROGRESS_CANCELLED', 'Vtiger')));
+			} catch (Exception $e) {
+				return array('error' => $e->getMessage());
+			} finally {
+				vglobal('VTIGER_TIMESTAMP_NO_CHANGE_MODE', false);
+			}
+		});
+
+		if (!empty($result['error'])) {
+			$response->setError($result['error']);
+		} else {
+			$response->setResult($result['payload']);
 		}
-
-		vglobal('VTIGER_TIMESTAMP_NO_CHANGE_MODE', false);
 		$response->emit();
 	}
 
 	protected function getMassEditProgressJobs() {
-		if (!isset($_SESSION[self::PROGRESS_JOBS_SESSION_KEY]) || !is_array($_SESSION[self::PROGRESS_JOBS_SESSION_KEY])) {
-			$_SESSION[self::PROGRESS_JOBS_SESSION_KEY] = array();
-		}
-
-		return $_SESSION[self::PROGRESS_JOBS_SESSION_KEY];
+		return array();
 	}
 
 	protected function setMassEditProgressJobs($jobs) {
-		$_SESSION[self::PROGRESS_JOBS_SESSION_KEY] = $jobs;
+		return;
+	}
+
+	protected function closeSessionLockIfNeeded() {
+		if (function_exists('session_status') && session_status() === PHP_SESSION_ACTIVE) {
+			session_write_close();
+		}
+	}
+
+	protected function sanitizeMassEditProgressJobId($jobId) {
+		return preg_replace('/[^A-Za-z0-9_\-\.]/', '', (string) $jobId);
+	}
+
+	protected function getMassEditProgressBaseDirectory() {
+		$rootDirectory = rtrim((string) vglobal('root_directory'), '/');
+		if ($rootDirectory === '') {
+			$rootDirectory = rtrim(getcwd(), '/');
+		}
+
+		$baseDirectory = $rootDirectory . '/' . self::PROGRESS_JOBS_BASE_DIR;
+		if (!is_dir($baseDirectory)) {
+			@mkdir($baseDirectory, 0755, true);
+		}
+
+		return $baseDirectory;
+	}
+
+	protected function getMassEditProgressJobFilePath($jobId) {
+		$safeJobId = $this->sanitizeMassEditProgressJobId($jobId);
+		return $this->getMassEditProgressBaseDirectory() . '/' . $safeJobId . '.json';
+	}
+
+	protected function getMassEditProgressLockFilePath($jobId) {
+		$safeJobId = $this->sanitizeMassEditProgressJobId($jobId);
+		return $this->getMassEditProgressBaseDirectory() . '/' . $safeJobId . '.lock';
+	}
+
+	protected function saveMassEditProgressJob($jobId, array $jobData) {
+		$jobFilePath = $this->getMassEditProgressJobFilePath($jobId);
+		file_put_contents($jobFilePath, Zend_Json::encode($jobData));
+	}
+
+	protected function loadMassEditProgressJob($jobId) {
+		$jobFilePath = $this->getMassEditProgressJobFilePath($jobId);
+		if (!is_file($jobFilePath)) {
+			return null;
+		}
+
+		$rawData = @file_get_contents($jobFilePath);
+		if ($rawData === false || $rawData === '') {
+			return null;
+		}
+
+		$jobData = Zend_Json::decode($rawData);
+		if (!is_array($jobData)) {
+			return null;
+		}
+
+		return $jobData;
+	}
+
+	protected function loadMassEditProgressJobForCurrentUser($jobId) {
+		$jobData = $this->loadMassEditProgressJob($jobId);
+		if (!$jobData) {
+			return null;
+		}
+
+		$currentUser = Users_Record_Model::getCurrentUserModel();
+		if ((int) $jobData['user_id'] !== (int) $currentUser->getId()) {
+			return null;
+		}
+
+		return $jobData;
+	}
+
+	protected function withMassEditJobLock($jobId, $callback) {
+		$lockFilePath = $this->getMassEditProgressLockFilePath($jobId);
+		$lockHandle = @fopen($lockFilePath, 'c');
+		if (!$lockHandle) {
+			return call_user_func($callback);
+		}
+
+		$result = null;
+		if (@flock($lockHandle, LOCK_EX)) {
+			$result = call_user_func($callback);
+			@flock($lockHandle, LOCK_UN);
+		} else {
+			$result = call_user_func($callback);
+		}
+
+		@fclose($lockHandle);
+		return $result;
 	}
 
 	protected function getMassEditFieldValuesFromRequest(Vtiger_Request $request, $moduleModel) {
