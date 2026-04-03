@@ -14,6 +14,9 @@ class Vtiger_BackupExport_Action extends Vtiger_Action_Controller {
 	const JOB_DIRECTORY = 'storage/async_exports/jobs';
 	const CHUNK_SIZE = 1000;
 	const AUTO_DELETE_BACKUP_FILE = false;
+	const CLEANUP_INTERVAL_SECONDS = 604800;
+	const CLEANUP_RETENTION_SECONDS = 604800;
+	const CLEANUP_STATE_FILE = 'storage/async_exports/backup_cleanup_state.json';
 
 	public function requiresPermission(Vtiger_Request $request) {
 		$permissions = parent::requiresPermission($request);
@@ -53,6 +56,7 @@ class Vtiger_BackupExport_Action extends Vtiger_Action_Controller {
 		if (!$dispatched) {
 			$this->detachRequestAndContinue();
 			$this->executeBackupJob($jobData);
+			$this->runBackupCacheCleanupIfDue();
 		}
 	}
 
@@ -69,6 +73,7 @@ class Vtiger_BackupExport_Action extends Vtiger_Action_Controller {
 
 		$this->setRuntimeUserFromJob($jobData);
 		$this->executeBackupJob($jobData);
+		$this->runBackupCacheCleanupIfDue();
 		return true;
 	}
 
@@ -253,6 +258,105 @@ class Vtiger_BackupExport_Action extends Vtiger_Action_Controller {
 		}
 
 		return false;
+	}
+
+	protected function runBackupCacheCleanupIfDue() {
+		$stateFile = $this->getCleanupStateFileAbsolutePath();
+		$this->ensureDirectory(dirname($stateFile));
+
+		$lockFile = $stateFile . '.lock';
+		$lockHandle = @fopen($lockFile, 'c');
+		if (!$lockHandle) {
+			return;
+		}
+
+		if (!@flock($lockHandle, LOCK_EX)) {
+			@fclose($lockHandle);
+			return;
+		}
+
+		$now = time();
+		$lastRun = $this->getCleanupLastRunTimestamp($stateFile);
+		if ($lastRun > 0 && ($now - $lastRun) < self::CLEANUP_INTERVAL_SECONDS) {
+			@flock($lockHandle, LOCK_UN);
+			@fclose($lockHandle);
+			return;
+		}
+
+		$expiredBefore = $now - self::CLEANUP_RETENTION_SECONDS;
+		$deletedFiles = $this->deleteExpiredBackupFiles($expiredBefore);
+
+		$cleanupState = array(
+			'last_run' => $now,
+			'last_run_at' => date('Y-m-d H:i:s', $now),
+			'deleted_files' => $deletedFiles,
+		);
+		@file_put_contents($stateFile, Zend_Json::encode($cleanupState));
+
+		@flock($lockHandle, LOCK_UN);
+		@fclose($lockHandle);
+	}
+
+	protected function getCleanupStateFileAbsolutePath() {
+		$rootDirectory = rtrim((string) vglobal('root_directory'), '/');
+		if ($rootDirectory === '') {
+			$rootDirectory = rtrim(getcwd(), '/');
+		}
+
+		return $rootDirectory . '/' . self::CLEANUP_STATE_FILE;
+	}
+
+	protected function getCleanupLastRunTimestamp($stateFile) {
+		if (!is_file($stateFile)) {
+			return 0;
+		}
+
+		$rawState = @file_get_contents($stateFile);
+		if ($rawState === false || trim($rawState) === '') {
+			return 0;
+		}
+
+		$decodedState = Zend_Json::decode($rawState);
+		if (!is_array($decodedState) || !isset($decodedState['last_run'])) {
+			return 0;
+		}
+
+		return (int) $decodedState['last_run'];
+	}
+
+	protected function deleteExpiredBackupFiles($expiredBeforeTimestamp) {
+		$rootDirectory = rtrim((string) vglobal('root_directory'), '/');
+		if ($rootDirectory === '') {
+			$rootDirectory = rtrim(getcwd(), '/');
+		}
+
+		$backupDirectory = $rootDirectory . '/' . self::CACHE_EXPORT_DIRECTORY;
+		if (!is_dir($backupDirectory)) {
+			return 0;
+		}
+
+		$files = glob($backupDirectory . '/*');
+		if ($files === false || empty($files)) {
+			return 0;
+		}
+
+		$deletedFiles = 0;
+		foreach ($files as $filePath) {
+			if (!is_file($filePath)) {
+				continue;
+			}
+
+			$fileModifiedTime = @filemtime($filePath);
+			if ($fileModifiedTime === false || $fileModifiedTime > $expiredBeforeTimestamp) {
+				continue;
+			}
+
+			if (@unlink($filePath)) {
+				$deletedFiles++;
+			}
+		}
+
+		return $deletedFiles;
 	}
 
 	protected function detachRequestAndContinue() {
