@@ -9,6 +9,13 @@
  *************************************************************************************/
 
 class CustomView_Save_Action extends Vtiger_Action_Controller {
+	private static $allowedShareMemberTypes = array(
+		Settings_Groups_Member_Model::MEMBER_TYPE_USERS,
+		Settings_Groups_Member_Model::MEMBER_TYPE_GROUPS,
+		Settings_Groups_Member_Model::MEMBER_TYPE_ROLES,
+		Settings_Groups_Member_Model::MEMBER_TYPE_ROLE_AND_SUBORDINATES,
+	);
+
 	public function requiresPermission(\Vtiger_Request $request) {
 		$permissions = parent::requiresPermission($request);
 		$permissions[] = array('module_parameter' => 'source_module', 'action' => 'DetailView');
@@ -21,18 +28,8 @@ class CustomView_Save_Action extends Vtiger_Action_Controller {
         $moduleModel = Vtiger_Module_Model::getInstance($sourceModuleName);
 
 		// Extract all members from customized share_tasks and inject into Vtiger's standard "members"
-		$shareTasksRaw = $request->get('share_tasks');
-		$shareTasks = array();
-		if (!empty($shareTasksRaw)) {
-			if (is_array($shareTasksRaw)) {
-				$shareTasks = $shareTasksRaw;
-			} else if (is_string($shareTasksRaw)) {
-				$shareTasks = json_decode($shareTasksRaw, true);
-				if (!is_array($shareTasks)) {
-					$shareTasks = array();
-				}
-			}
-		}
+		$shareTasksProvided = $request->has('share_tasks');
+		$shareTasks = $this->normalizeShareTasks($request->get('share_tasks'));
 
 		$shareListEnabled = ($request->get('sharelist') == '1');
 		if (!empty($shareTasks)) {
@@ -45,38 +42,27 @@ class CustomView_Save_Action extends Vtiger_Action_Controller {
 			// Collect all unique members from request payload and share task rows.
 			$allMembers = array();
 
-			$standardMembers = $request->get('members');
-			if (is_string($standardMembers) && $standardMembers !== '') {
-				$standardMembers = array($standardMembers);
-			}
-			if (!empty($standardMembers) && is_array($standardMembers)) {
-				foreach ($standardMembers as $memberId) {
-					$cleanMember = html_entity_decode($memberId, ENT_QUOTES, 'UTF-8');
-					if (!in_array($cleanMember, $allMembers)) {
-						$allMembers[] = $cleanMember;
-					}
-				}
+			// When share_tasks is posted (v7 UI), trust only that payload to avoid stale legacy members[] values.
+			if (!$shareTasksProvided) {
+				$allMembers = $this->normalizeMembersList($request->get('members'));
 			}
 
-			foreach ($shareTasks as $task) {
-				$taskMembers = isset($task['members']) ? $task['members'] : array();
-				if (is_string($taskMembers)) {
-					$taskMembers = json_decode(html_entity_decode($taskMembers, ENT_QUOTES, 'UTF-8'), true);
-					if (!is_array($taskMembers)) {
-						$taskMembers = array();
-					}
-				}
-				if (is_array($taskMembers)) {
-					foreach ($taskMembers as $memberId) {
-						$cleanMember = html_entity_decode($memberId, ENT_QUOTES, 'UTF-8');
-						if (!in_array($cleanMember, $allMembers)) {
-							$allMembers[] = $cleanMember;
-						}
+			foreach ($shareTasks as &$task) {
+				$taskMembers = $this->normalizeMembersList(isset($task['members']) ? $task['members'] : array());
+				$task['members'] = $taskMembers;
+				foreach ($taskMembers as $memberId) {
+					if (!in_array($memberId, $allMembers, true)) {
+						$allMembers[] = $memberId;
 					}
 				}
 			}
+			unset($task);
 
-			$hasAllUsers = in_array('All::Users', $allMembers);
+			$hasAllUsers = in_array('All::Users', $allMembers, true);
+			if ($hasAllUsers) {
+				// All users selection must be exclusive and implies public status.
+				$allMembers = array('All::Users');
+			}
 			$request->set('status', $hasAllUsers ? CustomView_Record_Model::CV_STATUS_PUBLIC : CustomView_Record_Model::CV_STATUS_PRIVATE);
 			$request->set('members', $allMembers);
 		} else {
@@ -201,6 +187,88 @@ class CustomView_Save_Action extends Vtiger_Action_Controller {
 		}
 		$customViewData['members'] = $members;
 		return $customViewModel->setData($customViewData);
+	}
+
+	private function normalizeShareTasks($shareTasksRaw) {
+		$shareTasks = array();
+		if (empty($shareTasksRaw)) {
+			return $shareTasks;
+		}
+
+		if (is_array($shareTasksRaw)) {
+			$shareTasks = $shareTasksRaw;
+		} else if (is_string($shareTasksRaw)) {
+			$decoded = json_decode(html_entity_decode($shareTasksRaw, ENT_QUOTES, 'UTF-8'), true);
+			if (is_array($decoded)) {
+				$shareTasks = $decoded;
+			}
+		}
+
+		if (!is_array($shareTasks)) {
+			return array();
+		}
+
+		$normalizedTasks = array();
+		foreach ($shareTasks as $task) {
+			if (!is_array($task)) {
+				continue;
+			}
+			$normalizedTasks[] = array(
+				'members' => $this->normalizeMembersList(isset($task['members']) ? $task['members'] : array()),
+				'task_description' => isset($task['task_description']) ? html_entity_decode($task['task_description'], ENT_QUOTES, 'UTF-8') : '',
+			);
+		}
+
+		return $normalizedTasks;
+	}
+
+	private function normalizeMembersList($membersRaw) {
+		$members = array();
+		$stack = array($membersRaw);
+
+		while (!empty($stack)) {
+			$current = array_pop($stack);
+			if (is_array($current)) {
+				foreach ($current as $item) {
+					$stack[] = $item;
+				}
+				continue;
+			}
+
+			if (!is_string($current) && !is_numeric($current)) {
+				continue;
+			}
+
+			$memberId = trim(html_entity_decode((string)$current, ENT_QUOTES, 'UTF-8'));
+			if ($memberId === '') {
+				continue;
+			}
+
+			if ($memberId === 'All::Users') {
+				if (!in_array($memberId, $members, true)) {
+					$members[] = $memberId;
+				}
+				continue;
+			}
+
+			$idComponents = Settings_Groups_Member_Model::getIdComponentsFromQualifiedId($memberId);
+			if (!$idComponents || php7_count($idComponents) != 2) {
+				continue;
+			}
+
+			$memberType = $idComponents[0];
+			$memberRecordId = trim((string)$idComponents[1]);
+			if ($memberRecordId === '' || !in_array($memberType, self::$allowedShareMemberTypes, true)) {
+				continue;
+			}
+
+			$qualifiedId = Settings_Groups_Member_Model::getQualifiedId($memberType, $memberRecordId);
+			if (!in_array($qualifiedId, $members, true)) {
+				$members[] = $qualifiedId;
+			}
+		}
+
+		return $members;
 	}
     
     public function validateRequest(Vtiger_Request $request) {

@@ -339,6 +339,36 @@ jQuery.Class(
     registerShareTaskActions: function () {
       var self = this;
 
+      var normalizeShareTaskSelection = function (selectEl) {
+        var selectedValues = [];
+        try {
+          var s2val = selectEl.select2("val");
+          if (s2val) {
+            selectedValues = jQuery.isArray(s2val) ? s2val : [s2val];
+          }
+        } catch (e) {
+          selectedValues = selectEl.val() || [];
+        }
+
+        if (selectedValues.indexOf("All::Users") !== -1) {
+          selectedValues = ["All::Users"];
+          selectEl.find('option[value="All::Users"]').prop("selected", true);
+          selectEl
+            .find("option")
+            .not('[value="All::Users"]')
+            .prop("selected", false)
+            .prop("disabled", true);
+        } else {
+          selectEl.find("option").prop("disabled", false);
+        }
+
+        if (selectEl.data("select2")) {
+          selectEl.select2("val", selectedValues);
+        } else {
+          selectEl.val(selectedValues);
+        }
+      };
+
       // Initialize Select2 for existing share task rows
       jQuery("#shareTaskRows .share-task-members").each(function () {
         var selectEl = jQuery(this);
@@ -358,6 +388,11 @@ jQuery.Class(
         }
         // Now init Select2 - it will read the pre-selected options
         vtUtils.showSelect2ElementView(selectEl, {});
+        normalizeShareTaskSelection(selectEl);
+      });
+
+      jQuery(document).on("change", "#shareTaskRows .share-task-members", function () {
+        normalizeShareTaskSelection(jQuery(this));
       });
 
       // Add new share task row
@@ -365,10 +400,9 @@ jQuery.Class(
         var template = jQuery("#shareTaskRowTemplate .share-task-row").clone();
         jQuery("#shareTaskRows").append(template);
         // Init Select2 on the new row
-        vtUtils.showSelect2ElementView(
-          template.find(".share-task-members"),
-          {},
-        );
+        var selectEl = template.find(".share-task-members");
+        vtUtils.showSelect2ElementView(selectEl, {});
+        normalizeShareTaskSelection(selectEl);
       });
 
       // Remove share task row (delegated event)
