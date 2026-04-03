@@ -554,7 +554,8 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 		$currentUserModel = Users_Record_Model::getCurrentUserModel();
 		$cvId = $this->getId();
 
-		$sql = 'INSERT INTO vtiger_cv_history (cvid, userid, action_type, action_time, details) VALUES (?, ?, ?, NOW(), ?)';
+		// Store in UTC so display conversion stays predictable across environments.
+		$sql = 'INSERT INTO vtiger_cv_history (cvid, userid, action_type, action_time, details) VALUES (?, ?, ?, UTC_TIMESTAMP(), ?)';
 		$params = array($cvId, $currentUserModel->getId(), $actionType, $details);
 		$db->pquery($sql, $params);
 	}
@@ -581,6 +582,7 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 
 		$history = array();
 		for ($i = 0; $i < $noOfRows; $i++) {
+			$actionTime = $db->query_result($result, $i, 'action_time');
 			$detailsRaw = $db->query_result($result, $i, 'details');
 			// Vtiger's DB layer may HTML-encode stored values, decode before JSON parsing
 			$detailsClean = !empty($detailsRaw) ? html_entity_decode($detailsRaw, ENT_QUOTES, 'UTF-8') : '';
@@ -594,12 +596,36 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 				'user_name' => $db->query_result($result, $i, 'user_name'),
 				'full_name' => trim($db->query_result($result, $i, 'full_name')),
 				'action_type' => $db->query_result($result, $i, 'action_type'),
-				'action_time' => $db->query_result($result, $i, 'action_time'),
+				'action_time' => $this->convertUtcToDisplayTimezone($actionTime),
 				'details' => $detailsRaw,
 				'details_data' => $detailsData,
 			);
 		}
 		return $history;
+	}
+
+	/**
+	 * Convert UTC DB timestamp to configured display timezone.
+	 * Falls back to raw value when timezone config is missing/invalid.
+	 */
+	private function convertUtcToDisplayTimezone($dateTimeValue) {
+		if (empty($dateTimeValue)) {
+			return $dateTimeValue;
+		}
+
+		global $default_timezone;
+		$displayTimezone = !empty($default_timezone) ? $default_timezone : 'UTC';
+		if (function_exists('env')) {
+			$displayTimezone = env('DEFAULT_TIMEZONE', $displayTimezone);
+		}
+
+		try {
+			$dateTime = new DateTime($dateTimeValue, new DateTimeZone('UTC'));
+			$dateTime->setTimezone(new DateTimeZone($displayTimezone));
+			return $dateTime->format('Y-m-d H:i:s');
+		} catch (Exception $e) {
+			return $dateTimeValue;
+		}
 	}
 
 	/**
