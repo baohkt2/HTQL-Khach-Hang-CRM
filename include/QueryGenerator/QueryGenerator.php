@@ -480,14 +480,19 @@ class QueryGenerator {
 					$tableList['vtiger_role'] = 'vtiger_role';
 				}
 			} elseif($field->getFieldDataType() == 'owner') {
-				$tableList['vtiger_users'] = 'vtiger_users';
-				$tableList['vtiger_groups'] = 'vtiger_groups';
-				$tableJoinMapping['vtiger_users'] = 'LEFT JOIN';
-				$tableJoinMapping['vtiger_groups'] = 'LEFT JOIN';
-				if($fieldName == "created_user_id"){
-					$tableJoinCondition[$fieldName]['vtiger_users'.$fieldName] = $field->getTableName().
-							".".$field->getColumnName()." = vtiger_users".$fieldName.".id";
-					$tableJoinMapping['vtiger_users'.$fieldName] = 'LEFT JOIN vtiger_users AS';
+				$userAlias = 'vtiger_users'.$fieldName;
+				if(!isset($tableJoinMapping[$userAlias])) {
+					$tableJoinCondition[$fieldName][$userAlias] = $field->getTableName().
+							".".$field->getColumnName()." = ".$userAlias.".id";
+					$tableJoinMapping[$userAlias] = 'LEFT JOIN vtiger_users AS';
+				}
+				if($fieldName != "created_user_id") {
+					$groupAlias = 'vtiger_groups'.$fieldName;
+					if(!isset($tableJoinMapping[$groupAlias])) {
+						$tableJoinCondition[$fieldName][$groupAlias] = $field->getTableName().
+								".".$field->getColumnName()." = ".$groupAlias.".groupid";
+						$tableJoinMapping[$groupAlias] = 'LEFT JOIN vtiger_groups AS';
+					}
 				}
 			}
 		}
@@ -552,10 +557,20 @@ class QueryGenerator {
 					$tableList['vtiger_role'] = 'vtiger_role';
 				}
 			} elseif($field->getFieldDataType() == 'owner') {
-				$tableList['vtiger_users'] = 'vtiger_users';
-				$tableList['vtiger_groups'] = 'vtiger_groups';
-				$tableJoinMapping['vtiger_users'] = 'LEFT JOIN';
-				$tableJoinMapping['vtiger_groups'] = 'LEFT JOIN';
+				$userAlias = 'vtiger_users'.$fieldName;
+				if(!isset($tableJoinMapping[$userAlias])) {
+					$tableJoinCondition[$fieldName][$userAlias] = $field->getTableName().
+							".".$field->getColumnName()." = ".$userAlias.".id";
+					$tableJoinMapping[$userAlias] = 'LEFT JOIN vtiger_users AS';
+				}
+				if($fieldName != 'created_user_id') {
+					$groupAlias = 'vtiger_groups'.$fieldName;
+					if(!isset($tableJoinMapping[$groupAlias])) {
+						$tableJoinCondition[$fieldName][$groupAlias] = $field->getTableName().
+								".".$field->getColumnName()." = ".$groupAlias.".groupid";
+						$tableJoinMapping[$groupAlias] = 'LEFT JOIN vtiger_groups AS';
+					}
+				}
 			} else {
 				$tableList[$field->getTableName()] = $field->getTableName();
 				$tableJoinMapping[$field->getTableName()] =
@@ -786,11 +801,14 @@ class QueryGenerator {
 					}
 				} elseif (in_array($fieldName, $this->ownerFields)) {
 					if($fieldName == 'created_user_id'){
-						$concatSql = getSqlForNameInDisplayFormat(array('first_name'=>"vtiger_users$fieldName.first_name",'last_name'=>"vtiger_users$fieldName.last_name"), 'Users');
+						$userTableName = "vtiger_users$fieldName";
+						$concatSql = getSqlForNameInDisplayFormat(array('first_name'=>"$userTableName.first_name",'last_name'=>"$userTableName.last_name"), 'Users');
 						$fieldSql .= "$fieldGlue (trim($concatSql) $valueSql)";
 					}else{
-						$concatSql = getSqlForNameInDisplayFormat(array('first_name'=>"vtiger_users.first_name",'last_name'=>"vtiger_users.last_name"), 'Users');
-						$fieldSql .= "$fieldGlue (trim($concatSql) $valueSql or "."vtiger_groups.groupname $valueSql)";
+						$userTableName = "vtiger_users$fieldName";
+						$groupTableName = "vtiger_groups$fieldName";
+						$concatSql = getSqlForNameInDisplayFormat(array('first_name'=>"$userTableName.first_name",'last_name'=>"$userTableName.last_name"), 'Users');
+						$fieldSql .= "$fieldGlue (trim($concatSql) $valueSql or ".$groupTableName.".groupname $valueSql)";
 					}
 				} elseif($field->getFieldDataType() == 'date' && ($baseModule == 'Events' || $baseModule == 'Calendar') && ($fieldName == 'date_start' || $fieldName == 'due_date')) {
 					$value = $conditionInfo['value'];

@@ -19,6 +19,8 @@ class ContactLastFollowupHandler extends VTEventHandler {
 	protected static $lastFollowUserColumn = null;
 	protected static $lastFollowDateColumn = null;
 	protected static $userNameToIdCache = array();
+	protected static $normalizedUserToIdMap = null;
+	protected static $compactUserToIdMap = null;
 
 	public function handleEvent($eventName, $entityData) {
 		if ($eventName !== 'vtiger.entity.aftersave' || !$entityData) {
@@ -169,6 +171,80 @@ class ContactLastFollowupHandler extends VTEventHandler {
 	 * Follow-up user fields (cf_1772,...) are stored as text in this CRM (e.g. user_name).
 	 * Convert to vtiger_users.id for stable reporting/indexing.
 	 */
+	protected static function normalizeUserKey($value) {
+		$value = trim((string) $value);
+		if ($value === '') {
+			return '';
+		}
+		$value = preg_replace('/\s+/u', ' ', $value);
+		if (function_exists('mb_strtolower')) {
+			return (string) mb_strtolower($value, 'UTF-8');
+		}
+		return (string) strtolower($value);
+	}
+
+	protected static function compactUserKey($value) {
+		$value = self::normalizeUserKey($value);
+		if ($value === '') {
+			return '';
+		}
+		if (function_exists('iconv')) {
+			$translit = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+			if ($translit !== false) {
+				$value = strtolower((string) $translit);
+			}
+		}
+		$value = preg_replace('/[^a-z0-9]+/', '', $value);
+		return trim((string) $value);
+	}
+
+	protected function ensureUserLookupMap() {
+		if (self::$normalizedUserToIdMap !== null) {
+			return;
+		}
+
+		self::$normalizedUserToIdMap = array();
+		self::$compactUserToIdMap = array();
+		$db = PearDatabase::getInstance();
+		$result = $db->pquery(
+			"SELECT id, user_name, first_name, last_name
+			   FROM vtiger_users
+			  WHERE id > 0
+			  ORDER BY deleted ASC, (status='Active') DESC, id ASC",
+			array()
+		);
+
+		for ($i = 0; $i < $db->num_rows($result); $i++) {
+			$id = (int) $db->query_result($result, $i, 'id');
+			$userName = trim((string) $db->query_result($result, $i, 'user_name'));
+			$firstName = trim((string) $db->query_result($result, $i, 'first_name'));
+			$lastName = trim((string) $db->query_result($result, $i, 'last_name'));
+
+			$candidates = array(
+				$userName,
+				$firstName,
+				$lastName,
+				trim($firstName . ' ' . $lastName),
+				trim($lastName . ' ' . $firstName),
+			);
+
+			foreach ($candidates as $candidate) {
+				$key = self::normalizeUserKey($candidate);
+				if ($key === '') {
+					continue;
+				}
+				if (!isset(self::$normalizedUserToIdMap[$key])) {
+					self::$normalizedUserToIdMap[$key] = $id;
+				}
+
+				$compactKey = self::compactUserKey($candidate);
+				if ($compactKey !== '' && !isset(self::$compactUserToIdMap[$compactKey])) {
+					self::$compactUserToIdMap[$compactKey] = $id;
+				}
+			}
+		}
+	}
+
 	protected function resolveUserId($userRaw) {
 		$userRaw = trim((string) $userRaw);
 		if ($userRaw === '' || $userRaw === '0') {
@@ -177,19 +253,70 @@ class ContactLastFollowupHandler extends VTEventHandler {
 		if (ctype_digit($userRaw)) {
 			return (int) $userRaw;
 		}
-		if (isset(self::$userNameToIdCache[$userRaw])) {
-			return (int) self::$userNameToIdCache[$userRaw];
+
+		$lookupKey = self::normalizeUserKey($userRaw);
+		if ($lookupKey === '') {
+			return 0;
 		}
+		if (isset(self::$userNameToIdCache[$lookupKey])) {
+			return (int) self::$userNameToIdCache[$lookupKey];
+		}
+
+		$this->ensureUserLookupMap();
+		if (isset(self::$normalizedUserToIdMap[$lookupKey])) {
+			$id = (int) self::$normalizedUserToIdMap[$lookupKey];
+			self::$userNameToIdCache[$lookupKey] = $id;
+			return $id;
+		}
+
+		$compactKey = self::compactUserKey($userRaw);
+		if ($compactKey !== '') {
+			if (isset(self::$compactUserToIdMap[$compactKey])) {
+				$id = (int) self::$compactUserToIdMap[$compactKey];
+				self::$userNameToIdCache[$lookupKey] = $id;
+				return $id;
+			}
+
+			// light typo tolerance (e.g. nhttthao -> nhtthao)
+			$bestId = 0;
+			$bestDistance = 999;
+			foreach (self::$compactUserToIdMap as $candidateKey => $candidateId) {
+				if ($candidateKey === '' || abs(strlen($candidateKey) - strlen($compactKey)) > 1) {
+					continue;
+				}
+				$distance = levenshtein($compactKey, $candidateKey);
+				if ($distance < $bestDistance) {
+					$bestDistance = $distance;
+					$bestId = (int) $candidateId;
+				}
+			}
+			if ($bestId > 0 && $bestDistance <= 1) {
+				self::$userNameToIdCache[$lookupKey] = $bestId;
+				return $bestId;
+			}
+		}
+
 		$db = PearDatabase::getInstance();
 		$r = $db->pquery(
-			"SELECT id FROM vtiger_users WHERE deleted = 0 AND user_name = ? LIMIT 1",
-			array($userRaw)
+			"SELECT id
+			   FROM vtiger_users
+			  WHERE id > 0
+			    AND (
+					user_name = ?
+					OR TRIM(COALESCE(last_name,'')) = ?
+					OR TRIM(COALESCE(first_name,'')) = ?
+					OR TRIM(CONCAT(COALESCE(first_name,''), ' ', COALESCE(last_name,''))) = ?
+					OR TRIM(CONCAT(COALESCE(last_name,''), ' ', COALESCE(first_name,''))) = ?
+				)
+			  ORDER BY deleted ASC, (status='Active') DESC, id ASC
+			  LIMIT 1",
+			array($userRaw, $userRaw, $userRaw, $userRaw, $userRaw)
 		);
 		$id = 0;
 		if ($r && $db->num_rows($r) > 0) {
 			$id = (int) $db->query_result($r, 0, 'id');
 		}
-		self::$userNameToIdCache[$userRaw] = $id;
+		self::$userNameToIdCache[$lookupKey] = $id;
 		return $id;
 	}
 }

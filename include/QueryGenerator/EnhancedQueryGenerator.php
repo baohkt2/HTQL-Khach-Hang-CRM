@@ -322,10 +322,18 @@ class EnhancedQueryGenerator extends QueryGenerator {
 			if (empty($referenceParentFieldName)) {
 				// for normal base module fields
 				if ($fieldType == 'owner') {
-					$tableList['vtiger_users'] = 'vtiger_users';
-					$tableList['vtiger_groups'] = 'vtiger_groups';
-					$tableJoinMapping['vtiger_users'] = 'LEFT JOIN';
-					$tableJoinMapping['vtiger_groups'] = 'LEFT JOIN';
+					$userAlias = 'vtiger_users'.$fieldName;
+					if (!isset($tableJoinMapping[$userAlias])) {
+						$tableJoinMapping[$userAlias] = 'LEFT JOIN vtiger_users AS';
+						$tableJoinCondition[$fieldName][$userAlias] = $tableName.'.'.$field->getColumnName().' = '.$userAlias.'.id';
+					}
+					if ($fieldName != 'created_user_id') {
+						$groupAlias = 'vtiger_groups'.$fieldName;
+						if (!isset($tableJoinMapping[$groupAlias])) {
+							$tableJoinMapping[$groupAlias] = 'LEFT JOIN vtiger_groups AS';
+							$tableJoinCondition[$fieldName][$groupAlias] = $tableName.'.'.$field->getColumnName().' = '.$groupAlias.'.groupid';
+						}
+					}
 				}
 				$tableList[$field->getTableName()] = $field->getTableName();
 				$tableJoinMapping[$field->getTableName()] = $this->meta->getJoinClause($field->getTableName());
@@ -438,10 +446,18 @@ class EnhancedQueryGenerator extends QueryGenerator {
 						$tableList['vtiger_role'] = 'vtiger_role';
 					}
 				} else if ($fieldType == 'owner') {
-					$tableList['vtiger_users'] = 'vtiger_users';
-					$tableList['vtiger_groups'] = 'vtiger_groups';
-					$tableJoinMapping['vtiger_users'] = 'LEFT JOIN';
-					$tableJoinMapping['vtiger_groups'] = 'LEFT JOIN';
+					$userAlias = 'vtiger_users'.$fieldName;
+					if (!isset($tableJoinMapping[$userAlias])) {
+						$tableJoinMapping[$userAlias] = 'LEFT JOIN vtiger_users AS';
+						$tableJoinCondition[$fieldName][$userAlias] = $fieldTable.'.'.$field->getColumnName().' = '.$userAlias.'.id';
+					}
+					if ($fieldName != 'created_user_id') {
+						$groupAlias = 'vtiger_groups'.$fieldName;
+						if (!isset($tableJoinMapping[$groupAlias])) {
+							$tableJoinMapping[$groupAlias] = 'LEFT JOIN vtiger_groups AS';
+							$tableJoinCondition[$fieldName][$groupAlias] = $fieldTable.'.'.$field->getColumnName().' = '.$groupAlias.'.groupid';
+						}
+					}
 				}
 
 				// if the field name is tags then we need to join with specific table 
@@ -701,13 +717,16 @@ class EnhancedQueryGenerator extends QueryGenerator {
 						$fieldGlue = ' OR';
 					}
 				} elseif (in_array($baseFieldName, $this->ownerFields)) {
-					if ($parentReferenceField)
+					if ($parentReferenceField) {
 						$ownerTableName = $parentReferenceField.$fieldName;
-					else
-						$ownerTableName = '';
+					} else {
+						$ownerTableName = $fieldName;
+					}
 					$concatSql = getSqlForNameInDisplayFormat(array('first_name' => 'vtiger_users'.$ownerTableName.'.first_name',
 						'last_name' => 'vtiger_users'.$ownerTableName.'.last_name'), 'Users');
-					if ($conditionInfo['operator'] == 'y') {
+					if ($fieldName == 'created_user_id') {
+						$fieldSql .= "$fieldGlue (trim($concatSql) $valueSql)";
+					} else if ($conditionInfo['operator'] == 'y') {
 						//if both user name and group name empty, then only should list in isempty condition
 						$fieldSql .= "$fieldGlue ((trim($concatSql) $valueSql) AND (vtiger_groups$ownerTableName.groupname $valueSql))";
 					} else {
@@ -901,10 +920,20 @@ class EnhancedQueryGenerator extends QueryGenerator {
 		} else if ($orderByFieldModel && $orderByFieldModel->getFieldDataType() == 'owner') {
 			if ($parentReferenceField) {
 				$userTableName = 'vtiger_users'.$parentReferenceField.$orderByFieldModel->getFieldName();
-				$groupTableName = 'vtiger_groups'.$parentReferenceField.$orderByFieldModel->getFieldName();
-				$orderByColumn = "COALESCE(CONCAT($userTableName.first_name,$userTableName.last_name),$groupTableName.groupname)";
+				if ($orderByFieldModel->getFieldName() == 'created_user_id') {
+					$orderByColumn = "CONCAT($userTableName.first_name,$userTableName.last_name)";
+				} else {
+					$groupTableName = 'vtiger_groups'.$parentReferenceField.$orderByFieldModel->getFieldName();
+					$orderByColumn = "COALESCE(CONCAT($userTableName.first_name,$userTableName.last_name),$groupTableName.groupname)";
+				}
 			} else {
-				$orderByColumn = 'COALESCE(CONCAT(vtiger_users.first_name,vtiger_users.last_name),vtiger_groups.groupname)';
+				$userTableName = 'vtiger_users'.$orderByFieldModel->getFieldName();
+				if ($orderByFieldModel->getFieldName() == 'created_user_id') {
+					$orderByColumn = "CONCAT($userTableName.first_name,$userTableName.last_name)";
+				} else {
+					$groupTableName = 'vtiger_groups'.$orderByFieldModel->getFieldName();
+					$orderByColumn = "COALESCE(CONCAT($userTableName.first_name,$userTableName.last_name),$groupTableName.groupname)";
+				}
 			}
 		} else if (($orderByFieldModel->getFieldName() == 'taskstatus' || $orderByFieldModel->getFieldName() == 'eventstatus') && $this->module == 'Calendar') {
 			$orderByColumn = 'status';
