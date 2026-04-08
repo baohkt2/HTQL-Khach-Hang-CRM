@@ -11,6 +11,25 @@
 class Vtiger_Phone_UIType extends Vtiger_Base_UIType {
 
 	/**
+	 * Normalize phone value: if numeric and missing leading 0, prepend it.
+	 *
+	 * @param mixed $value
+	 * @return string
+	 */
+	protected function normalizePhoneValue($value) {
+		$value = trim((string) $value);
+		if ($value === '') {
+			return $value;
+		}
+
+		if (ctype_digit($value) && strpos($value, '0') !== 0) {
+			$value = '0' . $value;
+		}
+
+		return $value;
+	}
+
+	/**
 	 * Function to get the Template name for the current UI Type object
 	 * @return <String> - Template Name
 	 */
@@ -24,6 +43,26 @@ class Vtiger_Phone_UIType extends Vtiger_Base_UIType {
 	 */
 	public function getDetailViewTemplateName() {
 		return 'uitypes/PhoneDetailView.tpl';
+	}
+
+	/**
+	 * Ensure phone value is normalized before save.
+	 *
+	 * @param mixed $value
+	 * @return string
+	 */
+	public function getDBInsertValue($value) {
+		return $this->normalizePhoneValue($value);
+	}
+
+	/**
+	 * Ensure ajax save responses use normalized phone value.
+	 *
+	 * @param mixed $value
+	 * @return string
+	 */
+	public function getUserRequestValue($value) {
+		return $this->normalizePhoneValue($value);
 	}
 
 	/**

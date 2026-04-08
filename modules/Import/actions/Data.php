@@ -61,6 +61,25 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		$this->paging = $importInfo['paging'];
 	}
 
+	/**
+	 * Normalize imported phone values by keeping only digits and forcing a leading 0.
+	 *
+	 * @param mixed $value
+	 * @return string
+	 */
+	protected function normalizePhoneValue($value) {
+		$digits = preg_replace('/[^0-9]/', '', trim((string) $value));
+		if ($digits === '') {
+			return '';
+		}
+
+		if (strpos($digits, '0') !== 0) {
+			$digits = '0' . $digits;
+		}
+
+		return $digits;
+	}
+
 	public function process(Vtiger_Request $request) {
 		return;
 	}
@@ -289,6 +308,8 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 							case 'currency'	:	if (!empty($comparisonValue)) {
 													$comparisonValue = CurrencyField::convertToUserFormat($comparisonValue, $this->user, TRUE, FALSE);
 												}
+												break;
+							case 'phone'	:	$comparisonValue = $this->normalizePhoneValue($comparisonValue);
 												break;
 						}
 						$queryGenerator->addCondition($mergeFieldName, $comparisonValue, 'e', '', '', '', true);
@@ -782,8 +803,8 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			$fieldDataType = $fieldInstance->getFieldDataType();
 
 			if ($fieldDataType == 'phone' && !empty($fieldValue)) {
-				// Strip non-digit characters (same as JS phoneField filter)
-				$digits = preg_replace('/[^0-9]/', '', $fieldValue);
+				// Normalize imported phone to digits and enforce leading 0.
+				$digits = $this->normalizePhoneValue($fieldValue);
 				$fieldData[$fieldName] = $digits;
 
 				// Read typeofdata to check for PHONE~{limit}
