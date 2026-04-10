@@ -380,6 +380,14 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 		);
 
 		$row = $adb->query_result_rowdata($result, 0);
+		$total = (int)$row['total'];
+		$processed = (int)($row['processed'] ?? 0);
+		$created = (int)($row['created'] ?? 0);
+		$updated = (int)($row['updated'] ?? 0);
+		$skipped = (int)($row['skipped'] ?? 0);
+		$merged = (int)($row['merged'] ?? 0);
+		$failed = (int)($row['failed'] ?? 0);
+		$pending = (int)($row['pending'] ?? 0);
 
 		// Check if import is still actively running (lock exists)
 		$lockInfo = Import_Lock_Action::isLockedForModule($moduleName);
@@ -396,17 +404,23 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 			}
 		}
 
+		// If every row is already processed, treat import as completed even if
+		// lock/queue state has not been cleaned up yet.
+		if ($total > 0 && $pending === 0 && $processed >= $total) {
+			$isRunning = false;
+		}
+
 		$response = new Vtiger_Response();
 		$response->setResult(array(
 			'status' => 'ok',
-			'total' => (int)$row['total'],
-			'processed' => (int)($row['processed'] ?? 0),
-			'created' => (int)($row['created'] ?? 0),
-			'updated' => (int)($row['updated'] ?? 0),
-			'skipped' => (int)($row['skipped'] ?? 0),
-			'merged' => (int)($row['merged'] ?? 0),
-			'failed' => (int)($row['failed'] ?? 0),
-			'pending' => (int)($row['pending'] ?? 0),
+			'total' => $total,
+			'processed' => $processed,
+			'created' => $created,
+			'updated' => $updated,
+			'skipped' => $skipped,
+			'merged' => $merged,
+			'failed' => $failed,
+			'pending' => $pending,
 			'is_running' => $isRunning,
 			'import_id' => $importId
 		));

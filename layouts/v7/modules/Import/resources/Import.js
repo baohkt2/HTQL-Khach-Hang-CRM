@@ -405,15 +405,12 @@ if (typeof Vtiger_Import_Js == "undefined") {
         }
         Vtiger_Import_Js.updateProgressUI(data);
 
-        // Detect completion: all records processed AND server finished
+        // Detect completion: all records processed.
+        // Do not hard-block on is_running because stale lock/queue states can linger
+        // briefly and otherwise leave UI stuck at 100%.
         var total = data.total || 0;
         var pending = data.pending || 0;
-        if (
-          total > 0 &&
-          pending === 0 &&
-          !data.is_running &&
-          !Vtiger_Import_Js._importDone
-        ) {
+        if (total > 0 && pending === 0 && !Vtiger_Import_Js._importDone) {
           Vtiger_Import_Js._importDone = true;
           Vtiger_Import_Js.stopProgressPolling();
           // Show completion state in progress UI
@@ -480,13 +477,21 @@ if (typeof Vtiger_Import_Js == "undefined") {
       }
 
       // Badge status
-      if (Vtiger_Import_Js._importDone || percent >= 100) {
+      if (Vtiger_Import_Js._importDone) {
         jQuery("#ipBadge")
           .removeClass("ip-badge-running")
           .addClass("ip-badge-done")
           .html(
             '<i class="fa fa-check-circle"></i> ' +
               Vtiger_Import_Js.getImportTranslation("Completed"),
+          );
+      } else {
+        jQuery("#ipBadge")
+          .removeClass("ip-badge-done")
+          .addClass("ip-badge-running")
+          .html(
+            '<i class="fa fa-circle-o-notch fa-spin"></i> ' +
+              Vtiger_Import_Js.getImportTranslation("LBL_RUNNING"),
           );
       }
     },
