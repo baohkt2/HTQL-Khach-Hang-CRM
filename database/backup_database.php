@@ -3,16 +3,16 @@
  * Backup full database to database/ directory.
  *
  * Naming rule:
- * - First backup of day:   DB_NAME_bk_ddmmyy
- * - Second+ backup of day: DB_NAME_bk_ddmmyy_2, _3, ...
+ * - First backup of day:   DB_NAME_bk_ddmmyy.tar.gz
+ * - Second+ backup of day: DB_NAME_bk_ddmmyy_2.tar.gz, _3.tar.gz, ...
  */
 
 chdir(dirname(__FILE__) . '/..');
 require_once __DIR__ . '/../env.loader.php';
 
-function resolveBackupFilePath($backupDir, $dbName, $dateTag) {
+function resolveBackupBaseName($backupDir, $dbName, $dateTag) {
     $baseName = $dbName . '_bk_' . $dateTag;
-    $pattern = '/^' . preg_quote($baseName, '/') . '(?:_(\d+))?$/';
+    $pattern = '/^' . preg_quote($baseName, '/') . '(?:_(\d+))?(?:\.tar\.gz)?$/';
 
     $maxSequence = 0;
     $hasBaseFile = false;
@@ -40,10 +40,10 @@ function resolveBackupFilePath($backupDir, $dbName, $dateTag) {
     }
 
     if (!$hasBaseFile && $maxSequence === 0) {
-        return $backupDir . DIRECTORY_SEPARATOR . $baseName;
+        return $baseName;
     }
 
-    return $backupDir . DIRECTORY_SEPARATOR . $baseName . '_' . ($maxSequence + 1);
+    return $baseName . '_' . ($maxSequence + 1);
 }
 
 function isWindowsPlatform() {
@@ -104,6 +104,109 @@ function findMysqldumpBinary() {
     return '';
 }
 
+function findTarBinary() {
+    $fromPath = resolveFromPath('tar');
+    if ($fromPath !== '') {
+        return $fromPath;
+    }
+
+    $candidates = array(
+        '/usr/bin/tar',
+        '/bin/tar',
+        'C:\\Windows\\System32\\tar.exe',
+    );
+
+    foreach ($candidates as $candidate) {
+        if (file_exists($candidate)) {
+            return $candidate;
+        }
+    }
+
+    return '';
+}
+
+function compressToTarGz($sourceFilePath, $targetArchivePath, &$errorMessage) {
+    $errorMessage = '';
+
+    // Primary method: PharData (works on both Windows and Ubuntu when phar extension is enabled).
+    if (class_exists('PharData')) {
+        try {
+            $tarPath = preg_replace('/\.gz$/', '', $targetArchivePath);
+
+            if (file_exists($tarPath)) {
+                @unlink($tarPath);
+            }
+            if (file_exists($targetArchivePath)) {
+                @unlink($targetArchivePath);
+            }
+
+            $tar = new PharData($tarPath);
+            $tar->addFile($sourceFilePath, basename($sourceFilePath));
+            $tar->compress(Phar::GZ);
+            unset($tar);
+
+            if (file_exists($tarPath)) {
+                @unlink($tarPath);
+            }
+
+            if (file_exists($targetArchivePath)) {
+                return true;
+            }
+
+            $errorMessage = 'PharData compression finished but target archive was not created.';
+        } catch (Throwable $e) {
+            $errorMessage = 'PharData compression failed: ' . $e->getMessage();
+        }
+    }
+
+    // Fallback method: external tar command.
+    $tarBinary = findTarBinary();
+    if ($tarBinary === '') {
+        if ($errorMessage === '') {
+            $errorMessage = 'Cannot find tar binary for fallback compression.';
+        }
+        return false;
+    }
+
+    $workDir = dirname($sourceFilePath);
+    $sourceFileName = basename($sourceFilePath);
+    $archiveName = basename($targetArchivePath);
+
+    $descriptorSpec = array(
+        0 => array('pipe', 'r'),
+        1 => array('pipe', 'w'),
+        2 => array('pipe', 'w'),
+    );
+
+    $command = array(
+        $tarBinary,
+        '-czf',
+        $archiveName,
+        $sourceFileName,
+    );
+
+    $proc = proc_open($command, $descriptorSpec, $pipes, $workDir, null, array('bypass_shell' => true));
+    if (!is_resource($proc)) {
+        $errorMessage = 'Failed to start tar process.';
+        return false;
+    }
+
+    fclose($pipes[0]);
+    $stdout = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    $stderr = stream_get_contents($pipes[2]);
+    fclose($pipes[2]);
+
+    $exitCode = proc_close($proc);
+    if ($exitCode !== 0 || !file_exists($targetArchivePath)) {
+        $details = trim($stderr . "\n" . $stdout);
+        $errorMessage = 'tar compression failed' . ($details !== '' ? ': ' . $details : '.');
+        return false;
+    }
+
+    return true;
+}
+
 $dbHost = env('DB_SERVER', 'localhost');
 $dbPort = (string) env('DB_PORT', '3306');
 $dbUser = env('DB_USERNAME', 'root');
@@ -117,9 +220,11 @@ if ($dbName === '') {
 
 $backupDir = __DIR__;
 $dateTag = date('dmy');
-$backupFilePath = resolveBackupFilePath($backupDir, $dbName, $dateTag);
+$backupBaseName = resolveBackupBaseName($backupDir, $dbName, $dateTag);
+$backupArchivePath = $backupDir . DIRECTORY_SEPARATOR . $backupBaseName . '.tar.gz';
+$tempSqlPath = $backupDir . DIRECTORY_SEPARATOR . $backupBaseName . '.sql';
 
-if ($backupFilePath === false) {
+if ($backupBaseName === false) {
     fwrite(STDERR, "ERROR: Cannot scan backup directory: {$backupDir}\n");
     exit(1);
 }
@@ -154,7 +259,7 @@ $command[] = $dbName;
 
 $descriptorspec = array(
     0 => array('pipe', 'r'),
-    1 => array('file', $backupFilePath, 'w'),
+    1 => array('file', $tempSqlPath, 'w'),
     2 => array('pipe', 'w'),
 );
 
@@ -172,8 +277,8 @@ fclose($pipes[2]);
 $exitCode = proc_close($process);
 
 if ($exitCode !== 0) {
-    if (file_exists($backupFilePath)) {
-        @unlink($backupFilePath);
+    if (file_exists($tempSqlPath)) {
+        @unlink($tempSqlPath);
     }
     fwrite(STDERR, "ERROR: Backup failed (exit code {$exitCode})\n");
     if (!empty($stderr)) {
@@ -182,8 +287,26 @@ if ($exitCode !== 0) {
     exit($exitCode);
 }
 
-$fileSize = file_exists($backupFilePath) ? filesize($backupFilePath) : 0;
-echo "Backup success: {$backupFilePath}\n";
+$compressionError = '';
+$compressed = compressToTarGz($tempSqlPath, $backupArchivePath, $compressionError);
+
+if (file_exists($tempSqlPath)) {
+    @unlink($tempSqlPath);
+}
+
+if (!$compressed) {
+    if (file_exists($backupArchivePath)) {
+        @unlink($backupArchivePath);
+    }
+    fwrite(STDERR, "ERROR: Failed to compress backup into tar.gz\n");
+    if ($compressionError !== '') {
+        fwrite(STDERR, $compressionError . "\n");
+    }
+    exit(1);
+}
+
+$fileSize = file_exists($backupArchivePath) ? filesize($backupArchivePath) : 0;
+echo "Backup success: {$backupArchivePath}\n";
 echo "Size: {$fileSize} bytes\n";
 
 exit(0);
