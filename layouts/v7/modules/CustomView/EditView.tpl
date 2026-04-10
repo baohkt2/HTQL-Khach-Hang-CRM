@@ -8,7 +8,11 @@
 ************************************************************************************}
 
 {strip}
-	{assign var=SELECTED_FIELDS value=$CUSTOMVIEW_MODEL->getSelectedFields()}
+	{if $MASS_EDIT}
+		{assign var=SELECTED_FIELDS value=array()}
+	{else}
+		{assign var=SELECTED_FIELDS value=$CUSTOMVIEW_MODEL->getSelectedFields()}
+	{/if}
 	{assign var=SELECTED_FIELD_NAMES value=array()}
 	{foreach from=$SELECTED_FIELDS item=FIELD_INFO}
 		{append var='SELECTED_FIELD_NAMES' value=$FIELD_INFO.columnname}
@@ -18,7 +22,9 @@
 		<form id="CustomView" style="height:100%">
 			<div class="modal-content" style="height:100%">
 				<div class="overlayHeader">
-					{if $RECORD_ID}
+					{if $MASS_EDIT}
+						{assign var="TITLE" value="Sửa nhanh danh sách"}
+					{else if $RECORD_ID}
 						{assign var="TITLE" value={vtranslate('LBL_EDIT_CUSTOM',$MODULE)}}
 					{else}
 						{assign var="TITLE" value={vtranslate('LBL_CREATE_LIST',$MODULE)}}
@@ -31,18 +37,21 @@
 						<input type="hidden" name="module" value="{$MODULE}" />
 						<input type="hidden" name="action" value="Save" />
 						<input type="hidden" id="sourceModule" name="source_module" value="{$SOURCE_MODULE}"/>
+						<input type="hidden" name="mass_edit" value="{$MASS_EDIT}"/>
+						<input type="hidden" name="selected_cvids" value="{$SELECTED_CV_IDS|escape:'html'}"/>
 						<input type="hidden" id="stdfilterlist" name="stdfilterlist" value=""/>
 						<input type="hidden" id="advfilterlist" name="advfilterlist" value=""/>
+						<input type="hidden" id="quickfilterlist" name="quickfilterlist" value="" {if !$MASS_EDIT}disabled="disabled"{/if}/>
 						<input type="hidden" name="status" value="{$CV_PRIVATE_VALUE}"/>
 						{if $RECORD_ID}
 							<input type="hidden" name="status" value="{$CUSTOMVIEW_MODEL->get('status')}" />
 						{/if}
 						<input type="hidden" name="date_filters" data-value='{Vtiger_Util_Helper::toSafeHTML(ZEND_JSON::encode($DATE_FILTERS))}' />
-						<div class="form-group">
-							<label>{vtranslate('LBL_VIEW_NAME',$MODULE)}&nbsp;<span class="redColor">*</span> </label>
+						<div class="form-group {if $MASS_EDIT}hide{/if}">
+							<label>{vtranslate('LBL_VIEW_NAME',$MODULE)}{if !$MASS_EDIT}&nbsp;<span class="redColor">*</span>{/if} </label>
 							<div class="row">
 								<div class="col-lg-5 col-md-5 col-sm-5">
-									<input class="form-control" type="text" data-record-id="{$RECORD_ID}" id="viewname" name="viewname" value="{$CUSTOMVIEW_MODEL->get('viewname')}" data-rule-required="true" data-rule-maxsize="100" data-rule-check-filter-duplicate='{Vtiger_Util_Helper::toSafeHTML(Zend_JSON::encode($CUSTOM_VIEWS_LIST))}'>
+									<input class="form-control" type="text" data-record-id="{$RECORD_ID}" id="viewname" name="viewname" value="{if !$MASS_EDIT}{$CUSTOMVIEW_MODEL->get('viewname')}{/if}" placeholder="{if $MASS_EDIT}Để trống khi sửa nhanh nhiều list{/if}" data-rule-required="{if $MASS_EDIT}false{else}true{/if}" data-rule-maxsize="100" data-rule-check-filter-duplicate='{Vtiger_Util_Helper::toSafeHTML(Zend_JSON::encode($CUSTOM_VIEWS_LIST))}'>
 								</div>
 								<div class="col-lg-5 col-md-5 col-sm-5">
 									<label class="checkbox-inline">
@@ -54,7 +63,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-group {if $MASS_EDIT}hide{/if}">
 							<label>
 								{vtranslate('LBL_CHOOSE_COLUMNS',$MODULE)} ({vtranslate('LBL_MAX_NUMBER_FILTER_COLUMNS')})
 							</label>
@@ -116,13 +125,30 @@
 							</div>
 							<div class="col-lg-2 col-md-2 col-sm-2"></div>
 						</div>
-						<div>
+						<div class="{if $MASS_EDIT}hide{/if}">
 							<label class="filterHeaders">{vtranslate('LBL_CHOOSE_FILTER_CONDITIONS', $MODULE)} :</label>
 							<div class="filterElements well filterConditionContainer filterConditionsDiv">
 								{include file='AdvanceFilter.tpl'|@vtemplate_path}
 							</div>
 						</div>
-						<div class="checkbox">
+						{if !$MASS_EDIT}
+						<div class="checkbox" style="margin-top: 12px;">
+							<label>
+								<input type="checkbox" id="enableQuickFilterEdit" value="1" /> &nbsp;&nbsp;Sửa điều kiện lọc nhanh
+							</label>
+						</div>
+						{/if}
+						<div class="quick-filter-section {if !$MASS_EDIT}hide{/if}" style="margin-top: 15px;">
+							<label class="filterHeaders">Điều kiện lọc nhanh :</label>
+							<div style="font-size:12px;color:#666;margin-bottom:8px;">Điều kiện ở đây có độ ưu tiên cao nhất khi trùng field với điều kiện thường.</div>
+							{assign var=__NORMAL_ADVANCE_CRITERIA value=$ADVANCE_CRITERIA}
+							{assign var=ADVANCE_CRITERIA value=$QUICK_FILTER_CRITERIA}
+							<div class="quickFilterConditionsWrapper">
+								{include file='AdvanceFilter.tpl'|@vtemplate_path}
+							</div>
+							{assign var=ADVANCE_CRITERIA value=$__NORMAL_ADVANCE_CRITERIA}
+						</div>
+						<div class="checkbox {if $MASS_EDIT}hide{/if}">
 						<label>
 							<input type="hidden" name="sharelist" value="0" />
 							<input type="checkbox" data-toogle-members="true" name="sharelist" value="1" {if $LIST_SHARED} checked="checked"{/if}> &nbsp;&nbsp;{vtranslate('LBL_SHARE_THIS_LIST',$MODULE)}
@@ -154,7 +180,7 @@
 						data-public="{$CV_PUBLIC_VALUE}" data-private="{$CV_PRIVATE_VALUE}"/>
 
 					{* === SHARE TASKS CONTAINER === *}
-					<div id="shareTasksContainer" class="op0{if $LIST_SHARED} fadeInx{/if}" style="margin-top: 10px; padding: 12px; border: 1px solid #ddd; border-radius: 4px; background: #fcfcfc;">
+					<div id="shareTasksContainer" class="op0{if $LIST_SHARED} fadeInx{/if} {if $MASS_EDIT}hide{/if}" style="margin-top: 10px; padding: 12px; border: 1px solid #ddd; border-radius: 4px; background: #fcfcfc;">
 						<input type="hidden" name="share_tasks" id="shareTasksInput" value="" />
 						
 						<div id="shareTaskRows">
@@ -243,7 +269,7 @@
 					</div>
 
 					{* === SHARE TASK ROW TEMPLATE (hidden, cloned by JS) === *}
-					<div id="shareTaskRowTemplate" style="display: none;">
+					<div id="shareTaskRowTemplate" style="display: none;" class="{if $MASS_EDIT}hide{/if}">
 						<div class="share-task-row" style="margin-bottom: 12px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff; position: relative;">
 							<button type="button" class="btn btn-xs btn-danger removeShareRow" style="position: absolute; top: 6px; right: 6px; font-size: 11px; padding: 2px 6px; z-index: 1;">&times;</button>
 							<div style="margin-bottom: 8px;">
@@ -278,7 +304,7 @@
 					</div>
 
 					{* === LIST HISTORY === *}
-					{if $RECORD_ID && !empty($CV_HISTORY)}
+					{if !$MASS_EDIT && $RECORD_ID && !empty($CV_HISTORY)}
 					<div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #e0e0e0;">
 						<label class="filterHeaders">{vtranslate('LBL_LIST_HISTORY', $MODULE)} :</label>
 						<div class="well" style="max-height: 250px; overflow-y: auto; padding: 10px;">

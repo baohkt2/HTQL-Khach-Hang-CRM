@@ -8,6 +8,8 @@
  *************************************************************************************/
 
 Vtiger.Class('Vtiger_ListSidebar_Js',{},{
+
+    isQuickEditMode: false,
     
     
     registerFilterSeach : function () {
@@ -58,6 +60,15 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
         
         this.registerFilterSeach();
         filters.on('click','.listViewFilter', function(e){
+            if(self.isQuickEditMode) {
+                var checkbox = jQuery('.quick-edit-check', jQuery(e.currentTarget));
+                if (checkbox.length && !checkbox.is(':disabled') && !jQuery(e.target).is('.js-popover-container, .js-popover-container *, [data-toggle="popover"], [data-toggle="popover"] *')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    checkbox.prop('checked', !checkbox.prop('checked')).trigger('change');
+                }
+                return;
+            }
 			e.preventDefault();
             var targetElement = jQuery(e.target);
             if(targetElement.is('.dropdown-toggle') || targetElement.closest('ul').hasClass('dropdown-menu') ) return;
@@ -77,6 +88,8 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
             var element = jQuery(e.currentTarget);
             element.trigger('post.CreateFilter.click',{'url':element.data('url')});
         });
+
+        this.registerQuickEditActions();
         
         filters.on('click','li.editFilter,li.duplicateFilter',function(e){
             var element = jQuery(e.currentTarget);
@@ -136,6 +149,229 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
 			// TODO - Update pagination...
 		});
 	},
+
+    registerQuickEditActions: function() {
+        var self = this;
+        var sidebar = jQuery('#module-filters');
+        var startButton = jQuery('#quickEditFilters');
+        var cancelButton = jQuery('#cancelQuickEditFilters');
+        var applyButton = jQuery('#applyQuickEditFilters');
+        var clearButton = jQuery('#clearQuickFilters');
+
+        var updateApplyState = function() {
+            var selectedCount = sidebar.find('.quick-edit-check:checked').length;
+            applyButton.prop('disabled', selectedCount === 0);
+            clearButton.prop('disabled', selectedCount === 0);
+            if (selectedCount > 0) {
+                applyButton.text('Sửa (' + selectedCount + ')');
+                clearButton.text('Xóa lọc nhanh (' + selectedCount + ')');
+            } else {
+                applyButton.text('Sửa');
+                clearButton.text('Xóa lọc nhanh');
+            }
+        };
+
+        var resetQuickEdit = function() {
+            self.isQuickEditMode = false;
+            startButton.removeClass('hide');
+            cancelButton.addClass('hide');
+            applyButton.addClass('hide').prop('disabled', true).text('Sửa');
+            clearButton.addClass('hide').prop('disabled', true).text('Xóa lọc nhanh');
+            sidebar.find('.quick-edit-check').addClass('hide').prop('checked', false);
+            sidebar.find('.listViewFilter').removeClass('quick-edit-selected');
+        };
+
+        startButton.on('click', function(e) {
+            e.preventDefault();
+            self.isQuickEditMode = true;
+            startButton.addClass('hide');
+            cancelButton.removeClass('hide');
+            applyButton.removeClass('hide');
+            clearButton.removeClass('hide');
+            sidebar.find('.quick-edit-check').removeClass('hide');
+            updateApplyState();
+        });
+
+        cancelButton.on('click', function(e) {
+            e.preventDefault();
+            resetQuickEdit();
+        });
+
+        sidebar.on('click', '.quick-edit-check', function(e) {
+            e.stopPropagation();
+        });
+
+        sidebar.on('change', '.quick-edit-check', function() {
+            var checkbox = jQuery(this);
+            checkbox.closest('.listViewFilter').toggleClass('quick-edit-selected', checkbox.is(':checked'));
+            updateApplyState();
+        });
+
+        applyButton.on('click', function(e) {
+            e.preventDefault();
+
+            var selectedItems = [];
+            sidebar.find('.quick-edit-check:checked').each(function() {
+                var checkbox = jQuery(this);
+                var item = checkbox.closest('.listViewFilter');
+                var editUrl = item.data('edit-url');
+                if (editUrl) {
+                    selectedItems.push({
+                        id: checkbox.val(),
+                        url: editUrl
+                    });
+                }
+            });
+
+            if (selectedItems.length === 0) {
+                app.helper.showErrorNotification({ message: 'Vui lòng chọn ít nhất 1 list có quyền chỉnh sửa' });
+                return;
+            }
+
+            var firstItem = selectedItems[0];
+            var selectedIds = [];
+            for (var i = 0; i < selectedItems.length; i++) {
+                selectedIds.push(selectedItems[i].id);
+            }
+
+            var separator = firstItem.url.indexOf('?') > -1 ? '&' : '?';
+            var quickEditUrl = firstItem.url + separator + 'mass_edit=1&selected_cvids=' + encodeURIComponent(selectedIds.join(','));
+            resetQuickEdit();
+            jQuery(document).trigger('post.CreateFilter.click', { url: quickEditUrl });
+        });
+
+        clearButton.on('click', function(e) {
+            e.preventDefault();
+
+            var selectedIds = [];
+            sidebar.find('.quick-edit-check:checked').each(function() {
+                selectedIds.push(jQuery(this).val());
+            });
+
+            if (selectedIds.length === 0) {
+                app.helper.showErrorNotification({ message: 'Vui lòng chọn ít nhất 1 list có quyền chỉnh sửa' });
+                return;
+            }
+
+            app.helper.showConfirmationBox({
+                message: 'Bạn có chắc muốn xóa Điều kiện lọc nhanh của các list đã chọn?'
+            }).then(function() {
+                app.helper.showProgress();
+                app.request.post({
+                    data: {
+                        module: 'CustomView',
+                        action: 'Save',
+                        source_module: app.getModuleName(),
+                        mass_edit: '1',
+                        selected_cvids: selectedIds.join(','),
+                        quickfilterlist: '[]'
+                    }
+                }).then(function(error) {
+                    app.helper.hideProgress();
+                    if (error === null) {
+                        app.helper.showSuccessNotification({ message: 'Đã xóa Điều kiện lọc nhanh thành công' });
+                        resetQuickEdit();
+                        window.location.reload();
+                    } else {
+                        app.helper.showErrorNotification({ message: 'Không thể xóa Điều kiện lọc nhanh' });
+                    }
+                });
+            });
+        });
+    },
+
+    registerSidebarResize: function() {
+        var sidebar = jQuery('#sidebar-essentials');
+        var handle = jQuery('#sidebar-resize-handle');
+        var content = jQuery('#listViewContent');
+        if (!sidebar.length || !handle.length || !content.length) {
+            return;
+        }
+
+        var moduleName = app.getModuleName() || 'default';
+        var storageKey = 'vtiger.listSidebarWidth.' + moduleName;
+        var moduleNavWidth = function() {
+            return jQuery('#modnavigator').outerWidth() || 42;
+        };
+        var getMaxWidth = function() {
+            var viewportMax = Math.floor(jQuery(window).width() * 0.6);
+            return viewportMax > 420 ? viewportMax : 420;
+        };
+
+        var applyWidth = function(rawWidth) {
+            var minWidth = 220;
+            var maxWidth = getMaxWidth();
+            var width = parseInt(rawWidth, 10);
+            if (isNaN(width)) {
+                width = sidebar.outerWidth() || 240;
+            }
+            if (width < minWidth) {
+                width = minWidth;
+            }
+            if (width > maxWidth) {
+                width = maxWidth;
+            }
+
+            var navWidth = moduleNavWidth();
+            sidebar.css('width', width + 'px');
+            content.css('padding-left', (navWidth + width + 1) + 'px');
+            handle.css('left', (navWidth + width - 4) + 'px');
+            return width;
+        };
+
+        var syncWithPanelState = function() {
+            if (sidebar.hasClass('hide')) {
+                handle.addClass('hide');
+                content.css('padding-left', '');
+                return;
+            }
+
+            handle.removeClass('hide');
+            var savedWidth = parseInt(window.localStorage.getItem(storageKey), 10);
+            if (isNaN(savedWidth)) {
+                savedWidth = sidebar.outerWidth() || 240;
+            }
+            applyWidth(savedWidth);
+        };
+
+        handle.off('mousedown.sidebarResize').on('mousedown.sidebarResize', function(e) {
+            if (sidebar.hasClass('hide')) {
+                return;
+            }
+
+            e.preventDefault();
+            var startX = e.clientX;
+            var startWidth = sidebar.outerWidth();
+            jQuery('body').addClass('sidebar-resizing');
+
+            jQuery(document).on('mousemove.sidebarResize', function(moveEvent) {
+                moveEvent.preventDefault();
+                var delta = moveEvent.clientX - startX;
+                applyWidth(startWidth + delta);
+            });
+
+            jQuery(document).one('mouseup.sidebarResize', function() {
+                jQuery(document).off('mousemove.sidebarResize');
+                jQuery('body').removeClass('sidebar-resizing');
+                var finalWidth = sidebar.outerWidth();
+                window.localStorage.setItem(storageKey, finalWidth);
+                var filters = jQuery('.module-filters').not('.module-extensions');
+                filters.find('.scrollContainer').perfectScrollbar('update');
+            });
+        });
+
+        jQuery(window).off('resize.sidebarResize').on('resize.sidebarResize', function() {
+            if (!sidebar.hasClass('hide')) {
+                applyWidth(sidebar.outerWidth());
+            }
+        });
+
+        app.event.on('Vtiger.Post.MenuToggle', function() {
+            syncWithPanelState();
+        });
+
+        syncWithPanelState();
+    },
     
     loadListView : function(viewId, params){
         this.getParentInstance().resetData();
@@ -279,6 +515,7 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
         this.registerFilters();
         this.registerTagClick();
         this.registerPopOverContent();
+        this.registerSidebarResize();
 //        var listInstance = new Vtiger_List_Js();
 //        listInstance.registerDynamicDropdownPosition("lists-menu", "list-menu-content");
 

@@ -6,6 +6,59 @@
 * Portions created by vtiger are Copyright (C) vtiger.
 * All Rights Reserved.
 ************************************************************************************}
+<style>
+#module-filters .listViewFilter .filterName.listHoverExpand {
+    display: inline-block;
+    max-width: calc(100% - 38px);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 18px;
+    vertical-align: top;
+    transform: none !important;
+}
+
+#module-filters .listViewFilter:hover,
+#module-filters .listViewFilter .filterName.listHoverExpand:hover {
+    background: transparent !important;
+    box-shadow: none !important;
+    text-decoration: none;
+}
+
+#sidebar-resize-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    cursor: col-resize;
+    z-index: 1094;
+    background: transparent;
+}
+
+#sidebar-resize-handle:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 3px;
+    width: 1px;
+    background: #d7d7d7;
+}
+
+#sidebar-resize-handle:hover {
+    background: rgba(44, 62, 80, 0.12);
+}
+
+body.sidebar-resizing,
+body.sidebar-resizing * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+#module-filters .lists-menu > .listViewFilter {
+    margin-bottom: 6px;
+}
+</style>
 <div class="sidebar-menu">
     <div class="module-filters" id="module-filters">
         <div class="sidebar-container lists-menu-container">
@@ -14,6 +67,10 @@
                 <button id="createFilter" data-url="{CustomView_Record_Model::getCreateViewUrl($MODULE)}" class="btn btn-sm btn-default pull-right sidebar-btn" title="{vtranslate('LBL_CREATE_LIST',$MODULE)}">
                     <div class="fa fa-plus" aria-hidden="true"></div>
                 </button> 
+                <button id="quickEditFilters" class="btn btn-sm btn-default pull-right sidebar-btn" style="margin-right:6px;" title="Sửa nhanh">Sửa nhanh</button>
+                <button id="cancelQuickEditFilters" class="btn btn-sm btn-warning pull-right sidebar-btn hide" style="margin-right:6px;" title="Hủy sửa">Hủy sửa</button>
+                <button id="applyQuickEditFilters" class="btn btn-sm btn-success pull-right sidebar-btn hide" style="margin-right:6px;" title="Sửa" disabled="disabled">Sửa</button>
+                <button id="clearQuickFilters" class="btn btn-sm btn-danger pull-right sidebar-btn hide" style="margin-right:6px;" title="Xóa lọc nhanh" disabled="disabled">Xóa lọc nhanh</button>
             </div>
             <hr>
             <div>
@@ -57,10 +114,11 @@
                                     {else} 
                                         {assign var=hidden_count value=$hidden_count+1} 
                                     {/if}
-									<li style="font-size:12px; {if $CV_SECTION eq 'Shared'}position:relative; padding-left:20px;{/if}" class='listViewFilter {if $VIEWID eq $CUSTOM_VIEW->getId() && (isset($CURRENT_TAG) && $CURRENT_TAG eq '')} active{else if $smarty.foreach.customView.iteration gt 10} filterHidden hide{/if}'> 
+                                    <li style="font-size:12px; {if $CV_SECTION eq 'Shared'}position:relative; padding-left:20px;{/if}" class='listViewFilter {if $VIEWID eq $CUSTOM_VIEW->getId() && (isset($CURRENT_TAG) && $CURRENT_TAG eq '')} active{else if $smarty.foreach.customView.iteration gt 10} filterHidden hide{/if}' data-filter-id="{$CUSTOM_VIEW->getId()}" data-edit-url="{if $CUSTOM_VIEW->isEditable()}{$CUSTOM_VIEW->getEditUrl()}{/if}" data-is-editable="{if $CUSTOM_VIEW->isEditable()}1{else}0{/if}"> 
                                         {assign var=VIEWNAME value={vtranslate($CUSTOM_VIEW->get('viewname'), $MODULE)}}
 										{append var="CUSTOM_VIEW_NAMES" value=$VIEWNAME}
-										 {if $CV_SECTION eq 'Shared'}<span class="shareTaskInfoBtn" data-cvid="{$CUSTOM_VIEW->getId()}" title="Xem phân công" style="cursor:pointer; color:#888; font-size:13px; position:absolute; left:4px; top:50%; transform:translateY(-55%); margin-top:-1px; z-index:5;"><i class="fa fa-info-circle"></i></span>{/if}<a class="filterName listViewFilterElipsis" href="{$LISTVIEW_URL|cat:'&viewname='|cat:$CUSTOM_VIEW->getId()|cat:'&app='|cat:$SELECTED_MENU_CATEGORY}" oncontextmenu="return false;" data-filter-id="{$CUSTOM_VIEW->getId()}" title="{$VIEWNAME|@escape:'html'}">{$VIEWNAME|@escape:'html'}</a> 
+                                        <input type="checkbox" class="quick-edit-check hide" value="{$CUSTOM_VIEW->getId()}" style="margin-right:6px; vertical-align:middle;" {if !$CUSTOM_VIEW->isEditable()}disabled="disabled"{/if}>
+                                         {if $CV_SECTION eq 'Shared'}<span class="shareTaskInfoBtn" data-cvid="{$CUSTOM_VIEW->getId()}" title="Xem phân công" style="cursor:pointer; color:#888; font-size:13px; position:absolute; left:4px; top:50%; transform:translateY(-55%); margin-top:-1px; z-index:5;"><i class="fa fa-info-circle"></i></span>{/if}<a class="filterName listViewFilterElipsis listHoverExpand" href="{$LISTVIEW_URL|cat:'&viewname='|cat:$CUSTOM_VIEW->getId()|cat:'&app='|cat:$SELECTED_MENU_CATEGORY}" oncontextmenu="return false;" data-filter-id="{$CUSTOM_VIEW->getId()}" title="{$VIEWNAME|@escape:'html'}">{$VIEWNAME|@escape:'html'}</a> 
                                             <div class="pull-right">
                                                 <span class="js-popover-container" style="cursor:pointer;">
                                                     <span  class="fa fa-angle-down" rel="popover" data-toggle="popover" aria-expanded="true" 

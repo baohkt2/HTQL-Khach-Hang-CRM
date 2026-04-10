@@ -22,18 +22,27 @@ Class CustomView_EditAjax_View extends Vtiger_IndexAjax_View {
 		$module = $request->getModule();
 		$record = $request->get('record');
 		$sourceRecord = $request->get('source_viewname');
+		$massEdit = $request->get('mass_edit');
+		$selectedCvIds = $request->get('selected_cvids');
 
 		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
 		$recordStructureInstance = Vtiger_RecordStructure_Model::getInstanceForModule($moduleModel, Vtiger_RecordStructure_Model::RECORD_STRUCTURE_MODE_FILTER);
+		$isMassEdit = ($massEdit == 1 || $massEdit === '1');
 
-		if(!empty($record)) {
+		if($isMassEdit) {
+			$customViewModel = CustomView_Record_Model::getCleanInstance();
+			$customViewModel->setModule($moduleName);
+			$viewer->assign('MODE', 'massedit');
+		} else if(!empty($record)) {
 			$customViewModel = CustomView_Record_Model::getInstanceById($record);
+			$customViewModel->setModule($moduleName);
 			if (!$customViewModel->isEditable()) {
 				throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
 			}
 			$viewer->assign('MODE', 'edit');
 		} else if(!empty($sourceRecord)) {
 			$customViewModel = CustomView_Record_Model::getInstanceById($sourceRecord);
+			$customViewModel->setModule($moduleName);
 			$viewer->assign('MODE', '');
 		} else {
 			$customViewModel = new CustomView_Record_Model();
@@ -42,6 +51,11 @@ Class CustomView_EditAjax_View extends Vtiger_IndexAjax_View {
 		}
 
 		$viewer->assign('ADVANCE_CRITERIA', $customViewModel->transformToNewAdvancedFilter());
+		if ($isMassEdit) {
+			$viewer->assign('QUICK_FILTER_CRITERIA', array());
+		} else {
+			$viewer->assign('QUICK_FILTER_CRITERIA', $customViewModel->getQuickFilterCriteria());
+		}
 		$viewer->assign('CURRENTDATE', date('Y-n-j'));
 		$viewer->assign('DATE_FILTERS', Vtiger_Field_Model::getDateFilterTypes());
 
@@ -81,6 +95,8 @@ Class CustomView_EditAjax_View extends Vtiger_IndexAjax_View {
 
 		$viewer->assign('CUSTOMVIEW_MODEL', $customViewModel);
 		$viewer->assign('RECORD_ID', $record);
+		$viewer->assign('MASS_EDIT', $isMassEdit ? 1 : 0);
+		$viewer->assign('SELECTED_CV_IDS', is_array($selectedCvIds) ? implode(',', $selectedCvIds) : $selectedCvIds);
 		$cvShareTasks = $customViewModel->getShareTasks();
 		$viewer->assign('CV_SHARE_TASKS', $cvShareTasks);
 		$viewer->assign('CV_HISTORY', $customViewModel->getHistory());
@@ -104,6 +120,9 @@ Class CustomView_EditAjax_View extends Vtiger_IndexAjax_View {
 		$viewer->assign('CUSTOM_VIEWS_LIST', $allViewNames);
 
 		$customViewSharedMembers = $customViewModel->getMembers();
+		if (!is_array($customViewSharedMembers)) {
+			$customViewSharedMembers = array();
+		}
 		$listShared = ($customViewModel->get('status') == CustomView_Record_Model::CV_STATUS_PUBLIC) ? true : false;
 		foreach ($customViewSharedMembers as $memberGroupLabel => $membersList) {
 			if(php7_count($membersList) > 0){

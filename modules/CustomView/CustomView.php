@@ -942,16 +942,17 @@ class CustomView extends CRMEntity {
 			$advft_criteria = Vtiger_Cache::get('advftCriteria',$cvid);
 			if(!$advft_criteria){
 				$advft_criteria = array();
+				$lastGroupId = null;
 				
 				// Not a good approach to get all the fields if not required(May leads to Performance issue)
 				$sql = 'SELECT groupid,group_condition FROM vtiger_cvadvfilter_grouping WHERE cvid = ? ORDER BY groupid';
 				$groupsresult = $adb->pquery($sql, array($cvid));
 
 				$i = 1;
-				$j = 0;
 				while ($relcriteriagroup = $adb->fetch_array($groupsresult)) {
 				$groupId = $relcriteriagroup["groupid"];
 				$groupCondition = $relcriteriagroup["group_condition"];
+					$j = 0;
 
 				$ssql = 'select vtiger_cvadvfilter.* from vtiger_customview
 				inner join vtiger_cvadvfilter on vtiger_cvadvfilter.cvid = vtiger_customview.cvid
@@ -1053,23 +1054,123 @@ class CustomView extends CRMEntity {
 					$criteria['value'] = $advfilterval;
 					$criteria['column_condition'] = $relcriteriarow["column_condition"];
 
-					$advft_criteria[$i]['columns'][$j] = $criteria;
-					$advft_criteria[$i]['condition'] = $groupCondition;
+					$advft_criteria[$groupId]['columns'][$j] = $criteria;
+					$advft_criteria[$groupId]['condition'] = $groupCondition;
 					$j++;
 				}
-				if (!empty($advft_criteria[$i]['columns'][$j - 1]['column_condition'])) {
-					$advft_criteria[$i]['columns'][$j - 1]['column_condition'] = '';
+				if (!empty($advft_criteria[$groupId]['columns'][$j - 1]['column_condition'])) {
+					$advft_criteria[$groupId]['columns'][$j - 1]['column_condition'] = '';
 				}
+				$lastGroupId = $groupId;
 				$i++;
 			}
 			// Clear the condition (and/or) for last group, if any.
-			if (!empty($advft_criteria[$i - 1]['condition']))
-				$advft_criteria[$i - 1]['condition'] = '';
+			if (!empty($lastGroupId) && !empty($advft_criteria[$lastGroupId]['condition'])) {
+				$advft_criteria[$lastGroupId]['condition'] = '';
+			}
+
+			$hasQuickFilters = (!empty($advft_criteria[3]['columns']) && is_array($advft_criteria[3]['columns'])) || (!empty($advft_criteria[4]['columns']) && is_array($advft_criteria[4]['columns']));
+			$quickFilterFieldNames = $this->getQuickFilterFieldNames($advft_criteria);
+			if (!empty($quickFilterFieldNames)) {
+				$this->removeQuickFilterDuplicatesFromGroup($advft_criteria, 1, $quickFilterFieldNames);
+				$this->removeQuickFilterDuplicatesFromGroup($advft_criteria, 2, $quickFilterFieldNames);
+			}
+			if ($hasQuickFilters) {
+				$this->applyQuickFilterGroupGlue($advft_criteria);
+			}
 
 			$advft_criteria = $advft_criteria ? $advft_criteria : null;
 			Vtiger_Cache::set('advftCriteria',$cvid,$advft_criteria);
 		}
 		return $advft_criteria ? $advft_criteria : array();
+	}
+
+	private function getQuickFilterFieldNames($advFilterCriteria) {
+		$fieldNames = array();
+		$quickGroupIds = array(3, 4);
+		foreach ($quickGroupIds as $quickGroupId) {
+			if (empty($advFilterCriteria[$quickGroupId]['columns']) || !is_array($advFilterCriteria[$quickGroupId]['columns'])) {
+				continue;
+			}
+			foreach ($advFilterCriteria[$quickGroupId]['columns'] as $columnInfo) {
+				if (empty($columnInfo['columnname'])) {
+					continue;
+				}
+				$nameParts = explode(':', $columnInfo['columnname']);
+				$fieldName = isset($nameParts[2]) ? $nameParts[2] : '';
+				if ($fieldName !== '' && !in_array($fieldName, $fieldNames, true)) {
+					$fieldNames[] = $fieldName;
+				}
+			}
+		}
+
+		return $fieldNames;
+	}
+
+	private function removeQuickFilterDuplicatesFromGroup(&$advFilterCriteria, $groupId, $quickFieldNames) {
+		if (empty($advFilterCriteria[$groupId]['columns']) || !is_array($advFilterCriteria[$groupId]['columns'])) {
+			return;
+		}
+
+		$filteredColumns = array();
+		foreach ($advFilterCriteria[$groupId]['columns'] as $columnInfo) {
+			if (empty($columnInfo['columnname'])) {
+				$filteredColumns[] = $columnInfo;
+				continue;
+			}
+
+			$nameParts = explode(':', $columnInfo['columnname']);
+			$fieldName = isset($nameParts[2]) ? $nameParts[2] : '';
+			if ($fieldName !== '' && in_array($fieldName, $quickFieldNames, true)) {
+				continue;
+			}
+			$filteredColumns[] = $columnInfo;
+		}
+
+		if (empty($filteredColumns)) {
+			unset($advFilterCriteria[$groupId]);
+			return;
+		}
+
+		$lastIndex = php7_count($filteredColumns) - 1;
+		for ($index = 0; $index <= $lastIndex; $index++) {
+			if ($index === $lastIndex) {
+				$filteredColumns[$index]['column_condition'] = '';
+			} else if (empty($filteredColumns[$index]['column_condition'])) {
+				$filteredColumns[$index]['column_condition'] = 'and';
+			}
+		}
+
+		$advFilterCriteria[$groupId]['columns'] = $filteredColumns;
+	}
+
+	private function applyQuickFilterGroupGlue(&$advFilterCriteria) {
+		$hasQuickAnd = !empty($advFilterCriteria[3]['columns']) && is_array($advFilterCriteria[3]['columns']);
+		$hasQuickOr = !empty($advFilterCriteria[4]['columns']) && is_array($advFilterCriteria[4]['columns']);
+		if (!$hasQuickAnd && !$hasQuickOr) {
+			return;
+		}
+
+		if ($hasQuickAnd) {
+			$advFilterCriteria[3]['condition'] = $hasQuickOr ? 'and' : '';
+		}
+		if ($hasQuickOr) {
+			$advFilterCriteria[4]['condition'] = '';
+		}
+
+		$lastNormalGroup = null;
+		if (!empty($advFilterCriteria[2]['columns']) && is_array($advFilterCriteria[2]['columns'])) {
+			$lastNormalGroup = 2;
+		} else if (!empty($advFilterCriteria[1]['columns']) && is_array($advFilterCriteria[1]['columns'])) {
+			$lastNormalGroup = 1;
+		}
+
+		if ($lastNormalGroup !== null) {
+			$advFilterCriteria[$lastNormalGroup]['condition'] = 'and';
+		}
+
+		$lastGroupId = $hasQuickOr ? 4 : 3;
+		$advFilterCriteria[$lastGroupId]['condition'] = '';
 	}
 
 	/**

@@ -1004,7 +1004,7 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 			return $advft_criteria;
 		}
 
-		$sql = 'SELECT * FROM vtiger_cvadvfilter_grouping WHERE cvid = ? ORDER BY groupid';
+		$sql = 'SELECT * FROM vtiger_cvadvfilter_grouping WHERE cvid = ? AND groupid IN (1,2) ORDER BY groupid';
 		$groupsresult = $db->pquery($sql, array($this->getId()));
 
 		$i = 1;
@@ -1119,6 +1119,42 @@ class CustomView_Record_Model extends Vtiger_Base_Model {
 		if (!empty($advft_criteria[$i - 1]['condition']))
 			$advft_criteria[$i - 1]['condition'] = '';
 		return $advft_criteria;
+	}
+
+	/**
+	 * Function to get quick-filter conditions (group 3/4), remapped to 1/2 for UI renderer.
+	 * @return <Array>
+	 */
+	public function getQuickFilterCriteria() {
+		$cvId = $this->getId();
+		if (empty($cvId)) {
+			return array();
+		}
+
+		$moduleModel = $this->getModule();
+		if (!$moduleModel) {
+			$moduleName = $this->get('entitytype');
+			if (!empty($moduleName)) {
+				$this->setModule($moduleName);
+				$moduleModel = $this->getModule();
+			}
+		}
+		if (!$moduleModel) {
+			return array();
+		}
+
+		$customView = new CustomView($moduleModel->getName());
+		$allCriteria = $customView->getAdvFilterByCvid($cvId);
+
+		$quickCriteria = array();
+		if (isset($allCriteria[3])) {
+			$quickCriteria[1] = $allCriteria[3];
+		}
+		if (isset($allCriteria[4])) {
+			$quickCriteria[2] = $allCriteria[4];
+		}
+
+		return $quickCriteria;
 	}
 
 	/**

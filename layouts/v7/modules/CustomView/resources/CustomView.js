@@ -15,6 +15,8 @@ jQuery.Class(
 
     advanceFilterInstance: false,
 
+    quickFilterInstance: false,
+
     columnListSelect2Element: false,
 
     columnSelectElement: false,
@@ -23,6 +25,7 @@ jQuery.Class(
       this.contianer = false;
       this.columnListSelect2Element = false;
       this.advanceFilterInstance = false;
+      this.quickFilterInstance = false;
       this.columnSelectElement = false;
     },
 
@@ -150,8 +153,16 @@ jQuery.Class(
         };
         app.helper.showVerticalScroll(jQuery(".customview-content "), Options);
         self.advanceFilterInstance = new Vtiger_AdvanceFilter_Js(
-          data.find(".filterConditionsDiv"),
+          data.find(".filterConditionsDiv:first"),
         );
+        var quickFilterContainer = data.find(
+          ".quickFilterConditionsWrapper .filterConditionsDiv:first",
+        );
+        if (quickFilterContainer.length > 0) {
+          self.quickFilterInstance = new Vtiger_AdvanceFilter_Js(
+            quickFilterContainer,
+          );
+        }
         self.registerFilterCreateEvents();
       });
     },
@@ -243,16 +254,48 @@ jQuery.Class(
       this.registerToogleShareList();
       this.registerShareTaskActions();
       var customViewForm = jQuery("#CustomView");
+      var quickFilterToggle = customViewForm.find("#enableQuickFilterEdit");
+      var quickFilterSection = customViewForm.find(".quick-filter-section");
+      var quickFilterInput = customViewForm.find("#quickfilterlist");
+
+      if (quickFilterToggle.length > 0) {
+        quickFilterToggle.on("change", function () {
+          var enabled = jQuery(this).is(":checked");
+          quickFilterSection.toggleClass("hide", !enabled);
+          quickFilterInput.prop("disabled", !enabled);
+        });
+      }
 
       if (customViewForm.length > 0) {
         customViewForm.vtValidate({
           submitHandler: function (form) {
             var form = jQuery(form);
+            var isMassEdit = form.find('input[name="mass_edit"]').val() == "1";
             var selectElement = form.find("#viewColumnsSelect");
             // Mandatory field validation removed - users can freely choose any columns
             //handled advanced filters saved values.
-            var advfilterlist = self.advanceFilterInstance.getValues();
+            var advfilterlist = isMassEdit
+              ? []
+              : self.advanceFilterInstance
+                ? self.advanceFilterInstance.getValues()
+                : [];
             jQuery("#advfilterlist").val(JSON.stringify(advfilterlist));
+
+            var shouldSubmitQuickFilter =
+              isMassEdit ||
+              (form.find("#enableQuickFilterEdit").length > 0 &&
+                form.find("#enableQuickFilterEdit").is(":checked"));
+            if (shouldSubmitQuickFilter) {
+              var quickfilterlist = self.quickFilterInstance
+                ? self.quickFilterInstance.getValues()
+                : [];
+              form
+                .find("#quickfilterlist")
+                .prop("disabled", false)
+                .val(JSON.stringify(quickfilterlist));
+            } else {
+              form.find("#quickfilterlist").prop("disabled", true).val("");
+            }
 
             var selectValueElements = self
               .getColumnSelectElement()
@@ -270,6 +313,13 @@ jQuery.Class(
             // Collect share tasks data before submit
             var isShareChecked = jQuery("[data-toogle-members]").is(":checked");
             var extraParams = {};
+            if (isMassEdit) {
+              extraParams.share_tasks = "[]";
+              extraParams.members = [];
+              extraParams.sharelist = "0";
+              self.saveAndViewFilter(extraParams);
+              return false;
+            }
             if (isShareChecked) {
               var shareTasks = [];
               var allMembers = [];
