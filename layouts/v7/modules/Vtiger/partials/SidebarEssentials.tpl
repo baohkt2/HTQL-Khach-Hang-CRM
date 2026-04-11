@@ -69,6 +69,7 @@ body.sidebar-resizing * {
                 </button> 
                 <button id="quickEditFilters" class="btn btn-sm btn-default pull-right sidebar-btn" style="margin-right:6px;" title="Sửa nhanh">Sửa nhanh</button>
                 <button id="cancelQuickEditFilters" class="btn btn-sm btn-warning pull-right sidebar-btn hide" style="margin-right:6px;" title="Hủy sửa">Hủy sửa</button>
+                <button id="toggleSelectAllQuickFilters" class="btn btn-sm btn-default pull-right sidebar-btn hide" style="margin-right:6px;" title="Chọn tất cả list" disabled="disabled">Chọn tất cả</button>
                 <button id="applyQuickEditFilters" class="btn btn-sm btn-success pull-right sidebar-btn hide" style="margin-right:6px;" title="Sửa" disabled="disabled">Sửa</button>
                 <button id="clearQuickFilters" class="btn btn-sm btn-danger pull-right sidebar-btn hide" style="margin-right:6px;" title="Xóa lọc nhanh" disabled="disabled">Xóa lọc nhanh</button>
             </div>

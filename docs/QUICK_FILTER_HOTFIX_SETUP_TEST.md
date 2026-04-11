@@ -5,6 +5,8 @@ This hotfix ensures single-list edit does not wipe existing quick filters when u
 
 ## Files Changed
 - modules/CustomView/actions/Save.php
+- layouts/v7/modules/Vtiger/partials/SidebarEssentials.tpl
+- layouts/v7/modules/Vtiger/resources/ListSidebar.js
 
 ## Pull and Deploy
 1. SSH to server and go to project root.
@@ -26,7 +28,10 @@ php -l modules/CustomView/actions/Save.php
 ```bash
 rm -rf cache/templates_c/*
 rm -rf cache/runtime/*
+rm -rf test/templates_c/*
 ```
+
+Note: on this server, `test/templates_c` is the active compiled-template cache path.
 
 If your server uses PHP OPcache aggressively, reload PHP-FPM or Apache after deploy.
 
@@ -43,6 +48,13 @@ Prepare one list that already has quick filters in group 3/4.
 1. Check "Sửa lọc nhanh", edit quick filter condition, save.
 2. Expected result: quick filter updates correctly.
 3. Use "Xóa lọc nhanh" flow and confirm quick filter is cleared.
+
+## Quick Edit Select-All Test
+1. In sidebar, click "Sửa nhanh".
+2. Click "Chọn tất cả".
+3. Expected result: all editable lists are checked, button text changes to "Bỏ chọn tất cả", and action buttons show selected count.
+4. Click "Bỏ chọn tất cả".
+5. Expected result: all checked lists are unchecked, button text returns to "Chọn tất cả", and action buttons are disabled.
 
 ## Optional DB Verification
 Replace `<CVID>` with the list ID.

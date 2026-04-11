@@ -155,8 +155,26 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
         var sidebar = jQuery('#module-filters');
         var startButton = jQuery('#quickEditFilters');
         var cancelButton = jQuery('#cancelQuickEditFilters');
+        var selectAllButton = jQuery('#toggleSelectAllQuickFilters');
         var applyButton = jQuery('#applyQuickEditFilters');
         var clearButton = jQuery('#clearQuickFilters');
+
+        var getSelectableChecks = function() {
+            return sidebar.find('.quick-edit-check').filter(':enabled');
+        };
+
+        var updateSelectAllState = function() {
+            var selectableChecks = getSelectableChecks();
+            var totalSelectable = selectableChecks.length;
+            var selectedCount = selectableChecks.filter(':checked').length;
+            var allSelected = (totalSelectable > 0 && selectedCount === totalSelectable);
+            selectAllButton.prop('disabled', totalSelectable === 0);
+            if (allSelected) {
+                selectAllButton.text('Bỏ chọn tất cả');
+            } else {
+                selectAllButton.text('Chọn tất cả');
+            }
+        };
 
         var updateApplyState = function() {
             var selectedCount = sidebar.find('.quick-edit-check:checked').length;
@@ -169,12 +187,14 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
                 applyButton.text('Sửa');
                 clearButton.text('Xóa lọc nhanh');
             }
+            updateSelectAllState();
         };
 
         var resetQuickEdit = function() {
             self.isQuickEditMode = false;
             startButton.removeClass('hide');
             cancelButton.addClass('hide');
+            selectAllButton.addClass('hide').prop('disabled', true).text('Chọn tất cả');
             applyButton.addClass('hide').prop('disabled', true).text('Sửa');
             clearButton.addClass('hide').prop('disabled', true).text('Xóa lọc nhanh');
             sidebar.find('.quick-edit-check').addClass('hide').prop('checked', false);
@@ -186,6 +206,7 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
             self.isQuickEditMode = true;
             startButton.addClass('hide');
             cancelButton.removeClass('hide');
+            selectAllButton.removeClass('hide');
             applyButton.removeClass('hide');
             clearButton.removeClass('hide');
             sidebar.find('.quick-edit-check').removeClass('hide');
@@ -204,6 +225,23 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
         sidebar.on('change', '.quick-edit-check', function() {
             var checkbox = jQuery(this);
             checkbox.closest('.listViewFilter').toggleClass('quick-edit-selected', checkbox.is(':checked'));
+            updateApplyState();
+        });
+
+        selectAllButton.on('click', function(e) {
+            e.preventDefault();
+            var selectableChecks = getSelectableChecks();
+            if (selectableChecks.length === 0) {
+                return;
+            }
+
+            var allSelected = selectableChecks.filter(':checked').length === selectableChecks.length;
+            var shouldSelect = !allSelected;
+            selectableChecks.each(function() {
+                var checkbox = jQuery(this);
+                checkbox.prop('checked', shouldSelect);
+                checkbox.closest('.listViewFilter').toggleClass('quick-edit-selected', shouldSelect);
+            });
             updateApplyState();
         });
 
