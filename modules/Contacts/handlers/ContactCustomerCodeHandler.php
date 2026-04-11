@@ -134,6 +134,28 @@ class ContactCustomerCodeLogic {
 		return array('ok' => true, 'code' => $code, 'contactid' => $contactId);
 	}
 
+	/**
+	 * Import-safe helper: only generate code when cf_1994 is still empty.
+	 */
+	public static function generateAndSaveIfMissingForContactId($contactId) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			return array('ok' => false, 'error' => 'invalid id');
+		}
+
+		$row = self::fetchContactscfRow($contactId);
+		if (!$row) {
+			return array('ok' => false, 'error' => 'no row');
+		}
+
+		$existingCode = isset($row['cf_1994']) ? trim((string) $row['cf_1994']) : '';
+		if ($existingCode !== '') {
+			return array('ok' => false, 'skipped' => 'existing code');
+		}
+
+		return self::generateAndSaveForContactId($contactId);
+	}
+
 	protected static function fetchContactscfRow($contactId) {
 		$db = PearDatabase::getInstance();
 		$r = $db->pquery(
