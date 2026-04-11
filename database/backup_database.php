@@ -207,6 +207,41 @@ function compressToTarGz($sourceFilePath, $targetArchivePath, &$errorMessage) {
     return true;
 }
 
+function runMysqldumpToFile($command, $outputFilePath, &$stderrOutput, &$exitCode) {
+    $stderrOutput = '';
+    $exitCode = 1;
+
+    $descriptorSpec = array(
+        0 => array('pipe', 'r'),
+        1 => array('file', $outputFilePath, 'w'),
+        2 => array('pipe', 'w'),
+    );
+
+    $process = proc_open($command, $descriptorSpec, $pipes, dirname(__DIR__), null, array('bypass_shell' => true));
+    if (!is_resource($process)) {
+        $stderrOutput = 'Failed to start mysqldump process.';
+        return false;
+    }
+
+    fclose($pipes[0]);
+    $stderrOutput = stream_get_contents($pipes[2]);
+    fclose($pipes[2]);
+
+    $exitCode = proc_close($process);
+    return $exitCode === 0;
+}
+
+function isPrivilegeRelatedDumpError($stderrOutput) {
+    if (!is_string($stderrOutput) || trim($stderrOutput) === '') {
+        return false;
+    }
+
+    return (bool) preg_match(
+        '/insufficient privileges|access denied|command denied|need \(at least one of\) the .* privilege/i',
+        $stderrOutput
+    );
+}
+
 $dbHost = env('DB_SERVER', 'localhost');
 $dbPort = (string) env('DB_PORT', '3306');
 $dbUser = env('DB_USERNAME', 'root');
@@ -243,9 +278,6 @@ $command = array(
     '--port=' . $dbPort,
     '--user=' . $dbUser,
     '--default-character-set=utf8mb4',
-    '--routines',
-    '--events',
-    '--triggers',
     '--single-transaction',
     '--quick',
     '--skip-lock-tables',
@@ -255,28 +287,46 @@ if ($dbPass !== '') {
     $command[] = '--password=' . $dbPass;
 }
 
-$command[] = $dbName;
-
-$descriptorspec = array(
-    0 => array('pipe', 'r'),
-    1 => array('file', $tempSqlPath, 'w'),
-    2 => array('pipe', 'w'),
+$dumpVariants = array(
+    array(
+        'extraOptions' => array('--routines', '--events', '--triggers'),
+        'warning' => '',
+    ),
+    array(
+        'extraOptions' => array('--triggers'),
+        'warning' => 'WARNING: Backup completed without routines/events due to limited DB privileges.',
+    ),
+    array(
+        'extraOptions' => array(),
+        'warning' => 'WARNING: Backup completed without routines/events/triggers due to limited DB privileges.',
+    ),
 );
 
-$process = proc_open($command, $descriptorspec, $pipes, dirname(__DIR__), null, array('bypass_shell' => true));
+$dumpSucceeded = false;
+$stderr = '';
+$exitCode = 1;
+$selectedWarning = '';
 
-if (!is_resource($process)) {
-    fwrite(STDERR, "ERROR: Failed to start mysqldump process\n");
-    exit(1);
+foreach ($dumpVariants as $index => $variant) {
+    $variantCommand = array_merge($command, $variant['extraOptions'], array($dbName));
+    $dumpSucceeded = runMysqldumpToFile($variantCommand, $tempSqlPath, $stderr, $exitCode);
+
+    if ($dumpSucceeded) {
+        $selectedWarning = $variant['warning'];
+        break;
+    }
+
+    if (file_exists($tempSqlPath)) {
+        @unlink($tempSqlPath);
+    }
+
+    $hasNextVariant = ($index < count($dumpVariants) - 1);
+    if (!$hasNextVariant || !isPrivilegeRelatedDumpError($stderr)) {
+        break;
+    }
 }
 
-fclose($pipes[0]);
-$stderr = stream_get_contents($pipes[2]);
-fclose($pipes[2]);
-
-$exitCode = proc_close($process);
-
-if ($exitCode !== 0) {
+if (!$dumpSucceeded) {
     if (file_exists($tempSqlPath)) {
         @unlink($tempSqlPath);
     }
@@ -285,6 +335,10 @@ if ($exitCode !== 0) {
         fwrite(STDERR, $stderr . "\n");
     }
     exit($exitCode);
+}
+
+if ($selectedWarning !== '') {
+    fwrite(STDOUT, $selectedWarning . "\n");
 }
 
 $compressionError = '';
