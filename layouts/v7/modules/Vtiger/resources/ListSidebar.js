@@ -326,8 +326,17 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
             return;
         }
 
+        var desktopBreakpoint = 992;
         var moduleName = app.getModuleName() || 'default';
         var storageKey = 'vtiger.listSidebarWidth.' + moduleName;
+        var isDesktopLayout = function() {
+            return jQuery(window).width() >= desktopBreakpoint;
+        };
+        var clearInlineLayout = function() {
+            sidebar.css('width', '');
+            content.css('padding-left', '');
+            handle.css('left', '');
+        };
         var moduleNavWidth = function() {
             return jQuery('#modnavigator').outerWidth() || 42;
         };
@@ -358,6 +367,12 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
         };
 
         var syncWithPanelState = function() {
+            if (!isDesktopLayout()) {
+                handle.addClass('hide');
+                clearInlineLayout();
+                return;
+            }
+
             if (sidebar.hasClass('hide')) {
                 handle.addClass('hide');
                 content.css('padding-left', '');
@@ -373,7 +388,7 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
         };
 
         handle.off('mousedown.sidebarResize').on('mousedown.sidebarResize', function(e) {
-            if (sidebar.hasClass('hide')) {
+            if (sidebar.hasClass('hide') || !isDesktopLayout()) {
                 return;
             }
 
@@ -399,9 +414,7 @@ Vtiger.Class('Vtiger_ListSidebar_Js',{},{
         });
 
         jQuery(window).off('resize.sidebarResize').on('resize.sidebarResize', function() {
-            if (!sidebar.hasClass('hide')) {
-                applyWidth(sidebar.outerWidth());
-            }
+            syncWithPanelState();
         });
 
         app.event.on('Vtiger.Post.MenuToggle', function() {

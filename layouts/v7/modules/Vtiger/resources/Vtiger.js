@@ -381,6 +381,9 @@ Vtiger.Class(
       var isListSidebarLocked = function () {
         return jQuery("#listViewContent").length > 0 && jQuery("#module-filters").length > 0;
       };
+      var isDesktopListLayout = function () {
+        return jQuery(window).width() >= 992;
+      };
 
       var syncListEssentialsToggle = function () {
         var toggleElement = jQuery(".essentials-toggle");
@@ -395,7 +398,11 @@ Vtiger.Class(
         if (isListSidebarLocked()) {
           jQuery(".sidebar-essentials").removeClass("hide");
           jQuery(".content-area").removeClass("full-width");
-          jQuery("#sidebar-resize-handle").removeClass("hide");
+          if (isDesktopListLayout()) {
+            jQuery("#sidebar-resize-handle").removeClass("hide");
+          } else {
+            jQuery("#sidebar-resize-handle").addClass("hide");
+          }
           marker.removeClass("fa-chevron-right").addClass("fa-chevron-left");
         } else if (jQuery(".sidebar-essentials").hasClass("hide")) {
           marker.removeClass("fa-chevron-left").addClass("fa-chevron-right");
