@@ -378,17 +378,26 @@ Vtiger.Class(
     },
 
     registerListEssentialsToggleEvent: function () {
+      var isListSidebarLocked = function () {
+        return jQuery("#listViewContent").length > 0 && jQuery("#module-filters").length > 0;
+      };
+
       var syncListEssentialsToggle = function () {
         var toggleElement = jQuery(".essentials-toggle");
         if (!toggleElement.length) {
           return;
         }
 
-        // Keep toggle visible even when the left panel has no list entries.
+        // Keep marker visible. On list pages, force essentials sidebar to stay open.
         toggleElement.removeClass("hide").css("display", "inline-block");
 
         var marker = toggleElement.find(".essentials-toggle-marker");
-        if (jQuery(".sidebar-essentials").hasClass("hide")) {
+        if (isListSidebarLocked()) {
+          jQuery(".sidebar-essentials").removeClass("hide");
+          jQuery(".content-area").removeClass("full-width");
+          jQuery("#sidebar-resize-handle").removeClass("hide");
+          marker.removeClass("fa-chevron-right").addClass("fa-chevron-left");
+        } else if (jQuery(".sidebar-essentials").hasClass("hide")) {
           marker.removeClass("fa-chevron-left").addClass("fa-chevron-right");
         } else {
           marker.removeClass("fa-chevron-right").addClass("fa-chevron-left");
@@ -402,6 +411,12 @@ Vtiger.Class(
       }, 500);
       
       jQuery(".main-container").on("click", ".essentials-toggle", function () {
+        if (isListSidebarLocked()) {
+          syncListEssentialsToggle();
+          app.event.trigger("Vtiger.Post.MenuToggle");
+          return;
+        }
+
         jQuery(".sidebar-essentials").toggleClass("hide");
         jQuery(".content-area").toggleClass("full-width");
         var params = {
