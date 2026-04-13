@@ -278,6 +278,9 @@ $command = array(
     '--port=' . $dbPort,
     '--user=' . $dbUser,
     '--default-character-set=utf8mb4',
+    // Force full dump even if mysqldump defaults files contain no-data/no-create-info.
+    '--skip-no-data',
+    '--skip-no-create-info',
     '--single-transaction',
     '--quick',
     '--skip-lock-tables',
