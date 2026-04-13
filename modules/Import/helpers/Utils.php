@@ -19,6 +19,7 @@ class Import_Utils_Helper {
 	static $AUTO_MERGE_IGNORE = 1;
 	static $AUTO_MERGE_OVERWRITE = 2;
 	static $AUTO_MERGE_MERGEFIELDS = 3;
+	static $CONTACT_IMPORT_RETENTION_DAYS = 7;
 
 	static $supportedFileEncoding = array('UTF-8'=>'UTF-8', 'ISO-8859-1'=>'ISO-8859-1');
 	static $supportedDelimiters = array(','=>'comma', ';'=>'semicolon', '|'=> 'Pipe', '^'=>'Caret');
@@ -214,6 +215,9 @@ class Import_Utils_Helper {
 			$request->set('error_message', vtranslate('LBL_IMPORT_FILE_COPY_FAILED', 'Import'));
 			return false;
 		}
+
+		self::archiveContactImportFile($request, $current_user, $temporaryFileName);
+
 		$fileReader = Import_Utils_Helper::getFileReader($request, $current_user);
 
 		if($fileReader == null) {
@@ -228,6 +232,144 @@ class Import_Utils_Helper {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Keep a per-import file copy for Contacts and purge archived files older than retention period.
+	 * This is best-effort and should not block import flow.
+	 */
+	public static function archiveContactImportFile($request, $user, $temporaryFileName) {
+		if($request->getModule() !== 'Contacts') {
+			return;
+		}
+
+		if(empty($temporaryFileName) || !is_readable($temporaryFileName)) {
+			return;
+		}
+
+		$importDirectory = self::getImportDirectory();
+		if(!is_dir($importDirectory) || !is_writable($importDirectory)) {
+			return;
+		}
+
+		self::cleanupArchivedContactImportFiles($importDirectory, self::$CONTACT_IMPORT_RETENTION_DAYS);
+
+		$originalName = isset($_FILES['import_file']['name']) ? (string) $_FILES['import_file']['name'] : 'contacts_import.csv';
+		$extension = pathinfo($originalName, PATHINFO_EXTENSION);
+		$baseName = pathinfo($originalName, PATHINFO_FILENAME);
+
+		if(empty($baseName)) {
+			$baseName = 'contacts_import';
+		}
+
+		$baseName = self::sanitizeFileNamePart($baseName);
+		$userName = self::sanitizeFileNamePart(self::getImportUserName($user));
+		$timestamp = date('Ymd_His');
+
+		$archiveFileName = $baseName.'_'.$userName.'_'.$timestamp;
+		if(!empty($extension)) {
+			$archiveFileName .= '.'.$extension;
+		}
+
+		$archiveFilePath = rtrim($importDirectory, '/\\').DIRECTORY_SEPARATOR.$archiveFileName;
+		if(@copy($temporaryFileName, $archiveFilePath)) {
+			self::appendContactImportHistory($user, $originalName, $archiveFileName, $archiveFilePath);
+		} else {
+			error_log('Import contacts archive copy failed: '.$archiveFilePath);
+		}
+	}
+
+	public static function cleanupArchivedContactImportFiles($importDirectory, $retentionDays) {
+		$maxAgeSeconds = intval($retentionDays) * 86400;
+		if($maxAgeSeconds <= 0) {
+			return;
+		}
+
+		$expireTime = time() - $maxAgeSeconds;
+		$entries = @scandir($importDirectory);
+		if($entries === false) {
+			return;
+		}
+
+		foreach($entries as $entry) {
+			if($entry === '.' || $entry === '..') {
+				continue;
+			}
+
+			$entryPath = rtrim($importDirectory, '/\\').DIRECTORY_SEPARATOR.$entry;
+			if(!is_file($entryPath)) {
+				continue;
+			}
+
+			if(strpos($entry, 'IMPORT_') === 0) {
+				continue;
+			}
+
+			// Only clean archived files created by this feature.
+			if(!preg_match('/.+_.+_\d{8}_\d{6}(\.[A-Za-z0-9]+)?$/', $entry)) {
+				continue;
+			}
+
+			$mtime = @filemtime($entryPath);
+			if($mtime !== false && $mtime < $expireTime) {
+				@unlink($entryPath);
+			}
+		}
+	}
+
+	public static function appendContactImportHistory($user, $originalFileName, $archiveFileName, $archiveFilePath) {
+		$logFilePath = dirname(__FILE__).'/../../../logs/contact_import_history.log';
+		$logLine = sprintf(
+			"%s | module=Contacts | user_id=%s | username=%s | source_file=%s | archived_file=%s | archived_path=%s | size_bytes=%s\n",
+			date('Y-m-d H:i:s'),
+			self::getImportUserId($user),
+			self::getImportUserName($user),
+			$originalFileName,
+			$archiveFileName,
+			$archiveFilePath,
+			@filesize($archiveFilePath)
+		);
+
+		@file_put_contents($logFilePath, $logLine, FILE_APPEND | LOCK_EX);
+	}
+
+	public static function getImportUserName($user) {
+		if(is_object($user) && method_exists($user, 'get')) {
+			$userName = $user->get('user_name');
+			if(!empty($userName)) {
+				return $userName;
+			}
+		}
+
+		if(is_object($user) && isset($user->user_name) && !empty($user->user_name)) {
+			return $user->user_name;
+		}
+
+		return 'user_'.self::getImportUserId($user);
+	}
+
+	public static function getImportUserId($user) {
+		if(is_object($user) && method_exists($user, 'getId')) {
+			$userId = $user->getId();
+			if(!empty($userId)) {
+				return $userId;
+			}
+		}
+
+		if(is_object($user) && isset($user->id) && !empty($user->id)) {
+			return $user->id;
+		}
+
+		return 'unknown';
+	}
+
+	public static function sanitizeFileNamePart($value) {
+		$value = preg_replace('/[^A-Za-z0-9._-]/', '_', (string) $value);
+		$value = trim($value, '._-');
+		if($value === '') {
+			return 'import';
+		}
+		return $value;
 	}
 
 	/**
