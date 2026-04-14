@@ -2149,7 +2149,7 @@ class CustomView extends CRMEntity {
 	function getStatusAndUserid($viewid) {
 		global $adb;
 
-		if (!isset(self::$cvStatusAndUser[$viewid]) && ($this->_status === false || $this->_userid === false)) {
+		if (!array_key_exists($viewid, self::$cvStatusAndUser)) {
 			$query = "SELECT status, userid FROM vtiger_customview WHERE cvid=?";
 			$result = $adb->pquery($query, array($viewid));
 			if ($result && $adb->num_rows($result)) {
