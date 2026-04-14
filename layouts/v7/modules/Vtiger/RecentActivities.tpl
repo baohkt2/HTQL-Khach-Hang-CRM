@@ -67,15 +67,19 @@
                                             {assign var=F_INSTANCE value=$FIELDMODEL->getFieldInstance()}
                                             {if $F_INSTANCE && $F_INSTANCE->isViewable() && $F_INSTANCE->getDisplayType() neq '5'}
                                                 
-                                                {assign var=F_NAME value=$F_INSTANCE->getName()}
+                                                {assign var=F_FIELD_NAME value=$F_INSTANCE->getName()}
+                                                {assign var=F_NAME value=$FIELDMODEL->getName()}
+                                                {if empty($F_NAME)}
+                                                    {assign var=F_NAME value=$F_FIELD_NAME}
+                                                {/if}
                                                 {assign var=PRE_VAL value=$FIELDMODEL->getDisplayValue(decode_html($FIELDMODEL->get('prevalue')))}
                                                 {assign var=POST_VAL value=$FIELDMODEL->getDisplayValue(decode_html($FIELDMODEL->get('postvalue')))}
 
                                                 {* Logic đặc biệt cho Calendar Time *}
-                                                {if in_array($F_NAME, ['time_start','time_end']) && in_array($MODULE_NAME, ['Events','Calendar'])}
+                                                {if in_array($F_FIELD_NAME, ['time_start','time_end']) && in_array($MODULE_NAME, ['Events','Calendar'])}
                                                     {assign var=CAL_REC value=Vtiger_Record_Model::getInstanceById($RECORD_ID)}
-                                                    {assign var=PRE_VAL value=Calendar_Time_UIType::getModTrackerDisplayValue($F_NAME, $FIELDMODEL->get('prevalue'), $CAL_REC)}
-                                                    {assign var=POST_VAL value=Calendar_Time_UIType::getModTrackerDisplayValue($F_NAME, $FIELDMODEL->get('postvalue'), $CAL_REC)}
+                                                    {assign var=PRE_VAL value=Calendar_Time_UIType::getModTrackerDisplayValue($F_FIELD_NAME, $FIELDMODEL->get('prevalue'), $CAL_REC)}
+                                                    {assign var=POST_VAL value=Calendar_Time_UIType::getModTrackerDisplayValue($F_FIELD_NAME, $FIELDMODEL->get('postvalue'), $CAL_REC)}
                                                 {/if}
 
                                                 <div class='font-x-small updateInfoContainer textOverflowEllipsis'>
