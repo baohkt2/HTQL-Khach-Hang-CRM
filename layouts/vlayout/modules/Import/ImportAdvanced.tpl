@@ -22,6 +22,7 @@
 		<input type="hidden" name="has_header" value='{$HAS_HEADER}' />
 		<input type="hidden" name="file_encoding" value='{$USER_INPUT->get('file_encoding')}' />
 		<input type="hidden" name="delimiter" value='{$USER_INPUT->get('delimiter')}' />
+		<input type="hidden" name="import_tracking_id" value="{$USER_INPUT->get('import_tracking_id')}" />
 		<input type="hidden" name="merge_type" value='{$USER_INPUT->get('merge_type')}' />
 		<input type="hidden" name="merge_fields" value='{$MERGE_FIELDS}' />
 

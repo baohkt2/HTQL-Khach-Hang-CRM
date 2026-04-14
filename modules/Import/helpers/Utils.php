@@ -182,6 +182,7 @@ class Import_Utils_Helper {
 
 	public static function validateFileUpload($request) {
 		$current_user = Users_Record_Model::getCurrentUserModel();
+		self::ensureImportTrackingId($request);
 
 		$uploadMaxSize = self::getMaxUploadSize();
 		$importDirectory = self::getImportDirectory();
@@ -234,6 +235,328 @@ class Import_Utils_Helper {
 		return true;
 	}
 
+	public static function shouldTrackDetailedImport($moduleName) {
+		return $moduleName === 'Contacts';
+	}
+
+	public static function ensureImportTrackingId($request) {
+		if(!$request) {
+			return '';
+		}
+
+		$trackingId = self::sanitizeTrackingId($request->get('import_tracking_id'));
+		if(empty($trackingId)) {
+			$trackingId = self::generateImportTrackingId();
+		}
+		$request->set('import_tracking_id', $trackingId);
+		return $trackingId;
+	}
+
+	public static function sanitizeTrackingId($trackingId) {
+		$trackingId = preg_replace('/[^A-Za-z0-9._-]/', '', (string) $trackingId);
+		return substr($trackingId, 0, 120);
+	}
+
+	public static function generateImportTrackingId() {
+		return 'imp_'.date('Ymd_His').'_'.substr(md5(uniqid('', true)), 0, 10);
+	}
+
+	public static function logImportStepOneConfig($request, $user) {
+		$moduleName = $request->getModule();
+		if(!self::shouldTrackDetailedImport($moduleName)) {
+			return;
+		}
+
+		$fileInfo = isset($_FILES['import_file']) ? $_FILES['import_file'] : array();
+		$fileName = isset($fileInfo['name']) ? self::normalizeUploadedFileName($fileInfo['name']) : '';
+		$sizeBytes = isset($fileInfo['size']) ? intval($fileInfo['size']) : 0;
+		$fileType = strtolower((string) $request->get('type'));
+		if($fileType === '' && $fileName !== '') {
+			$fileType = strtolower((string) pathinfo($fileName, PATHINFO_EXTENSION));
+		}
+
+		$uploadChannel = $fileType;
+		if($fileType === 'xls' || $fileType === 'xlsx') {
+			$uploadChannel = 'excel';
+		}
+
+		$payload = array(
+			'file_name' => $fileName,
+			'file_extension' => $fileType,
+			'upload_channel' => $uploadChannel,
+			'file_size_bytes' => $sizeBytes,
+			'has_header_checked' => !empty($request->get('has_header')) ? 1 : 0,
+			'delimiter' => (string) $request->get('delimiter'),
+			'file_encoding' => (string) $request->get('file_encoding'),
+			'lineitem_currency' => (string) $request->get('lineitem_currency')
+		);
+
+		self::appendImportTrackingEntry($request, $user, 'step1_upload_file', $payload);
+	}
+
+	public static function logImportStepTwoConfig($request, $user) {
+		$moduleName = $request->getModule();
+		if(!self::shouldTrackDetailedImport($moduleName)) {
+			return;
+		}
+
+		$mergeFields = self::decodeJsonToArray($request->get('merge_fields'));
+		$mergeFieldApis = self::normalizeFieldNameList($mergeFields);
+		$mergeFieldLabels = self::translateFieldNames($moduleName, $mergeFieldApis);
+		$autoMerge = intval($request->get('auto_merge'));
+		$mergeType = intval($request->get('merge_type'));
+		$isDuplicateHandlingSkipped = ($autoMerge !== 1);
+
+		$payload = array(
+			'duplicate_handling_skipped' => $isDuplicateHandlingSkipped ? 1 : 0,
+			'auto_merge' => $autoMerge,
+			'merge_type' => $mergeType,
+			'merge_type_label' => self::resolveMergeTypeLabel($mergeType),
+			'match_fields_api' => $mergeFieldApis,
+			'match_fields_labels' => $mergeFieldLabels
+		);
+
+		self::appendImportTrackingEntry($request, $user, 'step2_duplicate_handling', $payload);
+	}
+
+	public static function logImportStepThreeConfig($request, $user) {
+		$moduleName = $request->getModule();
+		if(!self::shouldTrackDetailedImport($moduleName)) {
+			return;
+		}
+
+		$fieldMapping = self::decodeJsonToArray($request->get('field_mapping'));
+		$defaultValues = self::decodeJsonToArray($request->get('default_values'));
+		$mergeFields = self::decodeJsonToArray($request->get('merge_fields'));
+		$mappingDetails = self::buildFieldMappingDetails($request, $user, $moduleName, $fieldMapping, $defaultValues);
+		$mappedFieldApis = array_values(array_map('strval', array_keys($fieldMapping)));
+		$mappedFieldLabels = self::translateFieldNames($moduleName, $mappedFieldApis);
+		$defaultFieldApis = array_values(array_map('strval', array_keys($defaultValues)));
+		$defaultFieldLabels = self::translateFieldNames($moduleName, $defaultFieldApis);
+
+		$payload = array(
+			'file_type' => strtolower((string) $request->get('type')),
+			'has_header_checked' => !empty($request->get('has_header')) ? 1 : 0,
+			'delimiter' => (string) $request->get('delimiter'),
+			'file_encoding' => (string) $request->get('file_encoding'),
+			'merge_type' => intval($request->get('merge_type')),
+			'merge_fields' => $mergeFields,
+			'mapped_fields_count' => php7_count($fieldMapping),
+			'mapped_fields_api' => $mappedFieldApis,
+			'mapped_fields_labels' => $mappedFieldLabels,
+			'mapping_details' => $mappingDetails,
+			'default_values_count' => php7_count($defaultValues),
+			'default_value_fields_api' => $defaultFieldApis,
+			'default_value_fields_labels' => $defaultFieldLabels,
+			'save_map' => !empty($request->get('save_map')) ? 1 : 0,
+			'save_map_as' => (string) $request->get('save_map_as'),
+			'lineitem_currency' => (string) $request->get('lineitem_currency')
+		);
+
+		self::appendImportTrackingEntry($request, $user, 'step3_field_mapping', $payload);
+	}
+
+	public static function logImportStepError($request, $user, $step, $errorMessage) {
+		$moduleName = $request->getModule();
+		if(!self::shouldTrackDetailedImport($moduleName)) {
+			return;
+		}
+
+		$payload = array(
+			'error' => (string) $errorMessage
+		);
+		self::appendImportTrackingEntry($request, $user, $step, $payload, 'error');
+	}
+
+	public static function appendImportTrackingEntry($request, $user, $step, $payload = array(), $level = 'info') {
+		$moduleName = $request->getModule();
+		if(!self::shouldTrackDetailedImport($moduleName)) {
+			return;
+		}
+
+		$trackingId = self::ensureImportTrackingId($request);
+
+		$logData = array(
+			'timestamp' => date('Y-m-d H:i:s'),
+			'event' => 'import_step_tracking',
+			'level' => $level,
+			'step' => $step,
+			'tracking_id' => $trackingId,
+			'module' => $moduleName,
+			'user_id' => self::getImportUserId($user),
+			'username' => self::getImportUserName($user),
+			'mode' => (string) $request->getMode(),
+			'payload' => $payload
+		);
+
+		self::appendImportHistoryLog($logData);
+	}
+
+	public static function appendImportHistoryLog($logData) {
+		$logFilePath = dirname(__FILE__).'/../../../logs/contact_import_history.log';
+		$jsonLine = @json_encode($logData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		if($jsonLine === false) {
+			$jsonLine = json_encode(array(
+				'timestamp' => date('Y-m-d H:i:s'),
+				'event' => 'import_tracking_log_failed',
+				'error' => 'json_encode_failed'
+			));
+		}
+		@file_put_contents($logFilePath, $jsonLine."\n", FILE_APPEND | LOCK_EX);
+	}
+
+	public static function decodeJsonToArray($value) {
+		if(is_array($value)) {
+			return $value;
+		}
+		if(!is_string($value) || trim($value) === '') {
+			return array();
+		}
+
+		$decoded = json_decode($value, true);
+		if(is_array($decoded)) {
+			return $decoded;
+		}
+
+		return array();
+	}
+
+	public static function normalizeFieldNameList($fields) {
+		$result = array();
+		if(!is_array($fields)) {
+			return $result;
+		}
+
+		foreach($fields as $key => $value) {
+			if(is_string($key) && !is_numeric($key)) {
+				$result[] = $key;
+				continue;
+			}
+
+			if(is_string($value) && $value !== '') {
+				$result[] = $value;
+			}
+		}
+
+		$result = array_values(array_unique($result));
+		return $result;
+	}
+
+	public static function translateFieldNames($moduleName, $fieldNames) {
+		$labels = array();
+		if(empty($fieldNames)) {
+			return $labels;
+		}
+
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+		foreach($fieldNames as $fieldName) {
+			$labels[$fieldName] = self::resolveFieldLabel($moduleName, $moduleModel, $fieldName);
+		}
+
+		return $labels;
+	}
+
+	public static function resolveFieldLabel($moduleName, $moduleModel, $fieldName) {
+		if(!$moduleModel) {
+			return $fieldName;
+		}
+
+		$fieldModel = Vtiger_Field_Model::getInstance($fieldName, $moduleModel);
+		if($fieldModel && method_exists($fieldModel, 'getFieldLabelKey')) {
+			$labelKey = $fieldModel->getFieldLabelKey();
+			if(!empty($labelKey)) {
+				return vtranslate($labelKey, $moduleName);
+			}
+		}
+
+		return $fieldName;
+	}
+
+	public static function resolveMergeTypeLabel($mergeType) {
+		switch(intval($mergeType)) {
+			case 0:
+				return 'No Duplicate Handling';
+			case 1:
+				return 'Skip';
+			case 2:
+				return 'Overwrite';
+			case 3:
+				return 'Merge';
+			default:
+				return 'Unknown';
+		}
+	}
+
+	public static function buildFieldMappingDetails($request, $user, $moduleName, $fieldMapping, $defaultValues) {
+		$details = array();
+		if(empty($fieldMapping) || !is_array($fieldMapping)) {
+			return $details;
+		}
+
+		list($sourceColumns, $sourceSamples) = self::readImportSourceColumns($request, $user, $fieldMapping);
+		$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
+
+		foreach($fieldMapping as $crmField => $sourceIndexRaw) {
+			$sourceIndex = intval($sourceIndexRaw);
+			$sourceColumnName = isset($sourceColumns[$sourceIndex]) ? $sourceColumns[$sourceIndex] : 'Column '.($sourceIndex + 1);
+			$sourceSampleValue = isset($sourceSamples[$sourceIndex]) ? $sourceSamples[$sourceIndex] : '';
+			$fieldLabel = self::resolveFieldLabel($moduleName, $moduleModel, $crmField);
+			$defaultValue = array_key_exists($crmField, $defaultValues) ? $defaultValues[$crmField] : '';
+
+			$details[] = array(
+				'crm_field_api' => $crmField,
+				'crm_field_label' => $fieldLabel,
+				'source_column_index' => $sourceIndex,
+				'source_column_name' => $sourceColumnName,
+				'source_sample' => $sourceSampleValue,
+				'default_value' => $defaultValue
+			);
+		}
+
+		return $details;
+	}
+
+	public static function readImportSourceColumns($request, $user, $fieldMapping) {
+		$sourceColumns = array();
+		$sourceSamples = array();
+		$hasHeader = !empty($request->get('has_header'));
+
+		$fileReader = self::getFileReader($request, $user);
+		if($fileReader) {
+			$firstRow = $fileReader->getFirstRowData($hasHeader);
+			if($firstRow !== false && is_array($firstRow)) {
+				if($hasHeader) {
+					$sourceColumns = array_values(array_map('strval', array_keys($firstRow)));
+					$sourceSamples = array_values(array_map('strval', array_values($firstRow)));
+				} else {
+					$sourceSamples = array_values(array_map('strval', array_values($firstRow)));
+					for($i = 0; $i < php7_count($sourceSamples); $i++) {
+						$sourceColumns[$i] = 'Column '.($i + 1);
+					}
+				}
+			}
+		}
+
+		if(empty($sourceColumns)) {
+			$maxIndex = -1;
+			foreach($fieldMapping as $sourceIndexRaw) {
+				$sourceIndex = intval($sourceIndexRaw);
+				if($sourceIndex > $maxIndex) {
+					$maxIndex = $sourceIndex;
+				}
+			}
+
+			for($i = 0; $i <= $maxIndex; $i++) {
+				$sourceColumns[$i] = 'Column '.($i + 1);
+				if(!isset($sourceSamples[$i])) {
+					$sourceSamples[$i] = '';
+				}
+			}
+		}
+
+		return array($sourceColumns, $sourceSamples);
+	}
+
 	/**
 	 * Keep a per-import file copy for Contacts and purge archived files older than retention period.
 	 * This is best-effort and should not block import flow.
@@ -254,8 +577,9 @@ class Import_Utils_Helper {
 
 		self::cleanupArchivedContactImportFiles($importDirectory, self::$CONTACT_IMPORT_RETENTION_DAYS);
 
-		$originalName = isset($_FILES['import_file']['name']) ? (string) $_FILES['import_file']['name'] : 'contacts_import.csv';
-		$extension = pathinfo($originalName, PATHINFO_EXTENSION);
+		$originalName = isset($_FILES['import_file']['name']) ? self::normalizeUploadedFileName($_FILES['import_file']['name']) : 'contacts_import.csv';
+		$extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
+		$extension = preg_replace('/[^A-Za-z0-9]/', '', $extension);
 		$baseName = pathinfo($originalName, PATHINFO_FILENAME);
 
 		if(empty($baseName)) {
@@ -273,7 +597,7 @@ class Import_Utils_Helper {
 
 		$archiveFilePath = rtrim($importDirectory, '/\\').DIRECTORY_SEPARATOR.$archiveFileName;
 		if(@copy($temporaryFileName, $archiveFilePath)) {
-			self::appendContactImportHistory($user, $originalName, $archiveFileName, $archiveFilePath);
+			self::appendContactImportHistory($request, $user, $originalName, $archiveFileName, $archiveFilePath);
 		} else {
 			error_log('Import contacts archive copy failed: '.$archiveFilePath);
 		}
@@ -317,20 +641,47 @@ class Import_Utils_Helper {
 		}
 	}
 
-	public static function appendContactImportHistory($user, $originalFileName, $archiveFileName, $archiveFilePath) {
-		$logFilePath = dirname(__FILE__).'/../../../logs/contact_import_history.log';
-		$logLine = sprintf(
-			"%s | module=Contacts | user_id=%s | username=%s | source_file=%s | archived_file=%s | archived_path=%s | size_bytes=%s\n",
-			date('Y-m-d H:i:s'),
-			self::getImportUserId($user),
-			self::getImportUserName($user),
-			$originalFileName,
-			$archiveFileName,
-			$archiveFilePath,
-			@filesize($archiveFilePath)
+	public static function appendContactImportHistory($request, $user, $originalFileName, $archiveFileName, $archiveFilePath) {
+		$trackingId = self::ensureImportTrackingId($request);
+		$logData = array(
+			'timestamp' => date('Y-m-d H:i:s'),
+			'event' => 'import_file_archived',
+			'module' => 'Contacts',
+			'tracking_id' => $trackingId,
+			'user_id' => self::getImportUserId($user),
+			'username' => self::getImportUserName($user),
+			'source_file' => $originalFileName,
+			'archived_file' => $archiveFileName,
+			'archived_path' => $archiveFilePath,
+			'size_bytes' => @filesize($archiveFilePath)
 		);
 
-		@file_put_contents($logFilePath, $logLine, FILE_APPEND | LOCK_EX);
+		self::appendImportHistoryLog($logData);
+	}
+
+	public static function normalizeUploadedFileName($fileName) {
+		$fileName = (string) $fileName;
+		$fileName = str_replace(array("\0", "\r", "\n"), '', $fileName);
+		$fileName = basename(str_replace('\\', '/', $fileName));
+
+		if($fileName === '') {
+			return 'contacts_import.csv';
+		}
+
+		if(function_exists('mb_check_encoding') && !mb_check_encoding($fileName, 'UTF-8')) {
+			$encodings = array('Windows-1258', 'CP1258', 'CP1252', 'ISO-8859-1');
+			foreach($encodings as $encoding) {
+				if(function_exists('iconv')) {
+					$converted = @iconv($encoding, 'UTF-8//IGNORE', $fileName);
+					if($converted !== false && $converted !== '') {
+						$fileName = $converted;
+						break;
+					}
+				}
+			}
+		}
+
+		return $fileName;
 	}
 
 	public static function getImportUserName($user) {
@@ -364,6 +715,23 @@ class Import_Utils_Helper {
 	}
 
 	public static function sanitizeFileNamePart($value) {
+		$value = self::normalizeUploadedFileName((string) $value);
+
+		if(class_exists('Normalizer')) {
+			$normalizedValue = @Normalizer::normalize($value, Normalizer::FORM_D);
+			if($normalizedValue !== false && $normalizedValue !== null) {
+				$value = preg_replace('/\p{Mn}+/u', '', $normalizedValue);
+			}
+		}
+
+		$value = str_replace(array('đ', 'Đ'), array('d', 'D'), $value);
+		if(function_exists('iconv')) {
+			$transliterated = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+			if($transliterated !== false && $transliterated !== '') {
+				$value = $transliterated;
+			}
+		}
+
 		$value = preg_replace('/[^A-Za-z0-9._-]/', '_', (string) $value);
 		$value = trim($value, '._-');
 		if($value === '') {

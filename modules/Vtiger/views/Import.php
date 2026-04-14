@@ -152,14 +152,20 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 	function uploadAndParse(Vtiger_Request $request) {
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
+		$user = Users_Record_Model::getCurrentUserModel();
+		Import_Utils_Helper::ensureImportTrackingId($request);
+		Import_Utils_Helper::logImportStepOneConfig($request, $user);
+		Import_Utils_Helper::logImportStepTwoConfig($request, $user);
 		$duplicateHandlingNotSupportedModules = $this->getUnsupportedDuplicateHandlingModules();
 		if(in_array($moduleName, $duplicateHandlingNotSupportedModules)){
 			$viewer->assign('DUPLICATE_HANDLING_NOT_SUPPORTED', true);
 		}
 		try{
 			$this->initializeMappingParameters($request);
+			Import_Utils_Helper::appendImportTrackingEntry($request, $user, 'step2_upload_parse_success', array('status' => 'success'));
 			return $viewer->view('ImportAdvanced.tpl', 'Import');
 		} catch(\Throwable $e) {
+			Import_Utils_Helper::logImportStepError($request, $user, 'step2_upload_parse_failed', $e->getMessage());
 			error_log("Import uploadAndParse error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
 			$this->importBasicStep($request);
 		}
@@ -238,6 +244,7 @@ class Vtiger_Import_View extends Vtiger_Index_View {
 
 	function import(Vtiger_Request $request) {
 		$user = Users_Record_Model::getCurrentUserModel();
+		Import_Utils_Helper::logImportStepThreeConfig($request, $user);
 		Import_Main_View::import($request, $user);
 	}
 
