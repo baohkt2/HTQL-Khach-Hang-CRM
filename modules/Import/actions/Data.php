@@ -19,6 +19,7 @@ require_once 'modules/Vtiger/CRMEntity.php';
 require_once 'include/QueryGenerator/QueryGenerator.php';
 require_once 'vtlib/Vtiger/Mailer.php';
 require_once 'include/events/include.inc';
+require_once 'modules/ModTracker/ModTracker.php';
 vimport('includes.runtime.EntryPoint');
 
 class Import_Data_Action extends Vtiger_Action_Controller {
@@ -78,6 +79,87 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		}
 
 		return $digits;
+	}
+
+	/**
+	 * Treat blank imports as "not provided" while preserving explicit 0 values.
+	 *
+	 * @param mixed $value
+	 * @return bool
+	 */
+	protected function hasImportValue($value) {
+		if (is_array($value)) {
+			return !empty($value);
+		}
+		if ($value === null) {
+			return false;
+		}
+		if (is_bool($value) || is_numeric($value)) {
+			return true;
+		}
+		$normalizedValue = str_replace(array("\xC2\xA0", "\xE2\x80\x8B", "\xEF\xBB\xBF"), ' ', (string) $value);
+		return trim($normalizedValue) !== '';
+	}
+
+	/**
+	 * Decide whether imported value should be treated as empty for merge behavior.
+	 *
+	 * @param string $fieldName
+	 * @param mixed $value
+	 * @param array $moduleFields
+	 * @return bool
+	 */
+	protected function shouldTreatAsEmptyImportValue($fieldName, $value, $moduleFields = array()) {
+		if (!$this->hasImportValue($value)) {
+			return true;
+		}
+
+		if (!is_string($value)) {
+			return false;
+		}
+
+		$normalizedValue = str_replace(array("\xC2\xA0", "\xE2\x80\x8B", "\xEF\xBB\xBF"), ' ', $value);
+		$normalizedValue = trim($normalizedValue);
+		if ($normalizedValue === '') {
+			return true;
+		}
+
+		if ($normalizedValue !== '0' || !isset($moduleFields[$fieldName])) {
+			return false;
+		}
+
+		$fieldDataType = $moduleFields[$fieldName]->getFieldDataType();
+		$zeroAsEmptyDataTypes = array('string', 'text', 'email', 'phone', 'url', 'date', 'datetime', 'time', 'picklist', 'multipicklist', 'reference', 'owner', 'ownergroup');
+		return in_array($fieldDataType, $zeroAsEmptyDataTypes, true);
+	}
+
+	/**
+	 * Retrieve current record values for merge comparisons/history logging.
+	 *
+	 * @param string $moduleName
+	 * @param Vtiger_Record_Model $baseRecordModel
+	 * @param string $baseEntityId
+	 * @param bool $canReadRecord
+	 * @return array
+	 */
+	protected function getExistingValuesForImportMerge($moduleName, $baseRecordModel, $baseEntityId, $canReadRecord = true) {
+		$existingFieldValues = array();
+
+		if ($moduleName === 'Calendar') {
+			$existingFieldValues = $baseRecordModel->getData();
+		} else if ($canReadRecord) {
+			try {
+				$existingFieldValues = vtws_retrieve($baseEntityId, $this->user);
+			} catch (\Throwable $e) {
+				$existingFieldValues = array();
+			}
+		}
+
+		if (empty($existingFieldValues) && $baseRecordModel) {
+			$existingFieldValues = $baseRecordModel->getData();
+		}
+
+		return is_array($existingFieldValues) ? $existingFieldValues : array();
 	}
 
 	public function process(Vtiger_Request $request) {
@@ -272,12 +354,21 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 
 			$mergeType = $this->mergeType;
 			$createRecord = false;
+			$historyPreviousValues = array();
+			$historyCurrentValues = array();
+			$emptyMappedFields = array();
+			foreach ($fieldData as $mappedFieldName => $mappedFieldValue) {
+				if ($this->shouldTreatAsEmptyImportValue($mappedFieldName, $mappedFieldValue, $moduleFields)) {
+					$emptyMappedFields[] = $mappedFieldName;
+				}
+			}
 
 			if ($createRecordExists) {
 				$entityInfo = $focus->importRecord($this, $fieldData);
 				if ($entityInfo) {
 					$entityIdComponents = vtws_getIdComponents($entityInfo['id']);
 					$createdRecords[] = $entityIdComponents[1];
+					$historyCurrentValues = $fieldData;
 				}
 			} else {
 				if (!empty($mergeType) && $mergeType != Import_Utils_Helper::$AUTO_MERGE_NONE) {
@@ -329,6 +420,11 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 							$baseRecordId = $adb->query_result($duplicatesResult, $noOfDuplicates - 1, $fieldColumnMapping['id']);
 							$baseEntityId = vtws_getId($moduleObjectId, $baseRecordId);
 							$baseRecordModel = Vtiger_Record_Model::getInstanceById($baseRecordId);
+							$canReadBaseRecord = $userPriviligesModel->hasModuleActionPermission($tabId, 'DetailView');
+							$existingFieldValues = $this->getExistingValuesForImportMerge($moduleName, $baseRecordModel, $baseEntityId, $canReadBaseRecord);
+							if (!empty($existingFieldValues)) {
+								$historyPreviousValues = $existingFieldValues;
+							}
 
 							for ($index = 0; $index < $noOfDuplicates - 1; ++$index) {
 								$duplicateRecordId = $adb->query_result($duplicatesResult, $index, $fieldColumnMapping['id']);
@@ -346,20 +442,27 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 
 							if ($mergeType == Import_Utils_Helper::$AUTO_MERGE_OVERWRITE) {
 								$fieldData = $this->transformForImport($fieldData, $moduleMeta);
-								$fieldData['id'] = $baseEntityId;
-								$entityInfo = $this->importRecord($fieldData, 'update');
-								if ($entityInfo) {
-									$entityIdComponents = vtws_getIdComponents($entityInfo['id']);
-									$createdRecords[] = $entityIdComponents[1];
-									$mergedRecords[] = $entityIdComponents[1];
+								if ($fieldData != null) {
+									foreach ($emptyMappedFields as $emptyFieldName) {
+										if (array_key_exists($emptyFieldName, $existingFieldValues)) {
+											$fieldData[$emptyFieldName] = $existingFieldValues[$emptyFieldName];
+										}
+									}
+									$fieldData['id'] = $baseEntityId;
+									$entityInfo = $this->importRecord($fieldData, 'update');
+									if ($entityInfo) {
+										$entityIdComponents = vtws_getIdComponents($entityInfo['id']);
+										$createdRecords[] = $entityIdComponents[1];
+										$mergedRecords[] = $entityIdComponents[1];
+										$historyCurrentValues = $fieldData;
+									}
 								}
 							}
 
 							if ($mergeType == Import_Utils_Helper::$AUTO_MERGE_MERGEFIELDS) {
 								$filteredFieldData = array();
 								foreach ($fieldData as $fieldName => $fieldValue) {
-									// empty will give false for value = 0
-									if (!empty($fieldValue) || $fieldValue != "") {
+									if (!$this->shouldTreatAsEmptyImportValue($fieldName, $fieldValue, $moduleFields)) {
 										$filteredFieldData[$fieldName] = $fieldValue;
 									}
 								}
@@ -369,11 +472,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 								// existing record values with newer values.
 								$fillDefault = false;
 								$mandatoryValueChecks = false;
-								if ($userPriviligesModel->hasModuleActionPermission($tabId, 'DetailView')) {
-									$existingFieldValues = $baseRecordModel->getData();
-									if ($moduleName != 'Calendar') {
-										$existingFieldValues = vtws_retrieve($baseEntityId, $this->user);
-									}
+								if (!empty($existingFieldValues)) {
 									$defaultFieldValues = $this->getDefaultFieldValues($moduleMeta);
 
 									foreach ($existingFieldValues as $fieldName => $fieldValue) {
@@ -391,6 +490,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 										$entityIdComponents = vtws_getIdComponents($entityInfo['id']);
 										$createdRecords[] = $entityIdComponents[1];
 										$mergedRecords[] = $entityIdComponents[1];
+											$historyCurrentValues = $filteredFieldData;
 									}
 								} else {
 									$entityInfo['status'] = self::$IMPORT_RECORD_SKIPPED;
@@ -416,6 +516,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
                                                     if ($entityInfo) {
                                                             $entityIdComponents = vtws_getIdComponents($entityInfo['id']);
                                                             $createdRecords[] = $entityIdComponents[1];
+														$historyCurrentValues = $fieldData;
                                                     }
 						} catch (\Throwable $e) {
 
@@ -428,6 +529,7 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			} else if ($createRecord) {
 				$entityInfo['status'] = self::$IMPORT_RECORD_CREATED;
 			}
+			$this->trackImportModTrackerHistory($entityInfo, $historyPreviousValues, $historyCurrentValues);
 			if ($createRecord || $mergeType == Import_Utils_Helper::$AUTO_MERGE_MERGEFIELDS || $mergeType == Import_Utils_Helper::$AUTO_MERGE_OVERWRITE) {
 				$entityIdComponents = vtws_getIdComponents($entityInfo['id']);
 				$recordId = isset($entityIdComponents[1]) ? $entityIdComponents[1] : '';
@@ -1313,6 +1415,134 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			}
 		}
 		return $entityIdsList;
+	}
+
+	protected function shouldSkipImportHistoryField($fieldName) {
+		static $ignoredFields = array(
+			'id',
+			'createdtime',
+			'modifiedtime',
+			'label',
+			'record_id',
+			'record_module',
+			'source'
+		);
+		return in_array($fieldName, $ignoredFields, true);
+	}
+
+	protected function normalizeImportHistoryValue($value) {
+		if (is_array($value) || is_object($value)) {
+			$encodedValue = json_encode($value);
+			return $encodedValue === false ? '' : $encodedValue;
+		}
+		if ($value === null) {
+			return '';
+		}
+		if (is_string($value)) {
+			$trimmedValue = trim($value);
+			if (preg_match('/^[0-9]+x[0-9]+$/', $trimmedValue)) {
+				$valueComponents = vtws_getIdComponents($trimmedValue);
+				if (isset($valueComponents[1])) {
+					return (string) $valueComponents[1];
+				}
+			}
+		}
+		if ($value === true) {
+			return '1';
+		}
+		if ($value === false) {
+			return '0';
+		}
+		return (string) $value;
+	}
+
+	protected function isImportHistoryValueChanged($oldValue, $newValue) {
+		return $this->normalizeImportHistoryValue($oldValue) !== $this->normalizeImportHistoryValue($newValue);
+	}
+
+	protected function buildImportHistoryChanges($currentValues, $previousValues, $isCreate) {
+		$changes = array();
+		foreach ($currentValues as $fieldName => $currentValue) {
+			if ($this->shouldSkipImportHistoryField($fieldName)) {
+				continue;
+			}
+
+			$oldValue = array_key_exists($fieldName, $previousValues) ? $previousValues[$fieldName] : '';
+			if ($isCreate) {
+				if (!$this->hasImportValue($currentValue)) {
+					continue;
+				}
+			} else if (!$this->isImportHistoryValueChanged($oldValue, $currentValue)) {
+				continue;
+			}
+
+			$changes[$fieldName] = array(
+				'oldValue' => $this->normalizeImportHistoryValue($oldValue),
+				'newValue' => $this->normalizeImportHistoryValue($currentValue)
+			);
+		}
+
+		return $changes;
+	}
+
+	protected function trackImportModTrackerHistory($entityInfo, $previousValues = array(), $currentValues = array()) {
+		if (!is_array($entityInfo) || empty($entityInfo['id']) || !is_array($currentValues) || empty($currentValues)) {
+			return;
+		}
+
+		$status = isset($entityInfo['status']) ? intval($entityInfo['status']) : self::$IMPORT_RECORD_FAILED;
+		$trackableStatuses = array(self::$IMPORT_RECORD_CREATED, self::$IMPORT_RECORD_UPDATED, self::$IMPORT_RECORD_MERGED);
+		if (!in_array($status, $trackableStatuses, true)) {
+			return;
+		}
+
+		if (!ModTracker::isTrackingEnabledForModule($this->module)) {
+			return;
+		}
+
+		$entityIdComponents = vtws_getIdComponents($entityInfo['id']);
+		$recordId = isset($entityIdComponents[1]) ? intval($entityIdComponents[1]) : 0;
+		if ($recordId <= 0) {
+			return;
+		}
+
+		$isCreate = ($status === self::$IMPORT_RECORD_CREATED);
+		$changes = $this->buildImportHistoryChanges($currentValues, is_array($previousValues) ? $previousValues : array(), $isCreate);
+		if (empty($changes)) {
+			return;
+		}
+
+		$adb = PearDatabase::getInstance();
+		$changedOn = date('Y-m-d H:i:s');
+		$changedOnResult = $adb->pquery('SELECT modifiedtime FROM vtiger_crmentity WHERE crmid=?', array($recordId));
+		if ($changedOnResult && $adb->num_rows($changedOnResult) > 0) {
+			$recordModifiedTime = $adb->query_result($changedOnResult, 0, 'modifiedtime');
+			if (!empty($recordModifiedTime)) {
+				$changedOn = $recordModifiedTime;
+			}
+		}
+
+		$modTrackerStatus = $isCreate ? ModTracker::$CREATED : ModTracker::$UPDATED;
+		$duplicateResult = $adb->pquery(
+			'SELECT id FROM vtiger_modtracker_basic WHERE crmid=? AND module=? AND changedon=? AND status=? ORDER BY id DESC LIMIT 1',
+			array($recordId, $this->module, $changedOn, $modTrackerStatus)
+		);
+		if ($duplicateResult && $adb->num_rows($duplicateResult) > 0) {
+			return;
+		}
+
+		$modTrackerId = $adb->getUniqueId('vtiger_modtracker_basic');
+		$adb->pquery(
+			'INSERT INTO vtiger_modtracker_basic(id, crmid, module, whodid, changedon, status) VALUES(?,?,?,?,?,?)',
+			array($modTrackerId, $recordId, $this->module, $this->user->id, $changedOn, $modTrackerStatus)
+		);
+
+		foreach ($changes as $fieldName => $changeData) {
+			$adb->pquery(
+				'INSERT INTO vtiger_modtracker_detail(id,fieldname,prevalue,postvalue) VALUES(?,?,?,?)',
+				array($modTrackerId, $fieldName, $changeData['oldValue'], $changeData['newValue'])
+			);
+		}
 	}
 
 	/**
