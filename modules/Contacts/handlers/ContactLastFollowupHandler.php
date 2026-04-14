@@ -6,7 +6,8 @@
  * - last_follow_date (date)
  *
  * Strategy:
- * - On Contacts aftersave, compute latest follow-up among blocks 1..10
+ * - On Contacts aftersave, compute latest follow-up among blocks 1..10 plus Facebook/Zalo follow blocks
+ * - Sync Contacts status (cf_2050) only when latest source is follow 1..10 (has follow status field)
  * - Update vtiger_contactscf only when values change
  *************************************************************************************/
 
@@ -18,6 +19,7 @@ class ContactLastFollowupHandler extends VTEventHandler {
 
 	protected static $lastFollowUserColumn = null;
 	protected static $lastFollowDateColumn = null;
+	protected static $contactStatusColumn = 'cf_2050';
 	protected static $userNameToIdCache = array();
 	protected static $normalizedUserToIdMap = null;
 	protected static $compactUserToIdMap = null;
@@ -79,6 +81,12 @@ class ContactLastFollowupHandler extends VTEventHandler {
 			'cf_1858','cf_1860','cf_1862',
 			'cf_1868','cf_1870','cf_1872',
 			'cf_1878','cf_1880','cf_1882',
+			// facebook follow blocks (no follow status field)
+			'cf_1770','cf_1774','cf_2024',
+			'cf_1790','cf_1792','cf_2026',
+			// zalo follow blocks (no follow status field)
+			'cf_1754','cf_1756','cf_2014',
+			'cf_2002','cf_2004','cf_2016',
 		);
 
 		foreach ($fields as $fieldName) {
@@ -94,9 +102,14 @@ class ContactLastFollowupHandler extends VTEventHandler {
 		$this->resolveLastFollowColumns();
 		$userCol = self::$lastFollowUserColumn;
 		$dateCol = self::$lastFollowDateColumn;
+		$statusCol = self::$contactStatusColumn;
 
 		$result = $db->pquery(
 			'SELECT
+				cf_1754, cf_1756,
+				cf_2002, cf_2004,
+				cf_1770, cf_1774,
+				cf_1790, cf_1792,
 				cf_1772, cf_1776, cf_1780,
 				cf_1796, cf_1800, cf_1802,
 				cf_1808, cf_1810, cf_1812,
@@ -107,7 +120,8 @@ class ContactLastFollowupHandler extends VTEventHandler {
 				cf_1858, cf_1860, cf_1862,
 				cf_1868, cf_1870, cf_1872,
 				cf_1878, cf_1880, cf_1882,
-				' . $userCol . ' AS last_follow_user, ' . $dateCol . ' AS last_follow_date
+				' . $userCol . ' AS last_follow_user, ' . $dateCol . ' AS last_follow_date,
+				' . $statusCol . ' AS contact_status
 			 FROM vtiger_contactscf
 			 WHERE contactid = ?',
 			array((int) $contactId)
@@ -120,49 +134,80 @@ class ContactLastFollowupHandler extends VTEventHandler {
 
 		$bestDate = '';
 		$bestUser = 0;
+		$bestStatus = '';
+		$bestHasStatus = false;
 
-		$triples = array(
-			array('cf_1772','cf_1776','cf_1780'),
-			array('cf_1796','cf_1800','cf_1802'),
-			array('cf_1808','cf_1810','cf_1812'),
-			array('cf_1818','cf_1820','cf_1822'),
-			array('cf_1828','cf_1830','cf_1832'),
-			array('cf_1838','cf_1840','cf_1842'),
-			array('cf_1848','cf_1850','cf_1852'),
-			array('cf_1858','cf_1860','cf_1862'),
-			array('cf_1868','cf_1870','cf_1872'),
-			array('cf_1878','cf_1880','cf_1882'),
+		$sources = array(
+			// Follow 1..10 (status must exist and can sync Contacts status)
+			array('user' => 'cf_1772', 'date' => 'cf_1776', 'status' => 'cf_1780'),
+			array('user' => 'cf_1796', 'date' => 'cf_1800', 'status' => 'cf_1802'),
+			array('user' => 'cf_1808', 'date' => 'cf_1810', 'status' => 'cf_1812'),
+			array('user' => 'cf_1818', 'date' => 'cf_1820', 'status' => 'cf_1822'),
+			array('user' => 'cf_1828', 'date' => 'cf_1830', 'status' => 'cf_1832'),
+			array('user' => 'cf_1838', 'date' => 'cf_1840', 'status' => 'cf_1842'),
+			array('user' => 'cf_1848', 'date' => 'cf_1850', 'status' => 'cf_1852'),
+			array('user' => 'cf_1858', 'date' => 'cf_1860', 'status' => 'cf_1862'),
+			array('user' => 'cf_1868', 'date' => 'cf_1870', 'status' => 'cf_1872'),
+			array('user' => 'cf_1878', 'date' => 'cf_1880', 'status' => 'cf_1882'),
+			// Facebook and Zalo follows do not have follow-status field
+			array('user' => 'cf_1770', 'date' => 'cf_1774'),
+			array('user' => 'cf_1790', 'date' => 'cf_1792'),
+			array('user' => 'cf_1754', 'date' => 'cf_1756'),
+			array('user' => 'cf_2002', 'date' => 'cf_2004'),
 		);
 
-		foreach ($triples as $t) {
-			$userRaw = isset($row[$t[0]]) ? trim((string) $row[$t[0]]) : '';
+		foreach ($sources as $source) {
+			$userRaw = isset($row[$source['user']]) ? trim((string) $row[$source['user']]) : '';
 			$userVal = $this->resolveUserId($userRaw);
-			$dateVal = isset($row[$t[1]]) ? trim((string) $row[$t[1]]) : '';
-			$statusVal = isset($row[$t[2]]) ? trim((string) $row[$t[2]]) : '';
+			$dateVal = isset($row[$source['date']]) ? trim((string) $row[$source['date']]) : '';
 
-			// A follow-up is considered valid for "last follow" if it has user + date + status
-			if ($userVal <= 0 || $dateVal === '' || $dateVal === '0000-00-00' || $statusVal === '') {
+			if ($userVal <= 0 || $dateVal === '' || $dateVal === '0000-00-00') {
 				continue;
+			}
+
+			$hasStatusField = isset($source['status']) && $source['status'] !== '';
+			$statusVal = '';
+			if ($hasStatusField) {
+				$statusVal = isset($row[$source['status']]) ? trim((string) $row[$source['status']]) : '';
+
+				// Follow 1..10 is valid only when status exists.
+				if ($statusVal === '') {
+					continue;
+				}
 			}
 
 			// Dates stored as YYYY-MM-DD, lexical compare works
 			if ($bestDate === '' || $dateVal > $bestDate) {
 				$bestDate = $dateVal;
 				$bestUser = $userVal;
+				$bestStatus = $statusVal;
+				$bestHasStatus = $hasStatusField;
 			}
 		}
 
 		$oldUser = isset($row['last_follow_user']) ? (int) $row['last_follow_user'] : 0;
 		$oldDate = isset($row['last_follow_date']) ? trim((string) $row['last_follow_date']) : '';
+		$oldStatus = isset($row['contact_status']) ? trim((string) $row['contact_status']) : '';
 
-		if ($oldUser === $bestUser && $oldDate === $bestDate) {
+		if (!$bestHasStatus && $oldUser === $bestUser && $oldDate === $bestDate) {
 			return false;
 		}
 
-		$updateResult = $db->pquery(
-			'UPDATE vtiger_contactscf SET ' . $userCol . ' = ?, ' . $dateCol . ' = ? WHERE contactid = ?',
-			array($bestUser > 0 ? $bestUser : null, $bestDate !== '' ? $bestDate : null, (int) $contactId)
-		);
+		if ($bestHasStatus && $oldUser === $bestUser && $oldDate === $bestDate && $oldStatus === $bestStatus) {
+			return false;
+		}
+
+		if ($bestHasStatus) {
+			$updateResult = $db->pquery(
+				'UPDATE vtiger_contactscf SET ' . $userCol . ' = ?, ' . $dateCol . ' = ?, ' . $statusCol . ' = ? WHERE contactid = ?',
+				array($bestUser > 0 ? $bestUser : null, $bestDate !== '' ? $bestDate : null, $bestStatus !== '' ? $bestStatus : null, (int) $contactId)
+			);
+		} else {
+			$updateResult = $db->pquery(
+				'UPDATE vtiger_contactscf SET ' . $userCol . ' = ?, ' . $dateCol . ' = ? WHERE contactid = ?',
+				array($bestUser > 0 ? $bestUser : null, $bestDate !== '' ? $bestDate : null, (int) $contactId)
+			);
+		}
 
 		return (bool) $updateResult;
 	}
