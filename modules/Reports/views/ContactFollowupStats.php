@@ -64,16 +64,16 @@ class Reports_ContactFollowupStats_View extends Vtiger_Index_View {
 	protected function getFollowupFieldTriples() {
 		// n => [userField, dateField, statusField]
 		return array(
-			1 => array('cf_1772', 'cf_1776', 'cf_1780'),
-			2 => array('cf_1796', 'cf_1800', 'cf_1802'),
-			3 => array('cf_1808', 'cf_1810', 'cf_1812'),
-			4 => array('cf_1818', 'cf_1820', 'cf_1822'),
-			5 => array('cf_1828', 'cf_1830', 'cf_1832'),
-			6 => array('cf_1838', 'cf_1840', 'cf_1842'),
-			7 => array('cf_1848', 'cf_1850', 'cf_1852'),
-			8 => array('cf_1858', 'cf_1860', 'cf_1862'),
-			9 => array('cf_1868', 'cf_1870', 'cf_1872'),
-			10 => array('cf_1878', 'cf_1880', 'cf_1882'),
+			1 => array('followup_user_1', 'followup_date_1', 'followup_status_1'),
+			2 => array('followup_user_2', 'followup_date_2', 'followup_status_2'),
+			3 => array('followup_user_3', 'followup_date_3', 'followup_status_3'),
+			4 => array('followup_user_4', 'followup_date_4', 'followup_status_4'),
+			5 => array('followup_user_5', 'followup_date_5', 'followup_status_5'),
+			6 => array('followup_user_6', 'followup_date_6', 'followup_status_6'),
+			7 => array('followup_user_7', 'followup_date_7', 'followup_status_7'),
+			8 => array('followup_user_8', 'followup_date_8', 'followup_status_8'),
+			9 => array('followup_user_9', 'followup_date_9', 'followup_status_9'),
+			10 => array('followup_user_10', 'followup_date_10', 'followup_status_10'),
 		);
 	}
 
@@ -97,7 +97,7 @@ class Reports_ContactFollowupStats_View extends Vtiger_Index_View {
 		// Fallback: if picklist table is empty, build from existing data.
 		if (empty($values)) {
 			$dataResult = $db->pquery(
-				'SELECT DISTINCT cf_1780 AS value FROM vtiger_contactscf WHERE cf_1780 IS NOT NULL AND TRIM(cf_1780) != \'\' ORDER BY cf_1780',
+				'SELECT DISTINCT followup_status_1 AS value FROM vtiger_contactscf WHERE followup_status_1 IS NOT NULL AND TRIM(followup_status_1) != \'\' ORDER BY followup_status_1',
 				array()
 			);
 			for ($i = 0; $i < $db->num_rows($dataResult); $i++) {

@@ -300,7 +300,7 @@ class Reports_Detail_View extends Vtiger_Index_View {
 		}
 
 		$sql = "SELECT CAST(scf.{$lastUserCol} AS UNSIGNED) AS user_id,
-				       scf.cf_2050 AS status,
+				       scf.status AS status,
 				       COUNT(*) AS total
 				  FROM vtiger_contactscf scf
 				  INNER JOIN vtiger_crmentity ce ON ce.crmid = scf.contactid AND ce.deleted = 0 AND ce.setype = 'Contacts'
@@ -311,14 +311,14 @@ class Reports_Detail_View extends Vtiger_Index_View {
 				   AND scf.{$lastDateCol} != '0000-00-00'
 				   AND scf.{$lastDateCol} >= ?
 				   AND scf.{$lastDateCol} <= ?
-				   AND scf.cf_2050 IS NOT NULL
-				   AND TRIM(scf.cf_2050) != ''";
+				   AND scf.status IS NOT NULL
+				   AND TRIM(scf.status) != ''";
 		$params = array($from, $to);
 		if ($userId !== '') {
 			$sql .= " AND CAST(scf.{$lastUserCol} AS UNSIGNED) = ?";
 			$params[] = (int) $userId;
 		}
-		$sql .= " GROUP BY CAST(scf.{$lastUserCol} AS UNSIGNED), scf.cf_2050";
+		$sql .= " GROUP BY CAST(scf.{$lastUserCol} AS UNSIGNED), scf.status";
 
 		$result = $db->pquery($sql, $params);
 

@@ -127,7 +127,7 @@ class ContactCustomerCodeLogic {
 
 		$code = sprintf('%02d%d%05d', $year2, $categoryDigit, $seq);
 		$db->pquery(
-			'UPDATE vtiger_contactscf SET cf_1994 = ? WHERE contactid = ?',
+			'UPDATE vtiger_contactscf SET customer_code = ? WHERE contactid = ?',
 			array($code, $contactId)
 		);
 
@@ -159,7 +159,7 @@ class ContactCustomerCodeLogic {
 	protected static function fetchContactscfRow($contactId) {
 		$db = PearDatabase::getInstance();
 		$r = $db->pquery(
-			'SELECT cf_2030, cf_1994 FROM vtiger_contactscf WHERE contactid = ?',
+			'SELECT interested_course AS cf_2030, customer_code AS cf_1994 FROM vtiger_contactscf WHERE contactid = ?',
 			array($contactId)
 		);
 		if ($r && $db->num_rows($r) > 0) {

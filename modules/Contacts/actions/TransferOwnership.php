@@ -18,7 +18,6 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 	const SECONDARY_OWNER_FIELD_NAME = 'assigned_to_2';
 	const ZALO_OWNER_FIELD_NAME = 'assigned_to_zalo';
 	const FACEBOOK_OWNER_FIELD_NAME = 'assigned_to_facebook';
-	const SECONDARY_OWNER_COLUMN_NAME = 'cf_2134';
 
 	public function checkPermission(Vtiger_Request $request) {
 		$mode = $request->getMode();
@@ -519,7 +518,7 @@ class Contacts_TransferOwnership_Action extends Accounts_TransferOwnership_Actio
 
 	protected function getContactCustomOwnerColumnNameForField($transferField) {
 		if ($transferField === self::SECONDARY_OWNER_FIELD_NAME) {
-			return self::SECONDARY_OWNER_COLUMN_NAME;
+			return $this->getContactsCustomFieldColumnNameByFieldName(self::SECONDARY_OWNER_FIELD_NAME);
 		}
 
 		if ($transferField === self::ZALO_OWNER_FIELD_NAME) {

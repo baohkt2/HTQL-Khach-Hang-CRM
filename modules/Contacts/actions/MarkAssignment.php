@@ -112,7 +112,7 @@ class Contacts_MarkAssignment_Action extends Vtiger_Mass_Action {
 	}
 
 	protected function isValidAssignmentColumnName($columnName) {
-		return (bool) preg_match('/^cf_[0-9]+$/', (string) $columnName);
+		return (bool) preg_match('/^[a-zA-Z0-9_]+$/', (string) $columnName);
 	}
 
 	protected function resolveBatchLimit(Vtiger_Request $request) {

@@ -81,8 +81,8 @@ class AccountStudentCountHandler extends VTEventHandler {
         }
 
         $db->pquery(
-            'INSERT INTO vtiger_accountscf (accountid, cf_2090) VALUES (?, ?)
-             ON DUPLICATE KEY UPDATE cf_2090 = VALUES(cf_2090)',
+            'INSERT INTO vtiger_accountscf (accountid, student_count) VALUES (?, ?)
+             ON DUPLICATE KEY UPDATE student_count = VALUES(student_count)',
             [$accountId, $totalStudents]
         );
     }

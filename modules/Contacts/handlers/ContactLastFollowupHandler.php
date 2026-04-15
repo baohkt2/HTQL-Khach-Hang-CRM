@@ -19,7 +19,7 @@ class ContactLastFollowupHandler extends VTEventHandler {
 
 	protected static $lastFollowUserColumn = null;
 	protected static $lastFollowDateColumn = null;
-	protected static $contactStatusColumn = 'cf_2050';
+	protected static $contactStatusColumn = 'status';
 	protected static $userNameToIdCache = array();
 	protected static $normalizedUserToIdMap = null;
 	protected static $compactUserToIdMap = null;
@@ -106,20 +106,20 @@ class ContactLastFollowupHandler extends VTEventHandler {
 
 		$result = $db->pquery(
 			'SELECT
-				cf_1754, cf_1756,
-				cf_2002, cf_2004,
-				cf_1770, cf_1774,
-				cf_1790, cf_1792,
-				cf_1772, cf_1776, cf_1780,
-				cf_1796, cf_1800, cf_1802,
-				cf_1808, cf_1810, cf_1812,
-				cf_1818, cf_1820, cf_1822,
-				cf_1828, cf_1830, cf_1832,
-				cf_1838, cf_1840, cf_1842,
-				cf_1848, cf_1850, cf_1852,
-				cf_1858, cf_1860, cf_1862,
-				cf_1868, cf_1870, cf_1872,
-				cf_1878, cf_1880, cf_1882,
+				follow_user_zalo AS cf_1754, follow_date_zalo AS cf_1756,
+				follow_user_zalo_2 AS cf_2002, follow_date_zalo_2 AS cf_2004,
+				follow_user_facebook_1 AS cf_1770, follow_date_facebook_1 AS cf_1774,
+				follow_user_facebook_2 AS cf_1790, follow_date_facebook_2 AS cf_1792,
+				followup_user_1 AS cf_1772, followup_date_1 AS cf_1776, followup_status_1 AS cf_1780,
+				followup_user_2 AS cf_1796, followup_date_2 AS cf_1800, followup_status_2 AS cf_1802,
+				followup_user_3 AS cf_1808, followup_date_3 AS cf_1810, followup_status_3 AS cf_1812,
+				followup_user_4 AS cf_1818, followup_date_4 AS cf_1820, followup_status_4 AS cf_1822,
+				followup_user_5 AS cf_1828, followup_date_5 AS cf_1830, followup_status_5 AS cf_1832,
+				followup_user_6 AS cf_1838, followup_date_6 AS cf_1840, followup_status_6 AS cf_1842,
+				followup_user_7 AS cf_1848, followup_date_7 AS cf_1850, followup_status_7 AS cf_1852,
+				followup_user_8 AS cf_1858, followup_date_8 AS cf_1860, followup_status_8 AS cf_1862,
+				followup_user_9 AS cf_1868, followup_date_9 AS cf_1870, followup_status_9 AS cf_1872,
+				followup_user_10 AS cf_1878, followup_date_10 AS cf_1880, followup_status_10 AS cf_1882,
 				' . $userCol . ' AS last_follow_user, ' . $dateCol . ' AS last_follow_date,
 				' . $statusCol . ' AS contact_status
 			 FROM vtiger_contactscf
