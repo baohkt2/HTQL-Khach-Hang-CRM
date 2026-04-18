@@ -609,7 +609,7 @@ function getContactsOwnerColumnsForPermissionCheck() {
 
 	for ($i = 0; $i < $adb->num_rows($result); $i++) {
 		$columnName = (string) $adb->query_result($result, $i, 'columnname');
-		if (preg_match('/^cf_[0-9]+$/', $columnName) && !in_array($columnName, $ownerColumns, true)) {
+		if (preg_match('/^[a-zA-Z0-9_]+$/', $columnName) && !in_array($columnName, $ownerColumns, true)) {
 			$ownerColumns[] = $columnName;
 		}
 	}
