@@ -14,6 +14,7 @@
 require_once 'include/events/VTEventHandler.inc';
 require_once 'include/events/VTEntityData.inc';
 require_once 'data/VTEntityDelta.php';
+require_once 'modules/Accounts/handlers/AccountContactNetworkEmailStatsHandler.php';
 
 class ContactLastFollowupHandler extends VTEventHandler {
 
@@ -108,6 +109,8 @@ class ContactLastFollowupHandler extends VTEventHandler {
 			'SELECT
 				follow_user_zalo AS cf_1754, follow_date_zalo AS cf_1756,
 				follow_user_zalo_2 AS cf_2002, follow_date_zalo_2 AS cf_2004,
+				follow_result_zalo AS follow_result_zalo,
+				follow_result_zalo_2 AS follow_result_zalo_2,
 				follow_user_facebook_1 AS cf_1770, follow_date_facebook_1 AS cf_1774,
 				follow_user_facebook_2 AS cf_1790, follow_date_facebook_2 AS cf_1792,
 				followup_user_1 AS cf_1772, followup_date_1 AS cf_1776, followup_status_1 AS cf_1780,
@@ -120,6 +123,7 @@ class ContactLastFollowupHandler extends VTEventHandler {
 				followup_user_8 AS cf_1858, followup_date_8 AS cf_1860, followup_status_8 AS cf_1862,
 				followup_user_9 AS cf_1868, followup_date_9 AS cf_1870, followup_status_9 AS cf_1872,
 				followup_user_10 AS cf_1878, followup_date_10 AS cf_1880, followup_status_10 AS cf_1882,
+				cf_2162 AS followed_zalo,
 				' . $userCol . ' AS last_follow_user, ' . $dateCol . ' AS last_follow_date,
 				' . $statusCol . ' AS contact_status
 			 FROM vtiger_contactscf
@@ -188,28 +192,92 @@ class ContactLastFollowupHandler extends VTEventHandler {
 		$oldUser = isset($row['last_follow_user']) ? (int) $row['last_follow_user'] : 0;
 		$oldDate = isset($row['last_follow_date']) ? trim((string) $row['last_follow_date']) : '';
 		$oldStatus = isset($row['contact_status']) ? trim((string) $row['contact_status']) : '';
+		$oldFollowedZalo = isset($row['followed_zalo']) ? $this->toCheckboxValue($row['followed_zalo']) : 0;
+		$newFollowedZalo = ($this->hasNonEmptyValue(isset($row['follow_result_zalo']) ? $row['follow_result_zalo'] : '') || $this->hasNonEmptyValue(isset($row['follow_result_zalo_2']) ? $row['follow_result_zalo_2'] : '')) ? 1 : 0;
+		$needsFollowedZaloUpdate = ($oldFollowedZalo !== $newFollowedZalo);
+
+		$needsLastFollowUpdate = true;
 
 		if (!$bestHasStatus && $oldUser === $bestUser && $oldDate === $bestDate) {
-			return false;
+			$needsLastFollowUpdate = false;
 		}
 
 		if ($bestHasStatus && $oldUser === $bestUser && $oldDate === $bestDate && $oldStatus === $bestStatus) {
+			$needsLastFollowUpdate = false;
+		}
+
+		if (!$needsLastFollowUpdate && !$needsFollowedZaloUpdate) {
 			return false;
 		}
 
-		if ($bestHasStatus) {
-			$updateResult = $db->pquery(
-				'UPDATE vtiger_contactscf SET ' . $userCol . ' = ?, ' . $dateCol . ' = ?, ' . $statusCol . ' = ? WHERE contactid = ?',
-				array($bestUser > 0 ? $bestUser : null, $bestDate !== '' ? $bestDate : null, $bestStatus !== '' ? $bestStatus : null, (int) $contactId)
-			);
+		if ($needsLastFollowUpdate && $bestHasStatus) {
+			if ($needsFollowedZaloUpdate) {
+				$updateResult = $db->pquery(
+					'UPDATE vtiger_contactscf SET ' . $userCol . ' = ?, ' . $dateCol . ' = ?, ' . $statusCol . ' = ?, cf_2162 = ? WHERE contactid = ?',
+					array($bestUser > 0 ? $bestUser : null, $bestDate !== '' ? $bestDate : null, $bestStatus !== '' ? $bestStatus : null, $newFollowedZalo, (int) $contactId)
+				);
+			} else {
+				$updateResult = $db->pquery(
+					'UPDATE vtiger_contactscf SET ' . $userCol . ' = ?, ' . $dateCol . ' = ?, ' . $statusCol . ' = ? WHERE contactid = ?',
+					array($bestUser > 0 ? $bestUser : null, $bestDate !== '' ? $bestDate : null, $bestStatus !== '' ? $bestStatus : null, (int) $contactId)
+				);
+			}
+		} else if ($needsLastFollowUpdate) {
+			if ($needsFollowedZaloUpdate) {
+				$updateResult = $db->pquery(
+					'UPDATE vtiger_contactscf SET ' . $userCol . ' = ?, ' . $dateCol . ' = ?, cf_2162 = ? WHERE contactid = ?',
+					array($bestUser > 0 ? $bestUser : null, $bestDate !== '' ? $bestDate : null, $newFollowedZalo, (int) $contactId)
+				);
+			} else {
+				$updateResult = $db->pquery(
+					'UPDATE vtiger_contactscf SET ' . $userCol . ' = ?, ' . $dateCol . ' = ? WHERE contactid = ?',
+					array($bestUser > 0 ? $bestUser : null, $bestDate !== '' ? $bestDate : null, (int) $contactId)
+				);
+			}
 		} else {
 			$updateResult = $db->pquery(
-				'UPDATE vtiger_contactscf SET ' . $userCol . ' = ?, ' . $dateCol . ' = ? WHERE contactid = ?',
-				array($bestUser > 0 ? $bestUser : null, $bestDate !== '' ? $bestDate : null, (int) $contactId)
+				'UPDATE vtiger_contactscf SET cf_2162 = ? WHERE contactid = ?',
+				array($newFollowedZalo, (int) $contactId)
 			);
 		}
 
+		if ($updateResult && $needsFollowedZaloUpdate) {
+			$this->refreshLinkedAccountStatistics($contactId);
+		}
+
 		return (bool) $updateResult;
+	}
+
+	protected function hasNonEmptyValue($value) {
+		return trim((string) $value) !== '';
+	}
+
+	protected function toCheckboxValue($value) {
+		return ((int) $value === 1) ? 1 : 0;
+	}
+
+	protected function refreshLinkedAccountStatistics($contactId) {
+		$contactId = (int) $contactId;
+		if ($contactId <= 0) {
+			return;
+		}
+
+		$db = PearDatabase::getInstance();
+		$result = $db->pquery(
+			'SELECT accountid FROM vtiger_contactdetails WHERE contactid = ?',
+			array($contactId)
+		);
+
+		if (!$result || $db->num_rows($result) === 0) {
+			return;
+		}
+
+		$accountId = (int) $db->query_result($result, 0, 'accountid');
+		if ($accountId <= 0) {
+			return;
+		}
+
+		AccountContactNetworkEmailStatsHandler::refreshAccountStatistics($accountId);
 	}
 
 	/**

@@ -1,12 +1,14 @@
 <?php
 /*+***********************************************************************************
- * CUSC custom handler: synchronize Accounts telecom/email counters from linked Contacts.
+ * CUSC custom handler: synchronize Accounts telecom/email/phone/zalo counters from linked Contacts.
  * Updated fields on vtiger_accountscf:
  * - cf_2142: Viettel
  * - cf_2144: Vinaphone
  * - cf_2146: Mobifone
  * - cf_2148: Gmobile
  * - cf_2156: valid contact email count
+ * - cf_2158: contact count with non-empty mobile
+ * - cf_2164: contact count with "Da follow zalo" = true
  *************************************************************************************/
 
 require_once 'include/events/VTEventHandler.inc';
@@ -103,7 +105,9 @@ class AccountContactNetworkEmailStatsHandler extends VTEventHandler {
                 SUM(CASE WHEN LOWER(REPLACE(TRIM(IFNULL(ccf.mobile_networks, '')), ' ', '')) IN ('vinaphone', 'vinafone', 'vina') THEN 1 ELSE 0 END) AS vinaphone_count,
                 SUM(CASE WHEN LOWER(REPLACE(TRIM(IFNULL(ccf.mobile_networks, '')), ' ', '')) IN ('mobifone', 'mobiphone', 'mobi', 'mobi-phone') THEN 1 ELSE 0 END) AS mobifone_count,
                 SUM(CASE WHEN LOWER(REPLACE(TRIM(IFNULL(ccf.mobile_networks, '')), ' ', '')) IN ('gmobile', 'g-mobile') THEN 1 ELSE 0 END) AS gmobile_count,
-                SUM(CASE WHEN TRIM(IFNULL(cd.email, '')) <> '' AND LOWER(TRIM(cd.email)) <> ? THEN 1 ELSE 0 END) AS valid_email_count
+                SUM(CASE WHEN TRIM(IFNULL(cd.mobile, '')) <> '' THEN 1 ELSE 0 END) AS valid_phone_count,
+                SUM(CASE WHEN TRIM(IFNULL(cd.email, '')) <> '' AND LOWER(TRIM(cd.email)) <> ? THEN 1 ELSE 0 END) AS valid_email_count,
+                SUM(CASE WHEN CAST(IFNULL(ccf.cf_2162, 0) AS UNSIGNED) = 1 THEN 1 ELSE 0 END) AS total_followed_zalo
              FROM vtiger_contactdetails cd
              INNER JOIN vtiger_crmentity ce ON ce.crmid = cd.contactid
              LEFT JOIN vtiger_contactscf ccf ON ccf.contactid = cd.contactid
@@ -115,26 +119,32 @@ class AccountContactNetworkEmailStatsHandler extends VTEventHandler {
         $vinaphone = 0;
         $mobifone = 0;
         $gmobile = 0;
+        $phoneCount = 0;
         $emailCount = 0;
+        $totalFollowedZalo = 0;
 
         if ($statsResult && $db->num_rows($statsResult) > 0) {
             $viettel = (int) $db->query_result($statsResult, 0, 'viettel_count');
             $vinaphone = (int) $db->query_result($statsResult, 0, 'vinaphone_count');
             $mobifone = (int) $db->query_result($statsResult, 0, 'mobifone_count');
             $gmobile = (int) $db->query_result($statsResult, 0, 'gmobile_count');
+            $phoneCount = (int) $db->query_result($statsResult, 0, 'valid_phone_count');
             $emailCount = (int) $db->query_result($statsResult, 0, 'valid_email_count');
+            $totalFollowedZalo = (int) $db->query_result($statsResult, 0, 'total_followed_zalo');
         }
 
         $db->pquery(
-            'INSERT INTO vtiger_accountscf (accountid, cf_2142, cf_2144, cf_2146, cf_2148, cf_2156)
-             VALUES (?, ?, ?, ?, ?, ?)
+            'INSERT INTO vtiger_accountscf (accountid, cf_2142, cf_2144, cf_2146, cf_2148, cf_2156, cf_2158, cf_2164)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE
                 cf_2142 = VALUES(cf_2142),
                 cf_2144 = VALUES(cf_2144),
                 cf_2146 = VALUES(cf_2146),
                 cf_2148 = VALUES(cf_2148),
-                cf_2156 = VALUES(cf_2156)',
-            array($accountId, $viettel, $vinaphone, $mobifone, $gmobile, $emailCount)
+                cf_2156 = VALUES(cf_2156),
+                cf_2158 = VALUES(cf_2158),
+                cf_2164 = VALUES(cf_2164)',
+            array($accountId, $viettel, $vinaphone, $mobifone, $gmobile, $emailCount, $phoneCount, $totalFollowedZalo)
         );
     }
 }
