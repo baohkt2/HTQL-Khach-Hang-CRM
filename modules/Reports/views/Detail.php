@@ -275,32 +275,44 @@ class Reports_Detail_View extends Vtiger_Index_View {
 	}
 
 	protected function isValidDateYmd($value) {
-		return preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $value) === 1;
+		$value = (string) $value;
+		if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+			return false;
+		}
+		$dt = DateTime::createFromFormat('Y-m-d', $value);
+		return $dt instanceof DateTime && $dt->format('Y-m-d') === $value;
 	}
 
 	protected function getCuscFollowupStats($from, $to, $userId, array $statuses, array $users) {
 		$db = PearDatabase::getInstance();
 
 		$colsRes = $db->pquery(
-			"SELECT fieldname, columnname FROM vtiger_field WHERE tabid = (SELECT tabid FROM vtiger_tab WHERE name='Contacts') AND fieldname IN (?,?)",
-			array('last_follow_user', 'last_follow_date')
+			"SELECT fieldname, columnname FROM vtiger_field WHERE tabid = (SELECT tabid FROM vtiger_tab WHERE name='Contacts') AND fieldname IN (?,?,?)",
+			array('last_follow_user', 'last_follow_date', 'cf_2050')
 		);
 		$lastUserCol = '';
 		$lastDateCol = '';
+		$statusCol = '';
 		for ($i = 0; $i < $db->num_rows($colsRes); $i++) {
 			$fn = (string) $db->query_result($colsRes, $i, 'fieldname');
 			$cn = (string) $db->query_result($colsRes, $i, 'columnname');
 			if ($fn === 'last_follow_user') $lastUserCol = $cn;
 			if ($fn === 'last_follow_date') $lastDateCol = $cn;
-		}
-		if ($lastUserCol === '' || $lastDateCol === '') {
-			// Safety fallback (should not happen)
-			$lastUserCol = 'last_follow_user';
-			$lastDateCol = 'last_follow_date';
+			if ($fn === 'cf_2050') $statusCol = $cn;
 		}
 
+		// Safety fallback (should not happen)
+		if ($lastUserCol === '') $lastUserCol = 'last_follow_user';
+		if ($lastDateCol === '') $lastDateCol = 'last_follow_date';
+		if ($statusCol === '') $statusCol = 'status';
+
+		// Ensure injected metadata column names are SQL-safe identifiers.
+		if (!preg_match('/^[A-Za-z0-9_]+$/', $lastUserCol)) $lastUserCol = 'last_follow_user';
+		if (!preg_match('/^[A-Za-z0-9_]+$/', $lastDateCol)) $lastDateCol = 'last_follow_date';
+		if (!preg_match('/^[A-Za-z0-9_]+$/', $statusCol)) $statusCol = 'status';
+
 		$sql = "SELECT CAST(scf.{$lastUserCol} AS UNSIGNED) AS user_id,
-				       scf.status AS status,
+				       scf.{$statusCol} AS status,
 				       COUNT(*) AS total
 				  FROM vtiger_contactscf scf
 				  INNER JOIN vtiger_crmentity ce ON ce.crmid = scf.contactid AND ce.deleted = 0 AND ce.setype = 'Contacts'
@@ -308,17 +320,16 @@ class Reports_Detail_View extends Vtiger_Index_View {
 				   AND TRIM(scf.{$lastUserCol}) != ''
 				   AND scf.{$lastUserCol} != '0'
 				   AND scf.{$lastDateCol} IS NOT NULL
-				   AND scf.{$lastDateCol} != '0000-00-00'
 				   AND scf.{$lastDateCol} >= ?
 				   AND scf.{$lastDateCol} <= ?
-				   AND scf.status IS NOT NULL
-				   AND TRIM(scf.status) != ''";
+				   AND scf.{$statusCol} IS NOT NULL
+				   AND TRIM(scf.{$statusCol}) != ''";
 		$params = array($from, $to);
 		if ($userId !== '') {
 			$sql .= " AND CAST(scf.{$lastUserCol} AS UNSIGNED) = ?";
 			$params[] = (int) $userId;
 		}
-		$sql .= " GROUP BY CAST(scf.{$lastUserCol} AS UNSIGNED), scf.status";
+		$sql .= " GROUP BY CAST(scf.{$lastUserCol} AS UNSIGNED), scf.{$statusCol}";
 
 		$result = $db->pquery($sql, $params);
 

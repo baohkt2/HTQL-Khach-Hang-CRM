@@ -54,7 +54,22 @@ class Reports_Save_Action extends Vtiger_Save_Action {
 		}
 
 		$reporttype = $request->get('reporttype');
-		if(empty($reporttype)) $reporttype='tabular';
+		if (empty($reporttype)) {
+			if (!empty($record) && !$isDuplicate) {
+				try {
+					$existingReportModel = Reports_Record_Model::getInstanceById($record);
+					$existingType = trim((string) $existingReportModel->get('reporttype'));
+					if ($existingType !== '') {
+						$reporttype = $existingType;
+					}
+				} catch (Exception $e) {
+					// Fallback to default type below when existing record cannot be loaded.
+				}
+			}
+			if (empty($reporttype)) {
+				$reporttype = 'tabular';
+			}
+		}
 		$reportModel->set('reportname', $request->get('reportname'));
 		$reportModel->set('folderid', $request->get('reportfolderid'));
 		$reportModel->set('description', $request->get('reports_description'));
