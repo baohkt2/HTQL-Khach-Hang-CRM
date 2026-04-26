@@ -4324,10 +4324,22 @@ class ReportRun extends CRMEntity {
 
 			$expression = '';
 			if ($metricType == 'COUNT_ALL') {
-				$expression = 'COUNT(*)';
+				$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
+				if (!empty($distinctFieldSql)) {
+					$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
+				} else {
+					$expression = 'COUNT(*)';
+				}
 			} elseif ($metricType == 'COUNT_WHERE') {
 				$conditionSql = $this->getAdvancedMetricConditionSql($metric);
-				if (!empty($conditionSql)) {
+				$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
+				if (!empty($distinctFieldSql)) {
+					if (!empty($conditionSql)) {
+						$expression = 'COUNT(DISTINCT CASE WHEN (' . $conditionSql . ') THEN (' . $distinctFieldSql . ') ELSE NULL END)';
+					} else {
+						$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
+					}
+				} elseif (!empty($conditionSql)) {
 					$expression = 'SUM(CASE WHEN (' . $conditionSql . ') THEN 1 ELSE 0 END)';
 				} else {
 					$expression = 'COUNT(*)';
@@ -4433,6 +4445,199 @@ class ReportRun extends CRMEntity {
 	}
 
 	/**
+	 * Compute advanced metrics for multiple primary records in a single batch.
+	 *
+	 * @param string|false $filtersql
+	 * @param array $metrics
+	 * @param array $recordIds
+	 * @return array map [recordId => [metric_key => metric_value]]
+	 */
+	function getAdvancedMetricsTotalsByRecordIds($filtersql, $metrics, $recordIds) {
+		if (empty($metrics) || !is_array($metrics) || empty($recordIds) || !is_array($recordIds)) {
+			return array();
+		}
+
+		global $adb;
+
+		$normalizedRecordIds = array();
+		foreach ($recordIds as $recordId) {
+			$recordId = intval($recordId);
+			if ($recordId > 0) {
+				$normalizedRecordIds[$recordId] = $recordId;
+			}
+		}
+		if (empty($normalizedRecordIds)) {
+			return array();
+		}
+		$normalizedRecordIds = array_values($normalizedRecordIds);
+
+		$moduleInstance = CRMEntity::getInstance($this->primarymodule);
+		if (!$moduleInstance || empty($moduleInstance->table_name) || empty($moduleInstance->table_index)) {
+			return array();
+		}
+
+		$recordColumnSql = $moduleInstance->table_name . '.' . $moduleInstance->table_index;
+		$idListSql = implode(',', $normalizedRecordIds);
+
+		$computedValuesByRecord = array();
+		$outputByRecord = array();
+		foreach ($normalizedRecordIds as $recordId) {
+			$computedValuesByRecord[$recordId] = array();
+			$outputByRecord[$recordId] = array();
+		}
+
+		// Phase 1: base SQL metrics grouped by primary record id.
+		foreach ($metrics as $metric) {
+			if (!is_array($metric)) {
+				continue;
+			}
+
+			$metricKey = isset($metric['key']) ? trim($metric['key']) : '';
+			$metricType = isset($metric['type']) ? strtoupper(trim($metric['type'])) : '';
+			if (empty($metricKey) || empty($metricType)) {
+				continue;
+			}
+
+			$this->resetAdvancedMetricQueryPlanner();
+
+			$expression = '';
+			if ($metricType == 'COUNT_ALL') {
+				$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
+				if (!empty($distinctFieldSql)) {
+					$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
+				} else {
+					$expression = 'COUNT(*)';
+				}
+			} elseif ($metricType == 'COUNT_WHERE') {
+				$conditionSql = $this->getAdvancedMetricConditionSql($metric);
+				$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
+				if (!empty($distinctFieldSql)) {
+					if (!empty($conditionSql)) {
+						$expression = 'COUNT(DISTINCT CASE WHEN (' . $conditionSql . ') THEN (' . $distinctFieldSql . ') ELSE NULL END)';
+					} else {
+						$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
+					}
+				} elseif (!empty($conditionSql)) {
+					$expression = 'SUM(CASE WHEN (' . $conditionSql . ') THEN 1 ELSE 0 END)';
+				} else {
+					$expression = 'COUNT(*)';
+				}
+			} elseif (in_array($metricType, array('SUM', 'AVG', 'MIN', 'MAX'))) {
+				$fieldSql = $this->getAdvancedMetricFieldSql($metric);
+				if (empty($fieldSql)) {
+					continue;
+				}
+
+				$conditionSql = $this->getAdvancedMetricConditionSql($metric);
+				if (!empty($conditionSql)) {
+					if ($metricType == 'SUM') {
+						$expression = 'SUM(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE 0 END)';
+					} elseif ($metricType == 'AVG') {
+						$expression = '(SUM(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE 0 END) / NULLIF(SUM(CASE WHEN (' . $conditionSql . ') THEN 1 ELSE 0 END),0))';
+					} elseif ($metricType == 'MIN') {
+						$expression = 'MIN(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE NULL END)';
+					} elseif ($metricType == 'MAX') {
+						$expression = 'MAX(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE NULL END)';
+					}
+				} else {
+					if ($metricType == 'SUM') {
+						$expression = 'SUM(' . $fieldSql . ')';
+					} elseif ($metricType == 'AVG') {
+						$expression = '(SUM(' . $fieldSql . ') / NULLIF(COUNT(*),0))';
+					} elseif ($metricType == 'MIN') {
+						$expression = 'MIN(' . $fieldSql . ')';
+					} elseif ($metricType == 'MAX') {
+						$expression = 'MAX(' . $fieldSql . ')';
+					}
+				}
+			}
+
+			if (empty($expression)) {
+				continue;
+			}
+
+			$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql);
+			if (empty($baseQuery)) {
+				continue;
+			}
+
+			$sql = 'SELECT ' . $recordColumnSql . ' AS metric_record_id, ' . $expression . ' AS metric_value '
+				. $baseQuery
+				. ' and ' . $recordColumnSql . ' IN (' . $idListSql . ')'
+				. ' GROUP BY ' . $recordColumnSql;
+
+			$metricValues = array();
+			$defaultValue = $this->getAdvancedMetricDefaultValue($metricType);
+			foreach ($normalizedRecordIds as $recordId) {
+				$metricValues[$recordId] = $defaultValue;
+			}
+
+			$result = $adb->pquery($sql, array());
+			if ($result) {
+				for ($i = 0; $i < $adb->num_rows($result); $i++) {
+					$rowRecordId = intval($adb->query_result($result, $i, 'metric_record_id'));
+					if (!isset($metricValues[$rowRecordId])) {
+						continue;
+					}
+					$rawValue = $adb->query_result($result, $i, 'metric_value');
+					if ($rawValue !== null && $rawValue !== '') {
+						$metricValues[$rowRecordId] = floatval($rawValue);
+					}
+				}
+			}
+
+			foreach ($normalizedRecordIds as $recordId) {
+				$value = isset($metricValues[$recordId]) ? $metricValues[$recordId] : $defaultValue;
+				$computedValuesByRecord[$recordId][$metricKey] = $value;
+				$outputByRecord[$recordId][$metricKey] = $this->formatAdvancedMetricValue($value, $metricType);
+			}
+		}
+
+		// Phase 2: derived metrics (PERCENT/FORMULA) per record.
+		foreach ($metrics as $metric) {
+			if (!is_array($metric)) {
+				continue;
+			}
+
+			$metricKey = isset($metric['key']) ? trim($metric['key']) : '';
+			$metricType = isset($metric['type']) ? strtoupper(trim($metric['type'])) : '';
+			if (empty($metricKey) || empty($metricType)) {
+				continue;
+			}
+
+			if (!in_array($metricType, array('PERCENT', 'FORMULA'))) {
+				continue;
+			}
+
+			foreach ($normalizedRecordIds as $recordId) {
+				if (array_key_exists($metricKey, $computedValuesByRecord[$recordId])) {
+					continue;
+				}
+
+				$value = $this->getAdvancedMetricDefaultValue($metricType);
+				if ($metricType == 'PERCENT') {
+					$numerator = isset($metric['numerator']) ? $this->resolveAdvancedMetricValue($metric['numerator'], $computedValuesByRecord[$recordId]) : null;
+					$denominator = isset($metric['denominator']) ? $this->resolveAdvancedMetricValue($metric['denominator'], $computedValuesByRecord[$recordId]) : null;
+					if ($denominator !== null && floatval($denominator) != 0.0) {
+						$value = (floatval($numerator) / floatval($denominator)) * 100.0;
+					}
+				} elseif ($metricType == 'FORMULA') {
+					$expression = isset($metric['expression']) ? $metric['expression'] : '';
+					$evaluated = $this->evaluateAdvancedMetricFormula($expression, $computedValuesByRecord[$recordId]);
+					if ($evaluated !== null && $evaluated !== '') {
+						$value = $evaluated;
+					}
+				}
+
+				$computedValuesByRecord[$recordId][$metricKey] = $value;
+				$outputByRecord[$recordId][$metricKey] = $this->formatAdvancedMetricValue($value, $metricType);
+			}
+		}
+
+		return $outputByRecord;
+	}
+
+	/**
 	 * Build additional record scope condition for row-level advanced metrics.
 	 *
 	 * @param int|string|null $recordId
@@ -4461,6 +4666,10 @@ class ReportRun extends CRMEntity {
 		$this->queryPlanner = new ReportRunQueryPlanner();
 		$this->queryPlanner->reportRun = $this;
 		$this->_tmptablesinitialized = false;
+		// Filter builders add required tables to query planner as a side effect.
+		// When planner is reset, cached filters must be invalidated to rebuild those dependencies.
+		$this->_stdfilterlist = false;
+		$this->_advfiltersql = false;
 	}
 
 	/**
@@ -4555,6 +4764,35 @@ class ReportRun extends CRMEntity {
 		}
 
 		// Keep only the field definition part: cb:table:column:fieldlabel
+		if ($fieldParts[0] == 'cb') {
+			$fieldParts = array_slice($fieldParts, 0, 4);
+		}
+
+		return $this->getColumnsTotalSQL($fieldParts, $this->primarymodule);
+	}
+
+	/**
+	 * Resolve optional distinct field token for COUNT metrics.
+	 *
+	 * @param array $metric
+	 * @return string
+	 */
+	function getAdvancedMetricDistinctFieldSql($metric) {
+		if (empty($metric['distinct_field']) || !is_string($metric['distinct_field'])) {
+			return '';
+		}
+
+		$fieldToken = trim($metric['distinct_field']);
+		if ($fieldToken === '') {
+			return '';
+		}
+
+		$this->ensureAdvancedMetricColumnTables($fieldToken);
+		$fieldParts = explode(':', $fieldToken);
+		if (php7_count($fieldParts) < 4) {
+			return '';
+		}
+
 		if ($fieldParts[0] == 'cb') {
 			$fieldParts = array_slice($fieldParts, 0, 4);
 		}

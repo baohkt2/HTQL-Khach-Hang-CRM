@@ -851,7 +851,6 @@ class Reports_Record_Model extends Vtiger_Record_Model {
 			return $reportData;
 		}
 
-		$rowMetricCache = array();
 		$globalMetricValues = array();
 		foreach ($globalColumns as $metricInfo) {
 			if (!is_array($metricInfo) || empty($metricInfo['metric_key'])) {
@@ -860,30 +859,38 @@ class Reports_Record_Model extends Vtiger_Record_Model {
 			$globalMetricValues[$metricInfo['metric_key']] = isset($metricInfo['metric_value']) ? $metricInfo['metric_value'] : '0';
 		}
 
+		$rowRecordIds = array();
+		$rowRecordIdByIndex = array();
+		foreach ($reportData['data'] as $rowIndex => $rowData) {
+			if (!is_array($rowData)) {
+				continue;
+			}
+			$recordId = $this->extractPrimaryRecordIdFromReportRow($rowData);
+			if (empty($recordId)) {
+				continue;
+			}
+			$recordId = intval($recordId);
+			if ($recordId <= 0) {
+				continue;
+			}
+			$rowRecordIds[$recordId] = $recordId;
+			$rowRecordIdByIndex[$rowIndex] = $recordId;
+		}
+
+		$rowMetricMap = array();
+		if (!empty($rowRecordIds)) {
+			$rowMetricMap = $this->getAdvancedMetricsByRecordIdsWithSessionCache($reportRun, $filterQuery, $advancedMetrics, array_values($rowRecordIds));
+		}
+
 		foreach ($reportData['data'] as $rowIndex => $rowData) {
 			if (!is_array($rowData)) {
 				continue;
 			}
 
 			$metricValues = $globalMetricValues;
-			$recordId = $this->extractPrimaryRecordIdFromReportRow($rowData);
-			if (!empty($recordId)) {
-				if (!isset($rowMetricCache[$recordId])) {
-					$rowScopedColumns = $reportRun->getAdvancedMetricsTotals($filterQuery, $advancedMetrics, $recordId);
-					$scopedValues = array();
-					if (is_array($rowScopedColumns)) {
-						foreach ($rowScopedColumns as $metricInfo) {
-							if (!is_array($metricInfo) || empty($metricInfo['metric_key'])) {
-								continue;
-							}
-							$scopedValues[$metricInfo['metric_key']] = isset($metricInfo['metric_value']) ? $metricInfo['metric_value'] : '0';
-						}
-					}
-					$rowMetricCache[$recordId] = $scopedValues;
-				}
-				if (!empty($rowMetricCache[$recordId])) {
-					$metricValues = array_merge($metricValues, $rowMetricCache[$recordId]);
-				}
+			$recordId = isset($rowRecordIdByIndex[$rowIndex]) ? intval($rowRecordIdByIndex[$rowIndex]) : 0;
+			if ($recordId > 0 && isset($rowMetricMap[$recordId]) && is_array($rowMetricMap[$recordId])) {
+				$metricValues = array_merge($metricValues, $rowMetricMap[$recordId]);
 			}
 
 			foreach ($metricOrder as $metricKey) {
@@ -929,6 +936,107 @@ class Reports_Record_Model extends Vtiger_Record_Model {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Resolve row-level advanced metrics in bulk and cache per user session.
+	 *
+	 * @param ReportRun $reportRun
+	 * @param string|false $filterQuery
+	 * @param array $advancedMetrics
+	 * @param array $recordIds
+	 * @return array
+	 */
+	function getAdvancedMetricsByRecordIdsWithSessionCache($reportRun, $filterQuery, $advancedMetrics, $recordIds) {
+		if (empty($recordIds) || !is_array($recordIds)) {
+			return array();
+		}
+
+		$normalizedRecordIds = array();
+		foreach ($recordIds as $recordId) {
+			$recordId = intval($recordId);
+			if ($recordId > 0) {
+				$normalizedRecordIds[$recordId] = $recordId;
+			}
+		}
+		if (empty($normalizedRecordIds)) {
+			return array();
+		}
+
+		sort($normalizedRecordIds);
+		$cacheKey = $this->buildAdvancedMetricsSessionCacheKey($filterQuery, $advancedMetrics, $normalizedRecordIds);
+		$sessionCacheBucket = 'cusc_reports_advanced_metrics';
+		$cacheTtl = 300;
+
+		if (isset($_SESSION) && is_array($_SESSION)
+			&& isset($_SESSION[$sessionCacheBucket][$cacheKey])
+			&& is_array($_SESSION[$sessionCacheBucket][$cacheKey])) {
+			$cacheEntry = $_SESSION[$sessionCacheBucket][$cacheKey];
+			$cachedAt = isset($cacheEntry['cached_at']) ? intval($cacheEntry['cached_at']) : 0;
+			if ($cachedAt > 0 && (time() - $cachedAt) <= $cacheTtl
+				&& isset($cacheEntry['values']) && is_array($cacheEntry['values'])) {
+				return $cacheEntry['values'];
+			}
+			unset($_SESSION[$sessionCacheBucket][$cacheKey]);
+		}
+
+		$values = $reportRun->getAdvancedMetricsTotalsByRecordIds($filterQuery, $advancedMetrics, $normalizedRecordIds);
+
+		if (isset($_SESSION) && is_array($_SESSION)) {
+			if (!isset($_SESSION[$sessionCacheBucket]) || !is_array($_SESSION[$sessionCacheBucket])) {
+				$_SESSION[$sessionCacheBucket] = array();
+			}
+			$_SESSION[$sessionCacheBucket][$cacheKey] = array(
+				'cached_at' => time(),
+				'values' => $values,
+			);
+
+			if (count($_SESSION[$sessionCacheBucket]) > 20) {
+				uasort($_SESSION[$sessionCacheBucket], function ($left, $right) {
+					$leftTime = isset($left['cached_at']) ? intval($left['cached_at']) : 0;
+					$rightTime = isset($right['cached_at']) ? intval($right['cached_at']) : 0;
+					if ($leftTime === $rightTime) {
+						return 0;
+					}
+					return ($leftTime < $rightTime) ? -1 : 1;
+				});
+				while (count($_SESSION[$sessionCacheBucket]) > 20) {
+					reset($_SESSION[$sessionCacheBucket]);
+					$oldestKey = key($_SESSION[$sessionCacheBucket]);
+					if ($oldestKey === null) {
+						break;
+					}
+					unset($_SESSION[$sessionCacheBucket][$oldestKey]);
+				}
+			}
+		}
+
+		return $values;
+	}
+
+	/**
+	 * Build deterministic session cache key for row-level advanced metrics.
+	 *
+	 * @param string|false $filterQuery
+	 * @param array $advancedMetrics
+	 * @param array $recordIds
+	 * @return string
+	 */
+	function buildAdvancedMetricsSessionCacheKey($filterQuery, $advancedMetrics, $recordIds) {
+		$currentUser = Users_Record_Model::getCurrentUserModel();
+		$userId = $currentUser ? intval($currentUser->getId()) : 0;
+
+		$metricsSignature = '';
+		try {
+			$metricsSignature = Zend_Json::encode($advancedMetrics);
+		} catch (Exception $e) {
+			$metricsSignature = serialize($advancedMetrics);
+		}
+
+		$filterSignature = is_string($filterQuery) ? $filterQuery : '';
+		$recordSignature = implode(',', $recordIds);
+
+		return sha1($this->getId() . '|' . $userId . '|' . $filterSignature . '|' . $metricsSignature . '|' . $recordSignature);
 	}
 
 	function getReportsCount($query = null){

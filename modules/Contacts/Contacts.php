@@ -1317,13 +1317,12 @@ function get_contactsforol($user_name)
 	function generateReportsSecQuery($module,$secmodule,$queryPlanner){
 		$matrix = $queryPlanner->newDependencyMatrix();
 		$matrix->setDependency('vtiger_crmentityContacts',array('vtiger_groupsContacts','vtiger_usersContacts','vtiger_lastModifiedByContacts'));
+		$matrix->setDependency('vtiger_contactdetails', array('vtiger_crmentityContacts','vtiger_contactaddress',
+								'vtiger_customerdetails','vtiger_contactsubdetails','vtiger_contactscf'));
 		
 		if (!$queryPlanner->requireTable('vtiger_contactdetails', $matrix)) {
 			return '';
 		}
-
-        $matrix->setDependency('vtiger_contactdetails', array('vtiger_crmentityContacts','vtiger_contactaddress',
-								'vtiger_customerdetails','vtiger_contactsubdetails','vtiger_contactscf'));
 
 		$query = $this->getRelationQuery($module,$secmodule,"vtiger_contactdetails","contactid", $queryPlanner);
 
