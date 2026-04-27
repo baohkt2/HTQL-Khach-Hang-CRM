@@ -120,7 +120,14 @@ Vtiger_Detail_Js("Reports_Detail_Js",{},{
             app.request.post({data:params}).then(
                 function(error,data){
                     jQuery('.generateReport').removeAttr("disabled");
-                    var count = parseInt(data);
+                            var countSource = data;
+                            if (typeof data === 'object' && data !== null && typeof data.result !== 'undefined') {
+                                countSource = data.result;
+                            }
+                            var count = parseInt(countSource);
+                            if (isNaN(count)) {
+                                count = 0;
+                            }
                     jQuery('#countValue').text(count);
                     if(count > reportLimit)
                         jQuery('#moreRecordsText').removeClass('hide');

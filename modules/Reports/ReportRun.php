@@ -5456,7 +5456,7 @@ class ReportRun extends CRMEntity {
 
 		$reportData = $this->GenerateReport("PDF", $filterlist, false, false, false, 'ExcelExport');
 		$reportData = $this->appendAdvancedColumnsForExport($reportData, $filterlist);
-		$arr_val = isset($reportData['data']) ? $reportData['data'] : array();
+		$arr_val = (isset($reportData['data']) && is_array($reportData['data'])) ? $reportData['data'] : array();
 		$totalxls = $this->GenerateReport("XLS", $filterlist, false, false, false, 'ExcelExport');
 		$numericTypes = array('currency', 'double', 'integer', 'percentage');
 
@@ -5465,7 +5465,7 @@ class ReportRun extends CRMEntity {
 				//'font' => array( 'bold' => true )
 		);
 
-		if (isset($arr_val)) {
+		if (!empty($arr_val)) {
 			$count = 0;
 			$rowcount = 1;
 			//copy the first value details
@@ -5556,11 +5556,11 @@ class ReportRun extends CRMEntity {
 
 		$reportData = $this->GenerateReport("PDF", $filterlist);
 		$reportData = $this->appendAdvancedColumnsForExport($reportData, $filterlist);
-		$arr_val = isset($reportData['data']) ? $reportData['data'] : '';
+		$arr_val = (isset($reportData['data']) && is_array($reportData['data'])) ? $reportData['data'] : array();
 
 		$fp = fopen($fileName, 'w+');
 
-		if (isset($arr_val)) {
+		if (!empty($arr_val) && isset($arr_val[0]) && is_array($arr_val[0])) {
 			$csv_values = array();
 			$actionColumnKeys = array();
 
@@ -5578,10 +5578,20 @@ class ReportRun extends CRMEntity {
 			$csv_values = array_map('decode_html', array_keys($firstRow));
 			fputcsv($fp, Vtiger_Functions::sanitizeForCSVExport($csv_values));
 			foreach ($arr_val as $key => $array_value) {
+				if (!is_array($array_value)) {
+					continue;
+				}
 				foreach ($actionColumnKeys as $actionKey => $ignored) {
 					unset($array_value[$actionKey]);
 				}
-				$csv_values = array_map('decode_html', array_values($array_value));
+				$rowValues = array();
+				foreach ($array_value as $exportValue) {
+					if (is_array($exportValue)) {
+						$exportValue = isset($exportValue['value']) ? $exportValue['value'] : '';
+					}
+					$rowValues[] = decode_html((string)$exportValue);
+				}
+				$csv_values = $rowValues;
 				fputcsv($fp, Vtiger_Functions::sanitizeForCSVExport($csv_values));
 			}
 		}

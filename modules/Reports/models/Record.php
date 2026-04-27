@@ -918,20 +918,62 @@ class Reports_Record_Model extends Vtiger_Record_Model {
 		$primaryModule = $this->getPrimaryModule();
 		$modulePattern = '/module=' . preg_quote($primaryModule, '/') . '&view=Detail&record=(\d+)/';
 		foreach ($rowData as $value) {
-			if (!is_string($value) || $value === '') {
+			$cellValue = $value;
+			if (is_array($value) && array_key_exists('value', $value)) {
+				$cellValue = $value['value'];
+			}
+			if (!is_string($cellValue) || $cellValue === '') {
 				continue;
 			}
-			if (preg_match($modulePattern, $value, $matches)) {
+			if (preg_match($modulePattern, $cellValue, $matches)) {
 				return intval($matches[1]);
 			}
 		}
 
 		foreach ($rowData as $value) {
-			if (!is_string($value) || $value === '') {
+			$cellValue = $value;
+			if (is_array($value) && array_key_exists('value', $value)) {
+				$cellValue = $value['value'];
+			}
+			if (!is_string($cellValue) || $cellValue === '') {
 				continue;
 			}
-			if (preg_match('/record=(\d+)/', $value, $matches)) {
+			if (preg_match('/record=(\d+)/', $cellValue, $matches)) {
 				return intval($matches[1]);
+			}
+		}
+
+		// Excel export rows can carry action cell as array payload: ['value' => <recordId>, 'type' => null].
+		$actionLabel = decode_html(vtranslate('LBL_ACTION', $primaryModule));
+		if ($actionLabel === '') {
+			$actionLabel = decode_html(vtranslate('LBL_ACTION', 'Vtiger'));
+		}
+		foreach ($rowData as $columnLabel => $value) {
+			if (!is_array($value) || !array_key_exists('value', $value)) {
+				continue;
+			}
+			$rawValue = $value['value'];
+			if (!is_numeric($rawValue)) {
+				continue;
+			}
+
+			$valueType = isset($value['type']) ? $value['type'] : null;
+			if ($valueType !== null && $valueType !== '') {
+				continue;
+			}
+
+			$columnLabelText = decode_html((string)$columnLabel);
+			$isActionColumn = (stripos($columnLabelText, 'Action') !== false);
+			if ($actionLabel !== '') {
+				$isActionColumn = $isActionColumn || (stripos($columnLabelText, $actionLabel) !== false);
+			}
+			if (!$isActionColumn) {
+				continue;
+			}
+
+			$recordId = intval($rawValue);
+			if ($recordId > 0) {
+				return $recordId;
 			}
 		}
 
