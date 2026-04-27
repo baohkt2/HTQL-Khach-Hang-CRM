@@ -4307,170 +4307,100 @@ class ReportRun extends CRMEntity {
 		$output = array();
 
 		// Phase 1: base SQL metrics
-		$canBatch = true;
-		$baseMetricsCount = 0;
 		foreach ($metrics as $metric) {
 			if (!is_array($metric)) {
 				continue;
 			}
+
+			$metricKey = isset($metric['key']) ? trim($metric['key']) : '';
 			$metricType = isset($metric['type']) ? strtoupper(trim($metric['type'])) : '';
-			if (empty($metricType) || in_array($metricType, array('PERCENT', 'FORMULA'))) {
+			$metricLabel = isset($metric['label']) ? $metric['label'] : $metricKey;
+
+			if (empty($metricKey) || empty($metricType)) {
 				continue;
 			}
-			$baseMetricsCount++;
-			if ($metricType !== 'COUNT_WHERE' || !empty($metric['distinct_field'])) {
-				$canBatch = false;
-				break;
-			}
-		}
 
-		if ($canBatch && $baseMetricsCount > 0) {
 			$this->resetAdvancedMetricQueryPlanner();
-			$expressions = array();
-			$keys = array();
-			foreach ($metrics as $metric) {
-				if (!is_array($metric)) {
-					continue;
-				}
-				$metricType = isset($metric['type']) ? strtoupper(trim($metric['type'])) : '';
-				if (in_array($metricType, array('PERCENT', 'FORMULA'))) {
-					continue;
-				}
 
-				$metricKey = isset($metric['key']) ? trim($metric['key']) : '';
-				$metricLabel = isset($metric['label']) ? $metric['label'] : $metricKey;
+			$expression = '';
+			if ($metricType == 'COUNT_ALL') {
+				$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
+				if (!empty($distinctFieldSql)) {
+					$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
+				} else {
+					$expression = 'COUNT(*)';
+				}
+			} elseif ($metricType == 'COUNT_WHERE') {
 				$conditionSql = $this->getAdvancedMetricConditionSql($metric);
-
-				if (!empty($conditionSql)) {
+				$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
+				if (!empty($distinctFieldSql)) {
+					if (!empty($conditionSql)) {
+						$expression = 'COUNT(DISTINCT CASE WHEN (' . $conditionSql . ') THEN (' . $distinctFieldSql . ') ELSE NULL END)';
+					} else {
+						$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
+					}
+				} elseif (!empty($conditionSql)) {
 					$expression = 'SUM(CASE WHEN (' . $conditionSql . ') THEN 1 ELSE 0 END)';
 				} else {
 					$expression = 'COUNT(*)';
 				}
+			} elseif (in_array($metricType, array('SUM', 'AVG', 'MIN', 'MAX'))) {
+				$fieldSql = $this->getAdvancedMetricFieldSql($metric);
+				if (empty($fieldSql)) {
+					continue;
+				}
 
-				$expressions[] = $expression . " AS '" . $metricKey . "'";
-				$keys[] = array('key' => $metricKey, 'label' => $metricLabel);
+				$conditionSql = $this->getAdvancedMetricConditionSql($metric);
+				if (!empty($conditionSql)) {
+					if ($metricType == 'SUM') {
+						$expression = 'SUM(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE 0 END)';
+					} elseif ($metricType == 'AVG') {
+						$expression = '(SUM(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE 0 END) / NULLIF(SUM(CASE WHEN (' . $conditionSql . ') THEN 1 ELSE 0 END),0))';
+					} elseif ($metricType == 'MIN') {
+						$expression = 'MIN(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE NULL END)';
+					} elseif ($metricType == 'MAX') {
+						$expression = 'MAX(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE NULL END)';
+					}
+				} else {
+					if ($metricType == 'SUM') {
+						$expression = 'SUM(' . $fieldSql . ')';
+					} elseif ($metricType == 'AVG') {
+						$expression = '(SUM(' . $fieldSql . ') / NULLIF(COUNT(*),0))';
+					} elseif ($metricType == 'MIN') {
+						$expression = 'MIN(' . $fieldSql . ')';
+					} elseif ($metricType == 'MAX') {
+						$expression = 'MAX(' . $fieldSql . ')';
+					}
+				}
 			}
 
-			if (!empty($expressions)) {
-				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql);
-				if (!empty($baseQuery)) {
-					$recordScopeSql = $this->getAdvancedMetricRecordScopeSql($recordId);
-					$sql = 'SELECT ' . implode(', ', $expressions) . ' ' . $baseQuery . $recordScopeSql;
-					$result = $adb->pquery($sql, array());
-					if ($result && $adb->num_rows($result) > 0) {
-						foreach ($keys as $k) {
-							$rawValue = $adb->query_result($result, 0, $k['key']);
-							$value = $this->getAdvancedMetricDefaultValue('COUNT_WHERE');
-							if ($rawValue !== null && $rawValue !== '') {
-								$value = floatval($rawValue);
-							}
-							$computedValues[$k['key']] = $value;
-							$output[] = array(
-								'metric_key' => $k['key'],
-								'metric_label' => $k['label'],
-								'metric_type' => 'COUNT_WHERE',
-								'metric_value' => $this->formatAdvancedMetricValue($value, 'COUNT_WHERE'),
-							);
-						}
-					}
+			if (empty($expression)) {
+				continue;
+			}
+
+			$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql);
+			if (empty($baseQuery)) {
+				continue;
+			}
+
+			$recordScopeSql = $this->getAdvancedMetricRecordScopeSql($recordId);
+			$sql = 'SELECT ' . $expression . ' AS metric_value ' . $baseQuery . $recordScopeSql;
+			$result = $adb->pquery($sql, array());
+			$value = $this->getAdvancedMetricDefaultValue($metricType);
+			if ($result && $adb->num_rows($result) > 0) {
+				$rawValue = $adb->query_result($result, 0, 'metric_value');
+				if ($rawValue !== null && $rawValue !== '') {
+					$value = floatval($rawValue);
 				}
 			}
-		} else {
-			foreach ($metrics as $metric) {
-				if (!is_array($metric)) {
-					continue;
-				}
-	
-				$metricKey = isset($metric['key']) ? trim($metric['key']) : '';
-				$metricType = isset($metric['type']) ? strtoupper(trim($metric['type'])) : '';
-				$metricLabel = isset($metric['label']) ? $metric['label'] : $metricKey;
-	
-				if (empty($metricKey) || empty($metricType)) {
-					continue;
-				}
-	
-				$this->resetAdvancedMetricQueryPlanner();
-	
-				$expression = '';
-				if ($metricType == 'COUNT_ALL') {
-					$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
-					if (!empty($distinctFieldSql)) {
-						$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
-					} else {
-						$expression = 'COUNT(*)';
-					}
-				} elseif ($metricType == 'COUNT_WHERE') {
-					$conditionSql = $this->getAdvancedMetricConditionSql($metric);
-					$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
-					if (!empty($distinctFieldSql)) {
-						if (!empty($conditionSql)) {
-							$expression = 'COUNT(DISTINCT CASE WHEN (' . $conditionSql . ') THEN (' . $distinctFieldSql . ') ELSE NULL END)';
-						} else {
-							$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
-						}
-					} elseif (!empty($conditionSql)) {
-						$expression = 'SUM(CASE WHEN (' . $conditionSql . ') THEN 1 ELSE 0 END)';
-					} else {
-						$expression = 'COUNT(*)';
-					}
-				} elseif (in_array($metricType, array('SUM', 'AVG', 'MIN', 'MAX'))) {
-					$fieldSql = $this->getAdvancedMetricFieldSql($metric);
-					if (empty($fieldSql)) {
-						continue;
-					}
-	
-					$conditionSql = $this->getAdvancedMetricConditionSql($metric);
-					if (!empty($conditionSql)) {
-						if ($metricType == 'SUM') {
-							$expression = 'SUM(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE 0 END)';
-						} elseif ($metricType == 'AVG') {
-							$expression = '(SUM(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE 0 END) / NULLIF(SUM(CASE WHEN (' . $conditionSql . ') THEN 1 ELSE 0 END),0))';
-						} elseif ($metricType == 'MIN') {
-							$expression = 'MIN(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE NULL END)';
-						} elseif ($metricType == 'MAX') {
-							$expression = 'MAX(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE NULL END)';
-						}
-					} else {
-						if ($metricType == 'SUM') {
-							$expression = 'SUM(' . $fieldSql . ')';
-						} elseif ($metricType == 'AVG') {
-							$expression = '(SUM(' . $fieldSql . ') / NULLIF(COUNT(*),0))';
-						} elseif ($metricType == 'MIN') {
-							$expression = 'MIN(' . $fieldSql . ')';
-						} elseif ($metricType == 'MAX') {
-							$expression = 'MAX(' . $fieldSql . ')';
-						}
-					}
-				}
-	
-				if (empty($expression)) {
-					continue;
-				}
-	
-				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql);
-				if (empty($baseQuery)) {
-					continue;
-				}
-	
-				$recordScopeSql = $this->getAdvancedMetricRecordScopeSql($recordId);
-				$sql = 'SELECT ' . $expression . ' AS metric_value ' . $baseQuery . $recordScopeSql;
-				$result = $adb->pquery($sql, array());
-				$value = $this->getAdvancedMetricDefaultValue($metricType);
-				if ($result && $adb->num_rows($result) > 0) {
-					$rawValue = $adb->query_result($result, 0, 'metric_value');
-					if ($rawValue !== null && $rawValue !== '') {
-						$value = floatval($rawValue);
-					}
-				}
-	
-				$computedValues[$metricKey] = $value;
-				$output[] = array(
-					'metric_key' => $metricKey,
-					'metric_label' => $metricLabel,
-					'metric_type' => $metricType,
-					'metric_value' => $this->formatAdvancedMetricValue($value, $metricType),
-				);
-			}
+
+			$computedValues[$metricKey] = $value;
+			$output[] = array(
+				'metric_key' => $metricKey,
+				'metric_label' => $metricLabel,
+				'metric_type' => $metricType,
+				'metric_value' => $this->formatAdvancedMetricValue($value, $metricType),
+			);
 		}
 
 		// Phase 2: derived metrics using previous outputs
@@ -4557,193 +4487,109 @@ class ReportRun extends CRMEntity {
 		}
 
 		// Phase 1: base SQL metrics grouped by primary record id.
-		$canBatch = true;
-		$baseMetricsCount = 0;
 		foreach ($metrics as $metric) {
 			if (!is_array($metric)) {
 				continue;
 			}
+
+			$metricKey = isset($metric['key']) ? trim($metric['key']) : '';
 			$metricType = isset($metric['type']) ? strtoupper(trim($metric['type'])) : '';
-			if (empty($metricType) || in_array($metricType, array('PERCENT', 'FORMULA'))) {
+			if (empty($metricKey) || empty($metricType)) {
 				continue;
 			}
-			$baseMetricsCount++;
-			if ($metricType !== 'COUNT_WHERE' || !empty($metric['distinct_field'])) {
-				$canBatch = false;
-				break;
-			}
-		}
 
-		if ($canBatch && $baseMetricsCount > 0) {
 			$this->resetAdvancedMetricQueryPlanner();
-			$expressions = array();
-			$keys = array();
-			foreach ($metrics as $metric) {
-				if (!is_array($metric)) {
-					continue;
-				}
-				$metricType = isset($metric['type']) ? strtoupper(trim($metric['type'])) : '';
-				if (in_array($metricType, array('PERCENT', 'FORMULA'))) {
-					continue;
-				}
 
-				$metricKey = isset($metric['key']) ? trim($metric['key']) : '';
+			$expression = '';
+			if ($metricType == 'COUNT_ALL') {
+				$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
+				if (!empty($distinctFieldSql)) {
+					$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
+				} else {
+					$expression = 'COUNT(*)';
+				}
+			} elseif ($metricType == 'COUNT_WHERE') {
 				$conditionSql = $this->getAdvancedMetricConditionSql($metric);
-
-				if (!empty($conditionSql)) {
+				$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
+				if (!empty($distinctFieldSql)) {
+					if (!empty($conditionSql)) {
+						$expression = 'COUNT(DISTINCT CASE WHEN (' . $conditionSql . ') THEN (' . $distinctFieldSql . ') ELSE NULL END)';
+					} else {
+						$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
+					}
+				} elseif (!empty($conditionSql)) {
 					$expression = 'SUM(CASE WHEN (' . $conditionSql . ') THEN 1 ELSE 0 END)';
 				} else {
 					$expression = 'COUNT(*)';
 				}
+			} elseif (in_array($metricType, array('SUM', 'AVG', 'MIN', 'MAX'))) {
+				$fieldSql = $this->getAdvancedMetricFieldSql($metric);
+				if (empty($fieldSql)) {
+					continue;
+				}
 
-				$expressions[] = $expression . " AS '" . $metricKey . "'";
-				$keys[] = $metricKey;
-			}
-
-			if (!empty($expressions)) {
-				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql);
-				if (!empty($baseQuery)) {
-					$sql = 'SELECT ' . $recordColumnSql . ' AS metric_record_id, ' . implode(', ', $expressions)
-						. ' ' . $baseQuery
-						. ' and ' . $recordColumnSql . ' IN (' . $idListSql . ')'
-						. ' GROUP BY ' . $recordColumnSql;
-
-					$defaultValue = $this->getAdvancedMetricDefaultValue('COUNT_WHERE');
-					$result = $adb->pquery($sql, array());
-					if ($result) {
-						for ($i = 0; $i < $adb->num_rows($result); $i++) {
-							$rowRecordId = intval($adb->query_result($result, $i, 'metric_record_id'));
-							if (!isset($computedValuesByRecord[$rowRecordId])) {
-								continue;
-							}
-							foreach ($keys as $metricKey) {
-								$rawValue = $adb->query_result($result, $i, $metricKey);
-								$value = $defaultValue;
-								if ($rawValue !== null && $rawValue !== '') {
-									$value = floatval($rawValue);
-								}
-								$computedValuesByRecord[$rowRecordId][$metricKey] = $value;
-								$outputByRecord[$rowRecordId][$metricKey] = $this->formatAdvancedMetricValue($value, 'COUNT_WHERE');
-							}
-						}
+				$conditionSql = $this->getAdvancedMetricConditionSql($metric);
+				if (!empty($conditionSql)) {
+					if ($metricType == 'SUM') {
+						$expression = 'SUM(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE 0 END)';
+					} elseif ($metricType == 'AVG') {
+						$expression = '(SUM(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE 0 END) / NULLIF(SUM(CASE WHEN (' . $conditionSql . ') THEN 1 ELSE 0 END),0))';
+					} elseif ($metricType == 'MIN') {
+						$expression = 'MIN(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE NULL END)';
+					} elseif ($metricType == 'MAX') {
+						$expression = 'MAX(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE NULL END)';
 					}
-					
-					// Fill in zeros for records that weren't returned by GROUP BY
-					foreach ($normalizedRecordIds as $recordId) {
-						foreach ($keys as $metricKey) {
-							if (!isset($computedValuesByRecord[$recordId][$metricKey])) {
-								$computedValuesByRecord[$recordId][$metricKey] = $defaultValue;
-								$outputByRecord[$recordId][$metricKey] = $this->formatAdvancedMetricValue($defaultValue, 'COUNT_WHERE');
-							}
-						}
+				} else {
+					if ($metricType == 'SUM') {
+						$expression = 'SUM(' . $fieldSql . ')';
+					} elseif ($metricType == 'AVG') {
+						$expression = '(SUM(' . $fieldSql . ') / NULLIF(COUNT(*),0))';
+					} elseif ($metricType == 'MIN') {
+						$expression = 'MIN(' . $fieldSql . ')';
+					} elseif ($metricType == 'MAX') {
+						$expression = 'MAX(' . $fieldSql . ')';
 					}
 				}
 			}
-		} else {
-			foreach ($metrics as $metric) {
-				if (!is_array($metric)) {
-					continue;
-				}
-	
-				$metricKey = isset($metric['key']) ? trim($metric['key']) : '';
-				$metricType = isset($metric['type']) ? strtoupper(trim($metric['type'])) : '';
-				if (empty($metricKey) || empty($metricType)) {
-					continue;
-				}
-	
-				$this->resetAdvancedMetricQueryPlanner();
-	
-				$expression = '';
-				if ($metricType == 'COUNT_ALL') {
-					$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
-					if (!empty($distinctFieldSql)) {
-						$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
-					} else {
-						$expression = 'COUNT(*)';
-					}
-				} elseif ($metricType == 'COUNT_WHERE') {
-					$conditionSql = $this->getAdvancedMetricConditionSql($metric);
-					$distinctFieldSql = $this->getAdvancedMetricDistinctFieldSql($metric);
-					if (!empty($distinctFieldSql)) {
-						if (!empty($conditionSql)) {
-							$expression = 'COUNT(DISTINCT CASE WHEN (' . $conditionSql . ') THEN (' . $distinctFieldSql . ') ELSE NULL END)';
-						} else {
-							$expression = 'COUNT(DISTINCT ' . $distinctFieldSql . ')';
-						}
-					} elseif (!empty($conditionSql)) {
-						$expression = 'SUM(CASE WHEN (' . $conditionSql . ') THEN 1 ELSE 0 END)';
-					} else {
-						$expression = 'COUNT(*)';
-					}
-				} elseif (in_array($metricType, array('SUM', 'AVG', 'MIN', 'MAX'))) {
-					$fieldSql = $this->getAdvancedMetricFieldSql($metric);
-					if (empty($fieldSql)) {
+
+			if (empty($expression)) {
+				continue;
+			}
+
+			$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql);
+			if (empty($baseQuery)) {
+				continue;
+			}
+
+			$sql = 'SELECT ' . $recordColumnSql . ' AS metric_record_id, ' . $expression . ' AS metric_value '
+				. $baseQuery
+				. ' and ' . $recordColumnSql . ' IN (' . $idListSql . ')'
+				. ' GROUP BY ' . $recordColumnSql;
+
+			$metricValues = array();
+			$defaultValue = $this->getAdvancedMetricDefaultValue($metricType);
+			foreach ($normalizedRecordIds as $recordId) {
+				$metricValues[$recordId] = $defaultValue;
+			}
+
+			$result = $adb->pquery($sql, array());
+			if ($result) {
+				for ($i = 0; $i < $adb->num_rows($result); $i++) {
+					$rowRecordId = intval($adb->query_result($result, $i, 'metric_record_id'));
+					if (!isset($metricValues[$rowRecordId])) {
 						continue;
 					}
-	
-					$conditionSql = $this->getAdvancedMetricConditionSql($metric);
-					if (!empty($conditionSql)) {
-						if ($metricType == 'SUM') {
-							$expression = 'SUM(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE 0 END)';
-						} elseif ($metricType == 'AVG') {
-							$expression = '(SUM(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE 0 END) / NULLIF(SUM(CASE WHEN (' . $conditionSql . ') THEN 1 ELSE 0 END),0))';
-						} elseif ($metricType == 'MIN') {
-							$expression = 'MIN(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE NULL END)';
-						} elseif ($metricType == 'MAX') {
-							$expression = 'MAX(CASE WHEN (' . $conditionSql . ') THEN (' . $fieldSql . ') ELSE NULL END)';
-						}
-					} else {
-						if ($metricType == 'SUM') {
-							$expression = 'SUM(' . $fieldSql . ')';
-						} elseif ($metricType == 'AVG') {
-							$expression = '(SUM(' . $fieldSql . ') / NULLIF(COUNT(*),0))';
-						} elseif ($metricType == 'MIN') {
-							$expression = 'MIN(' . $fieldSql . ')';
-						} elseif ($metricType == 'MAX') {
-							$expression = 'MAX(' . $fieldSql . ')';
-						}
+					$rawValue = $adb->query_result($result, $i, 'metric_value');
+					if ($rawValue !== null && $rawValue !== '') {
+						$metricValues[$rowRecordId] = floatval($rawValue);
 					}
 				}
-	
-				if (empty($expression)) {
-					continue;
-				}
-	
-				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql);
-				if (empty($baseQuery)) {
-					continue;
-				}
-	
-				$sql = 'SELECT ' . $recordColumnSql . ' AS metric_record_id, ' . $expression . ' AS metric_value '
-					. $baseQuery
-					. ' and ' . $recordColumnSql . ' IN (' . $idListSql . ')'
-					. ' GROUP BY ' . $recordColumnSql;
-	
-				$metricValues = array();
-				$defaultValue = $this->getAdvancedMetricDefaultValue($metricType);
-				foreach ($normalizedRecordIds as $recordId) {
-					$metricValues[$recordId] = $defaultValue;
-				}
-	
-				$result = $adb->pquery($sql, array());
-				if ($result) {
-					for ($i = 0; $i < $adb->num_rows($result); $i++) {
-						$rowRecordId = intval($adb->query_result($result, $i, 'metric_record_id'));
-						if (!isset($metricValues[$rowRecordId])) {
-							continue;
-						}
-						$rawValue = $adb->query_result($result, $i, 'metric_value');
-						if ($rawValue !== null && $rawValue !== '') {
-							$metricValues[$rowRecordId] = floatval($rawValue);
-						}
-					}
-				}
-	
-				foreach ($normalizedRecordIds as $recordId) {
-					$value = isset($metricValues[$recordId]) ? $metricValues[$recordId] : $defaultValue;
-					$computedValuesByRecord[$recordId][$metricKey] = $value;
-					$outputByRecord[$recordId][$metricKey] = $this->formatAdvancedMetricValue($value, $metricType);
-				}
+			}
+
+			foreach ($normalizedRecordIds as $recordId) {
+				$value = isset($metricValues[$recordId]) ? $metricValues[$recordId] : $defaultValue;
+				$computedValuesByRecord[$recordId][$metricKey] = $value;
+				$outputByRecord[$recordId][$metricKey] = $this->formatAdvancedMetricValue($value, $metricType);
 			}
 		}
 
