@@ -4301,6 +4301,8 @@ class ReportRun extends CRMEntity {
 			return array();
 		}
 
+		$applySavedReportFilters = true;
+
 		global $adb;
 
 		$computedValues = array();
@@ -4344,7 +4346,7 @@ class ReportRun extends CRMEntity {
 			}
 
 			if (!empty($expressions)) {
-				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql);
+				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql, $applySavedReportFilters);
 				if (!empty($baseQuery)) {
 					$recordScopeSql = $this->getAdvancedMetricRecordScopeSql($recordId);
 					$sql = 'SELECT ' . implode(', ', $expressions) . ' ' . $baseQuery . $recordScopeSql;
@@ -4440,7 +4442,7 @@ class ReportRun extends CRMEntity {
 					continue;
 				}
 	
-				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql);
+				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql, $applySavedReportFilters);
 				if (empty($baseQuery)) {
 					continue;
 				}
@@ -4586,7 +4588,7 @@ class ReportRun extends CRMEntity {
 			}
 
 			if (!empty($expressions)) {
-				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql);
+				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql, true);
 				if (!empty($baseQuery)) {
 					$sql = 'SELECT ' . $recordColumnSql . ' AS metric_record_id, ' . implode(', ', $expressions)
 						. ' ' . $baseQuery
@@ -4694,7 +4696,7 @@ class ReportRun extends CRMEntity {
 					continue;
 				}
 	
-				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql);
+				$baseQuery = $this->getAdvancedMetricBaseQuery($filtersql, true);
 				if (empty($baseQuery)) {
 					continue;
 				}
@@ -4815,18 +4817,23 @@ class ReportRun extends CRMEntity {
 	 * Build FROM...WHERE query shared by advanced metrics.
 	 *
 	 * @param string|false $filtersql
+	 * @param bool $applySavedReportFilters
 	 * @return string
 	 */
-	function getAdvancedMetricBaseQuery($filtersql) {
+	function getAdvancedMetricBaseQuery($filtersql, $applySavedReportFilters = true) {
 		$reportid = $this->reportid;
 
-		$stdfilterlist = $this->getStdFilterList($reportid);
-		$advfiltersql = $this->getAdvFilterSql($reportid);
 		$wheresql = '';
-		if (isset($stdfilterlist) && !empty($stdfilterlist)) {
-			$stdfiltersql = implode(', ', $stdfilterlist);
-			if (!empty($stdfiltersql)) {
-				$wheresql = ' and ' . $stdfiltersql;
+		$advfiltersql = '';
+
+		if ($applySavedReportFilters) {
+			$stdfilterlist = $this->getStdFilterList($reportid);
+			$advfiltersql = $this->getAdvFilterSql($reportid);
+			if (isset($stdfilterlist) && !empty($stdfilterlist)) {
+				$stdfiltersql = implode(', ', $stdfilterlist);
+				if (!empty($stdfiltersql)) {
+					$wheresql = ' and ' . $stdfiltersql;
+				}
 			}
 		}
 

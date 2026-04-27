@@ -1036,7 +1036,8 @@ class Reports_Record_Model extends Vtiger_Record_Model {
 		$filterSignature = is_string($filterQuery) ? $filterQuery : '';
 		$recordSignature = implode(',', $recordIds);
 
-		return sha1($this->getId() . '|' . $userId . '|' . $filterSignature . '|' . $metricsSignature . '|' . $recordSignature);
+		$cacheVersion = 'v2';
+		return sha1($cacheVersion . '|' . $this->getId() . '|' . $userId . '|' . $filterSignature . '|' . $metricsSignature . '|' . $recordSignature);
 	}
 
 	function getReportsCount($query = null){
