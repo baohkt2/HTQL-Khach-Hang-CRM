@@ -124,13 +124,28 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 			return true;
 		}
 
-		if ($normalizedValue !== '0' || !isset($moduleFields[$fieldName])) {
+		// Treat common "not applicable" sentinel strings as empty — do NOT overwrite DB values.
+		// This covers cells in Excel exported as "N.A", "N/A", "NA", "-" etc.
+		$emptysentinel = strtolower($normalizedValue);
+		$naValues = array('n.a', 'n/a', 'na', 'n.a.', '-', '--', 'none', 'null');
+		if (in_array($emptysentinel, $naValues, true)) {
+			return true;
+		}
+
+		if (!isset($moduleFields[$fieldName])) {
 			return false;
 		}
 
 		$fieldDataType = $moduleFields[$fieldName]->getFieldDataType();
-		$zeroAsEmptyDataTypes = array('string', 'text', 'email', 'phone', 'url', 'date', 'datetime', 'time', 'picklist', 'multipicklist', 'reference', 'owner', 'ownergroup');
-		return in_array($fieldDataType, $zeroAsEmptyDataTypes, true);
+
+		// For numeric fields: a raw "0" from an empty Excel cell should be treated as empty
+		// so we don't overwrite real scores/values with 0.
+		if ($normalizedValue === '0') {
+			$zeroAsEmptyDataTypes = array('string', 'text', 'email', 'phone', 'url', 'date', 'datetime', 'time', 'picklist', 'multipicklist', 'reference', 'owner', 'ownergroup', 'integer', 'double', 'currency', 'decimal');
+			return in_array($fieldDataType, $zeroAsEmptyDataTypes, true);
+		}
+
+		return false;
 	}
 
 	/**
@@ -441,13 +456,19 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 							}
 
 							if ($mergeType == Import_Utils_Helper::$AUTO_MERGE_OVERWRITE) {
+								// BUG FIX: Restore existing DB values for empty/sentinel fields BEFORE transformForImport
+								// so that transformForImport (which calls sanitizeData) cannot convert '' → 0
+								// for integer/double fields that were empty in the import file.
+								foreach ($emptyMappedFields as $emptyFieldName) {
+									if (array_key_exists($emptyFieldName, $existingFieldValues)) {
+										$fieldData[$emptyFieldName] = $existingFieldValues[$emptyFieldName];
+									} else {
+										// No existing value to restore — remove from fieldData so it stays untouched
+										unset($fieldData[$emptyFieldName]);
+									}
+								}
 								$fieldData = $this->transformForImport($fieldData, $moduleMeta);
 								if ($fieldData != null) {
-									foreach ($emptyMappedFields as $emptyFieldName) {
-										if (array_key_exists($emptyFieldName, $existingFieldValues)) {
-											$fieldData[$emptyFieldName] = $existingFieldValues[$emptyFieldName];
-										}
-									}
 									$fieldData['id'] = $baseEntityId;
 									$entityInfo = $this->importRecord($fieldData, 'update');
 									if ($entityInfo) {
@@ -467,17 +488,22 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 									}
 								}
 
-								// Custom handling for default values & mandatory fields
-								// need to be taken care than normal import as we merge
-								// existing record values with newer values.
+								// BUG FIX: For MERGEFIELDS mode, backfill ALL existing DB field values for
+								// fields that were NOT imported (empty/sentinel/unmapped). This prevents
+								// vtws_revise from clearing/resetting those fields.
 								$fillDefault = false;
 								$mandatoryValueChecks = false;
 								if (!empty($existingFieldValues)) {
 									$defaultFieldValues = $this->getDefaultFieldValues($moduleMeta);
 
 									foreach ($existingFieldValues as $fieldName => $fieldValue) {
-										if (empty($fieldValue) && empty($filteredFieldData[$fieldName]) && !empty($defaultFieldValues[$fieldName])) {
-											$filteredFieldData[$fieldName] = $defaultFieldValues[$fieldName];
+										// Preserve existing value for any field not explicitly provided by import
+										if (!array_key_exists($fieldName, $filteredFieldData)) {
+											if (!empty($fieldValue)) {
+												$filteredFieldData[$fieldName] = $fieldValue;
+											} elseif (!empty($defaultFieldValues[$fieldName])) {
+												$filteredFieldData[$fieldName] = $defaultFieldValues[$fieldName];
+											}
 										}
 									}
 								}
