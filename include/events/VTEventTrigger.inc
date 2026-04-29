@@ -32,7 +32,7 @@
 
 				foreach($evtinfos as $k=>$v) {
 					if(!self::isCached($k) || $force) {
-						self::$cache[$forname] = $evtinfos;
+						self::$cache[$k] = $v;
 					}
 				}
 			} else {
