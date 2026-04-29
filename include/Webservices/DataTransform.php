@@ -27,6 +27,7 @@
 					$newRow[$columnFieldMapping[$col]] = $val;
 			}
 			$newRow = DataTransform::sanitizeData($newRow,$meta,true);
+			$newRow = DataTransform::mapFieldNamesToColumnNames($newRow,$meta);
 			return $newRow;
 		}
 
@@ -42,6 +43,7 @@
 			$recordLabel = isset($row['label']) ? $row['label'] :"";
 			$row = DataTransform::filterAllColumns($row,$meta);
 			$row = DataTransform::sanitizeData($row,$meta);
+			$row = DataTransform::mapFieldNamesToColumnNames($row,$meta);
 			if(!empty($recordLabel)){
 				$row['label'] = $recordLabel;
 			}
@@ -58,6 +60,7 @@
 		}
 
 		static function sanitizeForInsert($row,$meta){
+			$row = DataTransform::mapColumnNamesToFieldNames($row,$meta);
 			global $adb;
 			$associatedToUser = false;
 			$parentTypeId = null;
@@ -343,6 +346,37 @@
 				}
 			}
 			return $row;
+		}
+
+		static function mapFieldNamesToColumnNames($row,$meta){
+			$fieldColumnMapping = $meta->getFieldColumnMapping();
+			$newRow = array();
+			foreach($row as $field=>$val){
+				if($field == 'id'){
+					$newRow[$field] = $val;
+					continue;
+				}
+				if(array_key_exists($field, $fieldColumnMapping)){
+					$newRow[$fieldColumnMapping[$field]] = $val;
+				}else{
+					$newRow[$field] = $val;
+				}
+			}
+			return $newRow;
+		}
+
+		static function mapColumnNamesToFieldNames($row,$meta){
+			$fieldColumnMapping = $meta->getFieldColumnMapping();
+			$columnFieldMapping = array_flip($fieldColumnMapping);
+			$newRow = array();
+			foreach($row as $col=>$val){
+				if(array_key_exists($col, $columnFieldMapping)){
+					$newRow[$columnFieldMapping[$col]] = $val;
+				}else{
+					$newRow[$col] = $val;
+				}
+			}
+			return $newRow;
 		}
 	}	
 ?>
