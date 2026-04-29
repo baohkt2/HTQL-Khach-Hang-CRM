@@ -111,14 +111,17 @@ class VTWorkflowEventHandler extends VTEventHandler {
 						throw new Exception("Should never come here! Execution Condition:" . $workflow->executionCondition);
 					}
 			}
-			if ($doEvaluate && $workflow->evaluate($entityCache, $entityData->getId())) {
-				if (VTWorkflowManager::$ONCE == $workflow->executionCondition) {
-					$entity_id = vtws_getIdComponents($entityData->getId());
-					$entity_id = $entity_id[1];
-					$workflow->markAsCompletedForRecord($entity_id);
-				}
+			if ($doEvaluate) {
+				$conditionResult = $workflow->evaluate($entityCache, $entityData->getId());
+				if ($conditionResult) {
+					if (VTWorkflowManager::$ONCE == $workflow->executionCondition) {
+						$entity_id = vtws_getIdComponents($entityData->getId());
+						$entity_id = $entity_id[1];
+						$workflow->markAsCompletedForRecord($entity_id);
+					}
 
-				$workflow->performTasks($entityData,$relatedInfo);
+					$workflow->performTasks($entityData,$relatedInfo);
+				}
 			}
 		}
 		$util->revertUser();

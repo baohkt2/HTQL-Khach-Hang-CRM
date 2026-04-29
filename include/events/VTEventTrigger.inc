@@ -142,7 +142,15 @@
 							require_once($eventInfo['handler_path']);
 							$handler = new $handler_class();
 
-							$handler->handleEvent($this->name, $data);
+							try {
+								$handler->handleEvent($this->name, $data);
+							} catch (Throwable $e) {
+								global $log;
+								if ($log) {
+									$log->error("Event handler $handler_class failed for {$this->name}: " . $e->getMessage());
+								}
+								error_log("Event handler $handler_class failed for {$this->name}: " . $e->getMessage());
+							}
 							$completedEvents[] = $handler_class;
 							$handlerCounter++;
 						} else {

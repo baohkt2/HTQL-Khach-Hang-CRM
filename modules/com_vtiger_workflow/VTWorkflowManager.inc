@@ -446,9 +446,14 @@ class Workflow{
 					try {
 						$task->doTask($entityData);
 					}
-					catch(Exception $e) {
-						echo " There seems to be some problem with workflow <b>".$this->description.'</b>';
-						die;
+					catch(Throwable $e) {
+						// Log the error but don't die - allow other workflows to continue
+						global $log;
+						if ($log) {
+							$log->error("Workflow task error in '" . $this->description . "' (WF#" . $this->id . ", Task#" . $task->id . "): " . $e->getMessage());
+						}
+						error_log("Workflow task error in '" . $this->description . "' (WF#" . $this->id . "): " . $e->getMessage());
+						continue;
 					}
 				} else {
 					$hasContents = $task->hasContents($entityData);

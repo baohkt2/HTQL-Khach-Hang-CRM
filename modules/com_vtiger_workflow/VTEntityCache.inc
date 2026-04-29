@@ -44,8 +44,16 @@ class VTWorkflowEntity{
 					}
 				}
 				$this->data = $data;
+				
+				require_once("include/Webservices/DataTransform.php");
+				$moduleHandler = vtws_getModuleHandlerFromName($this->getModuleName(), $user);
+				$meta = $moduleHandler->getMeta();
+				$data = DataTransform::mapColumnNamesToFieldNames($data, $meta);
+				
+				$this->data = $data;
 				VTEntityCache::setCachedEntity($id, $this);
 		}catch(Exception $ex) {
+			error_log("VTWorkflowEntity Constructor Error: " . $ex->getMessage());
 		}
 	}
 	/**
