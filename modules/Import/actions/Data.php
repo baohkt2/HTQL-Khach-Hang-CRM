@@ -339,14 +339,10 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 		$createRecordExists = method_exists($focus, 'importRecord');
 		if (!$createRecordExists) {
 			$queryGenerator = new QueryGenerator($moduleName, $this->user);
-			$customView = new CustomView($moduleName);
-			$viewId = $customView->getViewIdByName('All', $moduleName);
-			if (!empty($viewId)) {
-				$queryGenerator->initForCustomViewById($viewId);
-			} else {
-				$queryGenerator->initForDefaultCustomView();
-			}
-
+			// For duplicate checking during import, we should NOT use custom view filters
+			// as they may restrict the search results based on UI filters (like default view)
+			// which prevents finding existing records that match the merge criteria.
+			
 			$fieldsList = array('id');
 			$queryGenerator->setFields($fieldsList);
 
