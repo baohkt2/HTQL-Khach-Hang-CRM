@@ -27,11 +27,20 @@ class Leads_Record_Model extends Vtiger_Record_Model {
 
         $leadsModuleModel = Vtiger_Module_Model::getInstance('Leads');
         $deletedCondition = $leadsModuleModel->getDeletedRecordCondition();
-						
+		$searchValues = Vtiger_Util_Helper::getUnicodeSearchValues((string) $searchKey);
+		if (empty($searchValues)) {
+			$searchValues = array((string) $searchKey);
+		}
+		$labelConditions = array();
+		$params = array();
+		foreach ($searchValues as $value) {
+			$labelConditions[] = 'label LIKE ?';
+			$params[] = "%$value%";
+		}
+
 		$query = 'SELECT * FROM vtiger_crmentity
                     INNER JOIN vtiger_leaddetails ON vtiger_leaddetails.leadid = vtiger_crmentity.crmid
-                    WHERE label LIKE ? AND '.$deletedCondition;
-		$params = array("%$searchKey%");
+                    WHERE ('.implode(' OR ', $labelConditions).') AND '.$deletedCondition;
 		$result = $db->pquery($query, $params);
 		$noOfRows = $db->num_rows($result);
 

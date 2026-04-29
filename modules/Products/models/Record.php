@@ -442,19 +442,29 @@ class Products_Record_Model extends Vtiger_Record_Model {
 	 */
 	public static function getSearchResult($searchKey, $module=false) {
 		$db = PearDatabase::getInstance();
+		$searchValues = Vtiger_Util_Helper::getUnicodeSearchValues((string) $searchKey);
+		if (empty($searchValues)) {
+			$searchValues = array((string) $searchKey);
+		}
+		$labelConditions = array();
+		$params = array();
+		foreach ($searchValues as $value) {
+			$labelConditions[] = 'label LIKE ?';
+			$params[] = "%$value%";
+		}
+		$labelWhere = '(' . implode(' OR ', $labelConditions) . ')';
 
-		$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity WHERE label LIKE ? AND vtiger_crmentity.deleted = 0';
-		$params = array("%$searchKey%");
+		$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity WHERE '.$labelWhere.' AND vtiger_crmentity.deleted = 0';
 
 		if($module !== false) {
 			$query .= ' AND setype = ?';
 			if($module == 'Products'){
 				$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity INNER JOIN vtiger_products ON 
-							vtiger_products.productid = vtiger_crmentity.crmid WHERE label LIKE ? AND vtiger_crmentity.deleted = 0 
+							vtiger_products.productid = vtiger_crmentity.crmid WHERE '.$labelWhere.' AND vtiger_crmentity.deleted = 0 
 							AND vtiger_products.discontinued = 1 AND setype = ?';
 			}else if($module == 'Services'){
 				$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity INNER JOIN vtiger_service ON 
-							vtiger_service.serviceid = vtiger_crmentity.crmid WHERE label LIKE ? AND vtiger_crmentity.deleted = 0 
+							vtiger_service.serviceid = vtiger_crmentity.crmid WHERE '.$labelWhere.' AND vtiger_crmentity.deleted = 0 
 							AND vtiger_service.discontinued = 1 AND setype = ?';
 			}
 			$params[] = $module;

@@ -312,9 +312,18 @@ class Vtiger_Record_Model extends Vtiger_Base_Model {
 	 */
 	public static function getSearchResult($searchKey, $module=false) {
 		$db = PearDatabase::getInstance();
+		$searchValues = Vtiger_Util_Helper::getUnicodeSearchValues((string) $searchKey);
+		if (empty($searchValues)) {
+			$searchValues = array((string) $searchKey);
+		}
+		$labelConditions = array();
+		$params = array();
+		foreach ($searchValues as $value) {
+			$labelConditions[] = 'label LIKE ?';
+			$params[] = "%$value%";
+		}
 
-		$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity WHERE label LIKE ? AND vtiger_crmentity.deleted = 0';
-		$params = array("%$searchKey%");
+		$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity WHERE ('.implode(' OR ', $labelConditions).') AND vtiger_crmentity.deleted = 0';
 
 		if($module !== false) {
 			if (is_array($module)) {

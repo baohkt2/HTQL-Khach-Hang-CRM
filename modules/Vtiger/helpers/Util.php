@@ -117,6 +117,139 @@ class Vtiger_Util_Helper {
 		$allowableTags = '<a><br>';
 		return strip_tags((string) $input, $allowableTags);
 	}
+
+	public static function getUnicodeSearchValues($value) {
+		if (!is_string($value)) {
+			return array($value);
+		}
+		if ($value === '' || !preg_match('/[\x80-\xFF]/', $value)) {
+			return array($value);
+		}
+
+		$values = array($value);
+		$nfcValue = self::normalizeUnicodeValue($value, 'NFC');
+		if ($nfcValue !== null && $nfcValue !== $value) {
+			$values[] = $nfcValue;
+		}
+		$nfdValue = self::normalizeUnicodeValue($value, 'NFD');
+		if ($nfdValue !== null && $nfdValue !== $value) {
+			$values[] = $nfdValue;
+		}
+		$compatValue = self::normalizeVietnameseBaseDiacritics($nfdValue ?: $value);
+		if ($compatValue !== null && $compatValue !== $value) {
+			$values[] = $compatValue;
+		}
+
+		return array_values(array_unique($values));
+	}
+
+	public static function buildUnicodeLikeCondition($column, $value) {
+		$searchValues = self::getUnicodeSearchValues($value);
+		if (empty($searchValues)) {
+			$searchValues = array((string) $value);
+		}
+		$conditions = array();
+		$params = array();
+		foreach ($searchValues as $searchValue) {
+			$conditions[] = $column . ' LIKE ?';
+			$params[] = '%' . $searchValue . '%';
+		}
+		if (php7_count($conditions) === 1) {
+			return array($conditions[0], $params);
+		}
+		return array('(' . implode(' OR ', $conditions) . ')', $params);
+	}
+
+	private static function normalizeUnicodeValue($value, $form) {
+		if (!is_string($value) || $value === '') {
+			return null;
+		}
+
+		if (class_exists('Normalizer')) {
+			$targetForm = ($form === 'NFD') ? Normalizer::FORM_D : Normalizer::FORM_C;
+			$normalized = @Normalizer::normalize($value, $targetForm);
+			if ($normalized !== false && $normalized !== null) {
+				return $normalized;
+			}
+		}
+
+		if (!class_exists('Normalizer2')) {
+			$fallbackPath = dirname(__DIR__, 3) . '/libraries/ToAscii/Normalizer.php';
+			if (is_file($fallbackPath)) {
+				require_once $fallbackPath;
+			}
+		}
+
+		if (class_exists('Normalizer2')) {
+			$targetForm = ($form === 'NFD') ? Normalizer2::NFD : Normalizer2::NFC;
+			$normalized = @Normalizer2::normalize($value, $targetForm);
+			if ($normalized !== false && $normalized !== null) {
+				return $normalized;
+			}
+		}
+
+		return null;
+	}
+
+	private static function normalizeVietnameseBaseDiacritics($value) {
+		if (!is_string($value) || $value === '') {
+			return null;
+		}
+
+		$original = $value;
+		$value = self::recomposeVietnameseBaseDiacritic($value, 'a', array(
+			"\u{0306}" => "\u{0103}",
+			"\u{0302}" => "\u{00E2}",
+		));
+		$value = self::recomposeVietnameseBaseDiacritic($value, 'A', array(
+			"\u{0306}" => "\u{0102}",
+			"\u{0302}" => "\u{00C2}",
+		));
+		$value = self::recomposeVietnameseBaseDiacritic($value, 'e', array(
+			"\u{0302}" => "\u{00EA}",
+		));
+		$value = self::recomposeVietnameseBaseDiacritic($value, 'E', array(
+			"\u{0302}" => "\u{00CA}",
+		));
+		$value = self::recomposeVietnameseBaseDiacritic($value, 'o', array(
+			"\u{0302}" => "\u{00F4}",
+			"\u{031B}" => "\u{01A1}",
+		));
+		$value = self::recomposeVietnameseBaseDiacritic($value, 'O', array(
+			"\u{0302}" => "\u{00D4}",
+			"\u{031B}" => "\u{01A0}",
+		));
+		$value = self::recomposeVietnameseBaseDiacritic($value, 'u', array(
+			"\u{031B}" => "\u{01B0}",
+		));
+		$value = self::recomposeVietnameseBaseDiacritic($value, 'U', array(
+			"\u{031B}" => "\u{01AF}",
+		));
+
+		if ($value === $original) {
+			return null;
+		}
+		return $value;
+	}
+
+	private static function recomposeVietnameseBaseDiacritic($value, $base, array $map) {
+		$pattern = '/'.preg_quote($base, '/').'([\x{0300}-\x{036F}]*)/u';
+		return preg_replace_callback($pattern, function($matches) use ($map) {
+			$marks = $matches[1];
+			$replacement = null;
+			foreach ($map as $mark => $rep) {
+				if (strpos($marks, $mark) !== false) {
+					$replacement = $rep;
+					$marks = str_replace($mark, '', $marks);
+					break;
+				}
+			}
+			if ($replacement === null) {
+				return $matches[0];
+			}
+			return $replacement . $marks;
+		}, $value);
+	}
 	/**
 	 * Function to validate the input with given pattern.
 	 * @param <String> $string

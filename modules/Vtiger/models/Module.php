@@ -1475,7 +1475,8 @@ class Vtiger_Module_Model extends Vtiger_Module {
 	 */
 	public function getSearchRecordsQuery($searchValue,$searchFields, $parentId=false, $parentModule=false) {
         $db = PearDatabase::getInstance();
-        $query = $db->convert2Sql("SELECT ".implode(',',$searchFields)." FROM vtiger_crmentity WHERE label LIKE ? AND vtiger_crmentity.deleted = 0", array("%$searchValue%"));
+		list($labelSql, $labelParams) = Vtiger_Util_Helper::buildUnicodeLikeCondition('label', $searchValue);
+        $query = $db->convert2Sql("SELECT ".implode(',',$searchFields)." FROM vtiger_crmentity WHERE $labelSql AND vtiger_crmentity.deleted = 0", $labelParams);
 		return $query;
 	}
 

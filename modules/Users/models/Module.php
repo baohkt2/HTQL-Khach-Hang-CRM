@@ -45,11 +45,11 @@ class Users_Module_Model extends Vtiger_Module_Model {
 	public function searchRecord($searchValue, $parentId=false, $parentModule=false, $relatedModule=false) {
 		if(!empty($searchValue)) {
 			$db = PearDatabase::getInstance();
-
-			$query = 'SELECT * FROM vtiger_users WHERE userlabel LIKE ? AND status = ?';
+			list($labelSql, $labelParams) = Vtiger_Util_Helper::buildUnicodeLikeCondition('vtiger_users.userlabel', $searchValue);
+			$query = 'SELECT * FROM vtiger_users WHERE '.$labelSql.' AND status = ?';
 			$currentUser = Users_Record_Model::getCurrentUserModel();
 			$allSubordinates = $currentUser->getAllSubordinatesByReportsToField($currentUser->getId());
-			$params = array("%$searchValue%", 'Active');
+			$params = array_merge($labelParams, array('Active'));
 
 			// do not allow the subordinates
 			if(php7_count($allSubordinates) > 0) {

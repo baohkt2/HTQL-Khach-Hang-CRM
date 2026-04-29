@@ -1001,6 +1001,25 @@ class QueryGenerator {
 		} else{
 			$valueArray = array($value);
 		}
+		$shouldNormalizeUnicode = ($this->isStringType($field->getFieldDataType()) ||
+			in_array($field->getFieldDataType(), array('picklist', 'multipicklist', 'owner')));
+		$unicodeSearchOperators = array('e', 's', 'ew', 'c');
+		if ($shouldNormalizeUnicode && in_array($operator, $unicodeSearchOperators, true)) {
+			$normalizedValues = array();
+			foreach ($valueArray as $rawValue) {
+				if (!is_string($rawValue) || $rawValue === '') {
+					$normalizedValues[] = $rawValue;
+					continue;
+				}
+				$variants = Vtiger_Util_Helper::getUnicodeSearchValues($rawValue);
+				foreach ($variants as $variant) {
+					$normalizedValues[] = $variant;
+				}
+			}
+			if (!empty($normalizedValues)) {
+				$valueArray = array_values(array_unique($normalizedValues));
+			}
+		}
 		$sql = array();
 		if($operator == 'between' || $operator == 'bw' || $operator == 'notequal') {
 			if($field->getFieldName() == 'birthday') {
@@ -1055,11 +1074,21 @@ class QueryGenerator {
 		// "contains one of" operator: split comma-separated values, generate LIKE for each
 		if ($operator == 'ct') {
 			$rawValues = is_string($value) ? explode(',', $value) : (array)$value;
+			$searchValues = array();
 			foreach ($rawValues as $v) {
 				$v = trim($v);
-				if ($v === '') continue;
-				$v = $db->sql_escape_string($v);
-				$sql[] = "LIKE '%{$v}%'";
+				if ($v === '') {
+					continue;
+				}
+				$variants = $shouldNormalizeUnicode ? Vtiger_Util_Helper::getUnicodeSearchValues($v) : array($v);
+				foreach ($variants as $variant) {
+					$searchValues[] = $variant;
+				}
+			}
+			$searchValues = array_values(array_unique($searchValues));
+			foreach ($searchValues as $searchValue) {
+				$searchValue = $db->sql_escape_string($searchValue);
+				$sql[] = "LIKE '%{$searchValue}%'";
 			}
 			return $sql;
 		}

@@ -370,14 +370,15 @@ class Potentials_Module_Model extends Vtiger_Module_Model {
 	public function getSearchRecordsQuery($searchValue,$searchFields, $parentId=false, $parentModule=false) {
         $db = PearDatabase::getInstance();
 		if($parentId && in_array($parentModule, array('Accounts', 'Contacts'))) {
+			list($labelSql, $labelParams) = Vtiger_Util_Helper::buildUnicodeLikeCondition('label', $searchValue);
 			$query = "SELECT ".implode(',',$searchFields)." FROM vtiger_crmentity
 						INNER JOIN vtiger_potential ON vtiger_potential.potentialid = vtiger_crmentity.crmid
-						WHERE deleted = 0 AND vtiger_potential.related_to = ? AND label like ?";
-			$params = array($parentId, "%$searchValue%");
+						WHERE deleted = 0 AND vtiger_potential.related_to = ? AND $labelSql";
+			$params = array_merge(array($parentId), $labelParams);
             $returnQuery = $db->convert2Sql($query, $params);
             return $returnQuery;
 		}
-		return parent::getSearchRecordsQuery($parentId, $parentModule);
+		return parent::getSearchRecordsQuery($searchValue, $searchFields, $parentId, $parentModule);
 	}
     
     /**
