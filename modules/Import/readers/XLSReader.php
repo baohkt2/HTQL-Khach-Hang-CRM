@@ -176,6 +176,17 @@ class Import_XLSReader_Reader extends Import_FileReader_Reader {
 			$fieldMapping = Zend_Json::decode($fieldMapping);
 		}
 
+		$dateFields = array();
+		$moduleFields = $this->moduleModel->getFields();
+		$moduleImportableFields = $this->moduleModel->getAdditionalImportFields();
+		$moduleFields = array_merge($moduleFields, $moduleImportableFields);
+		foreach ($moduleFields as $fieldName => $fieldModel) {
+			$dataType = $fieldModel->getFieldDataType();
+			if ($dataType == 'date' || $dataType == 'datetime') {
+				$dateFields[$fieldName] = $dataType;
+			}
+		}
+
 		$hasHeader = $this->hasHeader();
 		$startRow  = $hasHeader ? 1 : 0;
 
@@ -186,6 +197,24 @@ class Import_XLSReader_Reader extends Import_FileReader_Reader {
 
 			foreach ($fieldMapping as $fieldName => $index) {
 				$fieldValue = isset($data[$index]) ? $data[$index] : '';
+
+				// Handle Excel Serial Dates if target field is a date/datetime field
+				if (isset($dateFields[$fieldName]) && is_numeric($fieldValue) && $fieldValue !== '') {
+					// Check if it's likely a serial date (numeric and doesn't contain date separators)
+					if (strpos($fieldValue, '-') === false && strpos($fieldValue, '/') === false) {
+						try {
+							$timestamp = PHPExcel_Shared_Date::ExcelToPHP($fieldValue);
+							if ($dateFields[$fieldName] == 'datetime') {
+								$fieldValue = date('m/d/Y H:i:s', $timestamp);
+							} else {
+								$fieldValue = date('m/d/Y', $timestamp);
+							}
+						} catch (\Throwable $e) {
+							// Fallback to original value if conversion fails
+						}
+					}
+				}
+
 				$mappedData[$fieldName] = $fieldValue;
 				if ($fieldValue !== '') {
 					$allValuesEmpty = false;
