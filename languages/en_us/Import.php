@@ -83,6 +83,9 @@ $languageStrings = array(
 	'LBL_DETAILS' => 'Details',
 	'skipped' => 'Skipped Records',
 	'failed' => 'Failed Records',
+	'merged' => 'Merged Records',
+	'updated' => 'Updated Records',
+	'LBL_RECORD_ID' => 'Record ID',
 	
         'LBL_IMPORT_LINEITEMS_CURRENCY'=> 'Currency(For Line Items Fields)',
         'LBL_USE_SAVED_MAPS'=>'Use Saved Maps',

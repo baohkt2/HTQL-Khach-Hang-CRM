@@ -32,6 +32,8 @@
                     data-updated-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_UPDATED', $MODULE))}"
                     data-skipped-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_SKIPPED', $MODULE))}"
                     data-failed-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_FAILED', $MODULE))}"
+                    data-merged-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('merged', $MODULE))}"
+                    data-details-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_DETAILS', $MODULE))}"
                     data-cancel-import-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_CANCEL_IMPORT', $MODULE))}"
                     data-finish-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_FINISH_BUTTON_LABEL', $MODULE))}"
                     data-import-more-label="{Vtiger_Util_Helper::toSafeHTML(vtranslate('LBL_IMPORT_MORE', $MODULE))}"

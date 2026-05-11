@@ -16,6 +16,8 @@ if (typeof Vtiger_Import_Js == "undefined") {
       LBL_UPDATED: "updatedLabel",
       LBL_SKIPPED: "skippedLabel",
       LBL_FAILED: "failedLabel",
+      merged: "mergedLabel",
+      LBL_DETAILS: "detailsLabel",
       LBL_CANCEL_IMPORT: "cancelImportLabel",
       LBL_FINISH_BUTTON_LABEL: "finishLabel",
       LBL_IMPORT_MORE: "importMoreLabel",
@@ -77,6 +79,26 @@ if (typeof Vtiger_Import_Js == "undefined") {
       }
 
       return translatedValue;
+    },
+    getImportTargetModule: function () {
+      var advancedModule = jQuery("form[name='importAdvanced'] input[name='module']").val();
+      var basicModule = jQuery("form[name='importBasic'] input[name='module']").val();
+      return advancedModule || basicModule || app.getModuleName();
+    },
+    buildImportDetailsUrl: function (type) {
+      var forModule = Vtiger_Import_Js.getImportTargetModule();
+      var forUserId = typeof app.getUserId === "function" ? app.getUserId() : "";
+      var url =
+        "index.php?module=Import&view=List&mode=getImportDetails&type=" +
+        encodeURIComponent(type) +
+        "&start=1&_showContents=0";
+      if (forUserId) {
+        url += "&foruser=" + encodeURIComponent(forUserId);
+      }
+      if (forModule) {
+        url += "&for_module=" + encodeURIComponent(forModule);
+      }
+      return url;
     },
     triggerImportAction: function (url) {
       var params = Vtiger_Import_Js.getDefaultParams();
@@ -249,6 +271,9 @@ if (typeof Vtiger_Import_Js == "undefined") {
         "  #importProgressOverlay .ip-success-icon i { font-size: 40px; color: #2e7d32; }" +
         "  #importProgressOverlay .ip-success-title { width: 100%; font-size: 22px; font-weight: 700; color: #222; margin-bottom: 8px; text-align: center; }" +
         "  #importProgressOverlay .ip-success-summary { width: 100%; font-size: 14px; color: #666; margin-bottom: 24px; line-height: 1.6; text-align: center; }" +
+        "  #importProgressOverlay .ip-success-details { width: 100%; margin: 0 auto 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }" +
+        "  #importProgressOverlay .ip-detail-link { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid #dfe3e8; font-size: 12px; color: #444; background: #fff; text-decoration: none; }" +
+        "  #importProgressOverlay .ip-detail-link:hover { background: #f5f7fa; }" +
         "  #importProgressOverlay .ip-success-actions { width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px; margin: 0 auto 16px; }" +
         "  #importProgressOverlay .ip-btn { padding: 9px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }" +
         "  #importProgressOverlay .ip-btn-primary { background: #1a73e8; color: #fff; }" +
@@ -266,6 +291,7 @@ if (typeof Vtiger_Import_Js == "undefined") {
         translate("LBL_IMPORT_SUCCESS") +
         "</div>" +
         '    <div class="ip-success-summary" id="ipSuccessSummary"></div>' +
+        '    <div class="ip-success-details" id="ipSuccessDetails"></div>' +
         '    <div class="ip-success-actions">' +
         '      <button class="ip-btn ip-btn-primary" id="ipFinishBtn"><i class="fa fa-check"></i> ' +
         translate("LBL_FINISH_BUTTON_LABEL") +
@@ -509,6 +535,7 @@ if (typeof Vtiger_Import_Js == "undefined") {
       var created = data.created || 0;
       var updated = data.updated || 0;
       var skipped = data.skipped || 0;
+      var merged = data.merged || 0;
       var failed = data.failed || 0;
       var total = data.total || 0;
       var elapsed = (Date.now() - Vtiger_Import_Js._importStartTime) / 1000;
@@ -546,6 +573,14 @@ if (typeof Vtiger_Import_Js == "undefined") {
             Vtiger_Import_Js.getImportTranslation("LBL_SKIPPED").toLowerCase() +
             "</span>",
         );
+      if (merged > 0)
+        details.push(
+          '<span style="color:#6a1b9a">' +
+            merged +
+            " " +
+            Vtiger_Import_Js.getImportTranslation("merged").toLowerCase() +
+            "</span>",
+        );
       if (failed > 0)
         details.push(
           '<span style="color:#c62828">' +
@@ -556,6 +591,52 @@ if (typeof Vtiger_Import_Js == "undefined") {
         );
       if (details.length > 0) summaryLines.push(details.join(" &middot; "));
       jQuery("#ipSuccessSummary").html(summaryLines.join("<br>"));
+
+      var detailLinks = [];
+      var detailItems = [
+        {
+          type: "created",
+          count: created,
+          label: Vtiger_Import_Js.getImportTranslation("LBL_CREATED"),
+        },
+        {
+          type: "updated",
+          count: updated,
+          label: Vtiger_Import_Js.getImportTranslation("LBL_UPDATED"),
+        },
+        {
+          type: "merged",
+          count: merged,
+          label: Vtiger_Import_Js.getImportTranslation("merged"),
+        },
+      ];
+      detailItems.forEach(function (item) {
+        if (item.count > 0) {
+          detailLinks.push(
+            '<a href="#" class="ip-detail-link" data-type="' +
+              item.type +
+              '">' +
+              item.label +
+              " (" +
+              item.count +
+              ")</a>",
+          );
+        }
+      });
+      console.log('[Import Debug] Detail links count:', detailLinks.length, 'Created:', created, 'Updated:', updated, 'Merged:', merged);
+      if (detailLinks.length > 0) {
+        jQuery("#ipSuccessDetails").html(detailLinks.join(""));
+        jQuery("#ipSuccessDetails")
+          .off("click", ".ip-detail-link")
+          .on("click", ".ip-detail-link", function (event) {
+            event.preventDefault();
+            var type = jQuery(this).data("type");
+            var detailsUrl = Vtiger_Import_Js.buildImportDetailsUrl(type);
+            Vtiger_Import_Js.showPopup(detailsUrl);
+          });
+      } else {
+        jQuery("#ipSuccessDetails").empty();
+      }
 
       // Show success overlay
       jQuery("#ipSuccessOverlay").addClass("show");
@@ -576,8 +657,8 @@ if (typeof Vtiger_Import_Js == "undefined") {
         Vtiger_Import_Js.showImportActionStepOne();
       });
 
-      // Auto-close countdown (5 seconds)
-      var seconds = 5;
+      // Auto-close countdown (30 seconds)
+      var seconds = 30;
       jQuery("#ipCountdown").text(
         Vtiger_Import_Js.getImportTranslation("LBL_AUTO_CLOSE_IN").replace(
           "{s}",
@@ -898,6 +979,12 @@ if (typeof Vtiger_Import_Js == "undefined") {
       this.showPopup(url);
     },
     showSkippedRecords: function (url) {
+      this.showPopup(url);
+    },
+    showUpdatedRecords: function (url) {
+      this.showPopup(url);
+    },
+    showMergedRecords: function (url) {
       this.showPopup(url);
     },
     showFailedImportRecords: function (url) {

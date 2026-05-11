@@ -125,9 +125,14 @@ class Import_List_View extends Vtiger_Popup_View{
 		$viewer = $this->getViewer($request);
 		$moduleName = $request->getModule();
 		$user = Users_Record_Model::getCurrentUserModel();
-		$importRecords= Import_Data_Action::getImportDetails($user, $request->get('for_module'));
+		$type = $request->get('type');
+		$typeNormalized = strtolower((string) $type);
+		$forModule = $request->get('for_module');
+		$importRecords= Import_Data_Action::getImportDetails($user, $forModule, $type);
 		$viewer->assign('IMPORT_RECORDS', $importRecords);
-		$viewer->assign('TYPE',$request->get('type'));
+		$viewer->assign('TYPE',$type);
+		$viewer->assign('FOR_MODULE', $forModule);
+		$viewer->assign('SHOW_RECORD_ID', in_array($typeNormalized, array('created', 'merged', 'updated'), true));
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->view('ImportDetails.tpl', 'Import');
 

@@ -10808,3 +10808,23 @@ FileAccessForInclusion -
 /var/www/html/cusc/modules/Reports/ReportRun.php::GenerateReport::5173<br>
 /tmp/report_export_adv_header_smoke.php::writeReportToCSVFile::16<br>
 
+Traced on 2026-04-27 12:44:51
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/include/utils/ListViewUtils.php::getInstance::782<br>
+/var/www/html/cusc/modules/Reports/ReportRun.php::listQueryNonAdminChange::3049<br>
+/var/www/html/cusc/modules/Reports/ReportRun.php::sGetSQLforReport::3132<br>
+/var/www/html/cusc/modules/Reports/models/Record.php::GenerateReport::793<br>
+Command line code::getReportData::1<br>
+
+Traced on 2026-04-27 12:45:04
+FileAccessForInclusion - 
+/var/www/html/cusc/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/cusc/data/CRMEntity.php::checkFileAccessForInclusion::59<br>
+/var/www/html/cusc/include/utils/ListViewUtils.php::getInstance::782<br>
+/var/www/html/cusc/modules/Reports/ReportRun.php::listQueryNonAdminChange::3049<br>
+/var/www/html/cusc/modules/Reports/ReportRun.php::sGetSQLforReport::3132<br>
+/var/www/html/cusc/modules/Reports/models/Record.php::GenerateReport::793<br>
+Command line code::getReportData::1<br>
+

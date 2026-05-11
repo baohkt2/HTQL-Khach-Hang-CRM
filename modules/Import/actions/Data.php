@@ -1199,10 +1199,25 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 	 * @parms $user <User Record Model> Current Users
 	 * @returns <Array> Import Records with the list of skipped records and failed records
 	 */
-	public static function getImportDetails($user, $moduleName) {
+	public static function getImportDetails($user, $moduleName, $type = null) {
 		$adb = PearDatabase::getInstance();
 		$tableName = Import_Utils_Helper::getDbTableName($user);
-		$result = $adb->pquery("SELECT * FROM $tableName where status IN (?,?)", array(self::$IMPORT_RECORD_SKIPPED, self::$IMPORT_RECORD_FAILED));
+		$type = strtolower((string) $type);
+		$statusMap = array(
+			'created' => self::$IMPORT_RECORD_CREATED,
+			'skipped' => self::$IMPORT_RECORD_SKIPPED,
+			'failed' => self::$IMPORT_RECORD_FAILED,
+			'merged' => self::$IMPORT_RECORD_MERGED,
+			'updated' => self::$IMPORT_RECORD_UPDATED,
+		);
+		if (isset($statusMap[$type])) {
+			$statusList = array($statusMap[$type]);
+		} else {
+			$statusList = array(self::$IMPORT_RECORD_SKIPPED, self::$IMPORT_RECORD_FAILED);
+			$type = '';
+		}
+		$placeholders = implode(',', array_fill(0, php7_count($statusList), '?'));
+		$result = $adb->pquery("SELECT * FROM $tableName where status IN ($placeholders)", $statusList);
 		$importRecords = array();
 		if ($result) {
 			$moduleModel = Vtiger_Module_Model::getInstance($moduleName);
@@ -1220,7 +1235,10 @@ class Import_Data_Action extends Vtiger_Action_Controller {
 				foreach ($importRecords['headers'] as $header) {
 					$record->set($header->getName(), $row[$header->getName()]);
 				}
-				if ($row['status'] == self::$IMPORT_RECORD_SKIPPED) {
+				$record->set('recordid', $row['recordid']);
+				if (!empty($type)) {
+					$importRecords[$type][] = $record;
+				} elseif ($row['status'] == self::$IMPORT_RECORD_SKIPPED) {
 					$importRecords['skipped'][] = $record;
 				} else {
 					$importRecords['failed'][] = $record;
