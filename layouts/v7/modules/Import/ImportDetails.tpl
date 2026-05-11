@@ -27,7 +27,8 @@
 							</tr>
 						</thead>
 						{foreach item=RECORD from=$IMPORT_RESULT_DATA}
-							<tr class="listViewEntries">
+							{assign var=ROW_RECORD_ID value=$RECORD->get('recordid')}
+							<tr class="listViewEntries{if $SHOW_RECORD_ID && $ROW_RECORD_ID} importDetailRowClickable{/if}"{if $SHOW_RECORD_ID && $ROW_RECORD_ID} data-detail-url="index.php?module={$FOR_MODULE}&view=Detail&record={$ROW_RECORD_ID}"{/if}>
 								{if $SHOW_RECORD_ID}
 									{assign var=MERGED_RECORD_ID value=$RECORD->get('recordid')}
 									<td>
@@ -50,3 +51,18 @@
 		</div>
 	</div>
 </div>
+<script type="text/javascript">
+	jQuery(function () {
+		jQuery(document)
+			.off("click.importDetailOpen", ".import-details-container .importDetailRowClickable")
+			.on("click.importDetailOpen", ".import-details-container .importDetailRowClickable", function (event) {
+				if (jQuery(event.target).closest("a").length) {
+					return;
+				}
+				var detailUrl = jQuery(this).data("detail-url");
+				if (detailUrl) {
+					window.open(detailUrl, "_blank");
+				}
+			});
+	});
+</script>

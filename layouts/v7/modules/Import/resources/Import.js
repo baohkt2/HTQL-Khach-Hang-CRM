@@ -362,8 +362,28 @@ if (typeof Vtiger_Import_Js == "undefined") {
         "</div>";
 
       app.helper.loadPageContentOverlay(html).then(function () {
-        jQuery("#ipCancelBtn").on("click", function () {
-          Vtiger_Import_Js.cancelImportFromProgress();
+        // Hide the cancel button - user should only close via Finish
+        jQuery("#ipCancelBtn").hide();
+
+        // Prevent closing by clicking outside the modal (backdrop)
+        var $overlayWrapper = jQuery("#importProgressOverlay").closest(".fc-overlay");
+        if ($overlayWrapper.length) {
+          $overlayWrapper.off("click.importPrevent").on("click.importPrevent", function (e) {
+            if (!jQuery(e.target).closest("#importProgressOverlay").length) {
+              e.stopImmediatePropagation();
+              e.preventDefault();
+            }
+          });
+        }
+
+        // Prevent Esc key from closing overlay while this import overlay is active
+        jQuery(document).off("keydown.importPrevent").on("keydown.importPrevent", function (e) {
+          if (e.key === "Escape" || e.keyCode === 27) {
+            if (jQuery("#importProgressOverlay").closest(".fc-overlay").length) {
+              e.stopImmediatePropagation();
+              e.preventDefault();
+            }
+          }
         });
       });
     },
@@ -649,37 +669,24 @@ if (typeof Vtiger_Import_Js == "undefined") {
       // Bind action buttons
       jQuery("#ipFinishBtn").on("click", function () {
         Vtiger_Import_Js._clearAutoClose();
+        // Remove overlay-prevent handlers
+        jQuery(document).off("keydown.importPrevent");
+        var $overlayWrapper = jQuery("#importProgressOverlay").closest(".fc-overlay");
+        if ($overlayWrapper.length) $overlayWrapper.off("click.importPrevent");
         app.helper.hidePageContentOverlay();
         Vtiger_Import_Js.loadListRecords();
       });
       jQuery("#ipImportMoreBtn").on("click", function () {
         Vtiger_Import_Js._clearAutoClose();
+        // Remove overlay-prevent handlers
+        jQuery(document).off("keydown.importPrevent");
+        var $overlayWrapper = jQuery("#importProgressOverlay").closest(".fc-overlay");
+        if ($overlayWrapper.length) $overlayWrapper.off("click.importPrevent");
         Vtiger_Import_Js.showImportActionStepOne();
       });
 
-      // Auto-close countdown (30 seconds)
-      var seconds = 30;
-      jQuery("#ipCountdown").text(
-        Vtiger_Import_Js.getImportTranslation("LBL_AUTO_CLOSE_IN").replace(
-          "{s}",
-          seconds,
-        ),
-      );
-      Vtiger_Import_Js._autoCloseTimer = setInterval(function () {
-        seconds--;
-        if (seconds <= 0) {
-          Vtiger_Import_Js._clearAutoClose();
-          app.helper.hidePageContentOverlay();
-          Vtiger_Import_Js.loadListRecords();
-        } else {
-          jQuery("#ipCountdown").text(
-            Vtiger_Import_Js.getImportTranslation("LBL_AUTO_CLOSE_IN").replace(
-              "{s}",
-              seconds,
-            ),
-          );
-        }
-      }, 1000);
+      // Auto-close is disabled; keep popup open until user clicks an action.
+      jQuery("#ipCountdown").empty();
     },
 
     /**
