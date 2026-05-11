@@ -686,6 +686,35 @@ class Leads extends CRMEntity {
 			$tableColumnsString = implode(',', $tableColumns);
 		}
 		$selectClause = "SELECT " . $this->table_name . "." . $this->table_index . " AS recordid," . $tableColumnsString;
+		$collateDataTypes = array('string', 'text', 'email', 'phone', 'url', 'picklist', 'multipicklist', 'skype');
+		$duplicateSelectColumns = array();
+		$groupByColumns = array();
+		$orderByColumns = array();
+		$comparisonColumns = array();
+		if (is_array($tableColumns)) {
+			foreach ($tableColumns as $tableColumn) {
+				$tableInfo = explode('.', $tableColumn);
+				$columnAlias = $tableInfo[1];
+				$fieldDataType = ($columnTypes && isset($columnTypes[$tableColumn])) ? $columnTypes[$tableColumn] : null;
+				$useUnicodeCollation = $fieldDataType && in_array($fieldDataType, $collateDataTypes);
+				if ($useUnicodeCollation) {
+					$collatedExpression = "$tableColumn COLLATE utf8_unicode_ci";
+					$duplicateSelectColumns[] = $collatedExpression . " AS " . $columnAlias;
+					$groupByColumns[] = $collatedExpression;
+					$orderByColumns[] = $collatedExpression;
+					$comparisonColumns[] = " ifnull($collatedExpression,'null') = ifnull(temp.$columnAlias,'null')";
+				} else {
+					$duplicateSelectColumns[] = $tableColumn;
+					$groupByColumns[] = $tableColumn;
+					$orderByColumns[] = $tableColumn;
+					$comparisonColumns[] = " ifnull($tableColumn,'null') = ifnull(temp.$columnAlias,'null')";
+				}
+			}
+		}
+		$duplicateSelectColumnsString = !empty($duplicateSelectColumns) ? implode(',', $duplicateSelectColumns) : $tableColumnsString;
+		$groupByColumnsString = !empty($groupByColumns) ? implode(',', $groupByColumns) : $tableColumnsString;
+		$orderByColumnsString = !empty($orderByColumns) ? implode(',', $orderByColumns) : $tableColumnsString;
+		$duplicateCheckClause = !empty($comparisonColumns) ? implode(' AND ', $comparisonColumns) : '';
 
 		// Select Custom Field Table Columns if present
 		if (isset($this->customFieldTable))
@@ -728,21 +757,14 @@ class Leads extends CRMEntity {
 			}
 			$sub_query .= " WHERE crm.deleted=0 GROUP BY $selectedColumns HAVING COUNT(*)>1";
 		} else {
-			$sub_query = "SELECT $tableColumnsString $fromClause $whereClause GROUP BY $tableColumnsString HAVING COUNT(*)>1";
-		}
-
-		$i = 1;
-		foreach($tableColumns as $tableColumn){
-			$tableInfo = explode('.', $tableColumn);
-			$duplicateCheckClause .= " ifnull($tableColumn,'null') = ifnull(temp.$tableInfo[1],'null')";
-			if (php7_count($tableColumns) != $i++) $duplicateCheckClause .= " AND ";
+			$sub_query = "SELECT $duplicateSelectColumnsString $fromClause $whereClause GROUP BY $groupByColumnsString HAVING COUNT(*)>1";
 		}
 
 		$query = $selectClause . $fromClause .
 				" LEFT JOIN vtiger_users_last_import ON vtiger_users_last_import.bean_id=" . $this->table_name . "." . $this->table_index .
 				" INNER JOIN (" . $sub_query . ") AS temp ON " . $duplicateCheckClause .
 				$whereClause .
-				" ORDER BY $tableColumnsString," . $this->table_name . "." . $this->table_index . " ASC";
+				" ORDER BY $orderByColumnsString," . $this->table_name . "." . $this->table_index . " ASC";
 		return $query;
 	}
 
