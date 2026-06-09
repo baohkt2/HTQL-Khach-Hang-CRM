@@ -10828,3 +10828,337 @@ FileAccessForInclusion -
 /var/www/html/cusc/modules/Reports/models/Record.php::GenerateReport::793<br>
 Command line code::getReportData::1<br>
 
+Traced on 2026-06-09 11:50:54
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 11:55:13
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Record.php::retrieveCurrentUserInfoFromFile::844<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Privileges.php::getInstanceFromPreferenceFile::188<br>
+C:\xampp\htdocs\cusc\test\templates_c\v7\fb1607cccff8c4cd4056077f42068177a906a872_0.file.ListViewRecordActions.tpl.php::isPermittedToChangeUsername::27<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_resource_base.php::content_6a279cb1856417_71969435::123<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_compiled.php::getRenderedTemplateCode::114<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::217<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::386<br>
+C:\xampp\htdocs\cusc\test\templates_c\v7\653bb98200438ae676eda5f1bcde8eaeabdda4ce_0.file.ListViewContents.tpl.php::_subTemplateRender::94<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_resource_base.php::content_6a279cb05dab49_56177195::123<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_compiled.php::getRenderedTemplateCode::114<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::217<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_templatebase.php::render::238<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_templatebase.php::_execute::134<br>
+C:\xampp\htdocs\cusc\includes\runtime\Viewer.php::display::226<br>
+C:\xampp\htdocs\cusc\modules\Users\views\List.php::view::31<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::process::221<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 11:55:19
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Record.php::retrieveCurrentUserInfoFromFile::844<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Privileges.php::getInstanceFromPreferenceFile::188<br>
+C:\xampp\htdocs\cusc\test\templates_c\v7\fb1607cccff8c4cd4056077f42068177a906a872_0.file.ListViewRecordActions.tpl.php::isPermittedToChangeUsername::27<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_resource_base.php::content_6a279cb1856417_71969435::123<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_compiled.php::getRenderedTemplateCode::114<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::217<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::386<br>
+C:\xampp\htdocs\cusc\test\templates_c\v7\653bb98200438ae676eda5f1bcde8eaeabdda4ce_0.file.ListViewContents.tpl.php::_subTemplateRender::94<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_resource_base.php::content_6a279cb05dab49_56177195::123<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_compiled.php::getRenderedTemplateCode::114<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::217<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_templatebase.php::render::238<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_templatebase.php::_execute::134<br>
+C:\xampp\htdocs\cusc\includes\runtime\Viewer.php::display::226<br>
+C:\xampp\htdocs\cusc\modules\Users\views\List.php::view::31<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::process::221<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 11:59:18
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Record.php::retrieveCurrentUserInfoFromFile::844<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Privileges.php::getInstanceFromPreferenceFile::188<br>
+C:\xampp\htdocs\cusc\test\templates_c\v7\fb1607cccff8c4cd4056077f42068177a906a872_0.file.ListViewRecordActions.tpl.php::isPermittedToChangeUsername::27<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_resource_base.php::content_6a279cb1856417_71969435::123<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_compiled.php::getRenderedTemplateCode::114<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::217<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::386<br>
+C:\xampp\htdocs\cusc\test\templates_c\v7\653bb98200438ae676eda5f1bcde8eaeabdda4ce_0.file.ListViewContents.tpl.php::_subTemplateRender::94<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_resource_base.php::content_6a279cb05dab49_56177195::123<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_compiled.php::getRenderedTemplateCode::114<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::217<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_templatebase.php::render::238<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_templatebase.php::_execute::134<br>
+C:\xampp\htdocs\cusc\includes\runtime\Viewer.php::display::226<br>
+C:\xampp\htdocs\cusc\modules\Users\views\List.php::view::31<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::process::221<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 11:59:58
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::retrieveCurrentUserInfoFromFile::1495<br>
+C:\xampp\htdocs\cusc\modules\com_vtiger_workflow\VTWorkflowUtils.php::getActiveAdminUser::125<br>
+C:\xampp\htdocs\cusc\modules\com_vtiger_workflow\VTEventHandler.inc::adminUser::42<br>
+C:\xampp\htdocs\cusc\include\events\VTEventTrigger.inc::handleEvent::146<br>
+C:\xampp\htdocs\cusc\include\events\VTEventsManager.inc::trigger::120<br>
+C:\xampp\htdocs\cusc\data\CRMEntity.php::triggerEvent::1016<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::save::1109<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Module.php::save::292<br>
+C:\xampp\htdocs\cusc\modules\Vtiger\models\Record.php::saveRecord::259<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Record.php::save::155<br>
+C:\xampp\htdocs\cusc\modules\Vtiger\actions\Save.php::save::117<br>
+C:\xampp\htdocs\cusc\modules\Users\actions\Save.php::saveRecord::150<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::process::221<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:00:32
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:00:34
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:01
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:03
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:05
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:06
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:06
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:07
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:08
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:09
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:10
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:12
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:16
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:17
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:17
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:18
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:22
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::retrieveCurrentUserInfoFromFile::47<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::getLogin::104<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:01:57
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Record.php::retrieveCurrentUserInfoFromFile::844<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Privileges.php::getInstanceFromPreferenceFile::188<br>
+C:\xampp\htdocs\cusc\test\templates_c\v7\fb1607cccff8c4cd4056077f42068177a906a872_0.file.ListViewRecordActions.tpl.php::isPermittedToChangeUsername::27<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_resource_base.php::content_6a279cb1856417_71969435::123<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_compiled.php::getRenderedTemplateCode::114<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::217<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::386<br>
+C:\xampp\htdocs\cusc\test\templates_c\v7\653bb98200438ae676eda5f1bcde8eaeabdda4ce_0.file.ListViewContents.tpl.php::_subTemplateRender::94<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_resource_base.php::content_6a279cb05dab49_56177195::123<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_compiled.php::getRenderedTemplateCode::114<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::217<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_templatebase.php::render::238<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_templatebase.php::_execute::134<br>
+C:\xampp\htdocs\cusc\includes\runtime\Viewer.php::display::226<br>
+C:\xampp\htdocs\cusc\modules\Users\views\List.php::view::31<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::process::221<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:10:17
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::checkFileAccessForInclusion::25<br>
+C:\xampp\htdocs\cusc\vtlib\Vtiger\AccessControl.php::loadUserPrivilegesWithId::44<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::loadUserPrivileges::648<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Record.php::retrieveCurrentUserInfoFromFile::844<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Privileges.php::getInstanceFromPreferenceFile::188<br>
+C:\xampp\htdocs\cusc\test\templates_c\v7\fb1607cccff8c4cd4056077f42068177a906a872_0.file.ListViewRecordActions.tpl.php::isPermittedToChangeUsername::27<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_resource_base.php::content_6a279cb1856417_71969435::123<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_compiled.php::getRenderedTemplateCode::114<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::217<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::386<br>
+C:\xampp\htdocs\cusc\test\templates_c\v7\653bb98200438ae676eda5f1bcde8eaeabdda4ce_0.file.ListViewContents.tpl.php::_subTemplateRender::94<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_resource_base.php::content_6a279cb05dab49_56177195::123<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_template_compiled.php::getRenderedTemplateCode::114<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_template.php::render::217<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_templatebase.php::render::238<br>
+C:\xampp\htdocs\cusc\vendor\smarty\smarty\libs\sysplugins\smarty_internal_templatebase.php::_execute::134<br>
+C:\xampp\htdocs\cusc\includes\runtime\Viewer.php::display::226<br>
+C:\xampp\htdocs\cusc\modules\Users\views\List.php::view::31<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::process::221<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+
+Traced on 2026-06-09 12:12:07
+FileAccessForInclusion - 
+C:\xampp\htdocs\cusc\include\utils\CommonUtils.php::checkFileAccessForInclusion::388<br>
+C:\xampp\htdocs\cusc\modules\Users\CreateUserPrivilegeFile.php::checkFileAccessForInclusion::116<br>
+C:\xampp\htdocs\cusc\modules\Users\Users.php::createUserSharingPrivilegesfile::1132<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Module.php::save::292<br>
+C:\xampp\htdocs\cusc\modules\Vtiger\models\Record.php::saveRecord::259<br>
+C:\xampp\htdocs\cusc\modules\Users\models\Record.php::save::155<br>
+C:\xampp\htdocs\cusc\modules\Vtiger\actions\Save.php::save::117<br>
+C:\xampp\htdocs\cusc\modules\Users\actions\Save.php::saveRecord::150<br>
+C:\xampp\htdocs\cusc\includes\main\WebUI.php::process::221<br>
+C:\xampp\htdocs\cusc\index.php::process::35<br>
+

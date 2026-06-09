@@ -45,8 +45,8 @@ CUSC CRM là hệ thống quản lý quan hệ khách hàng được phát tri�
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/your-org/cusc.git
-cd cusc
+git clone https://github.com/baohkt2/HTQL-Khach-Hang-CRM.git
+cd HTQL-Khach-Hang-CRM
 ```
 
 ### 2. Cài đặt Dependencies
@@ -66,16 +66,16 @@ cp config.csrf-secret.template.php config.csrf-secret.php
 
 ### 4. Tạo Database
 ```sql
-CREATE DATABASE cusc_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE crm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 ### 5. Import Schema
 ```bash
-mysql -u root -p cusc_db < database/cusc_db.sql
+mysql -u root -p crm < database/schema.sql
 ```
 
 ### 6. Truy cập
-Mở trình duyệt: `http://localhost/cusc`
+Mở trình duyệt: `http://localhost/HTQL-Khach-Hang-CRM`
 
 📖 **Xem hướng dẫn chi tiết:** [INSTALLATION.md](INSTALLATION.md)
 
