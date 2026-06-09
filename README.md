@@ -82,7 +82,7 @@ Mở trình duyệt: `http://localhost/HTQL-Khach-Hang-CRM`
 ## 📁 Cấu Trúc Dự Án
 
 ```
-cusc/
+HTQL-Khach-Hang-CRM/
 ├── cache/              # Cache files (git ignored)
 ├── cron/               # Cron job scripts
 ├── database/           # Database schema

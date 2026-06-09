@@ -87,7 +87,7 @@ composer.lock
 # DATABASE FILES
 # ==============================================
 *.sql
-!database/cusc_db.sql
+!database/schema.sql
 *.sqlite
 *.sqlite3
 *.db
