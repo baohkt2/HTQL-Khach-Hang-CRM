@@ -10,6 +10,8 @@
 .env.*.local
 config.inc.php
 config.csrf-secret.php
+config.db.php
+config.security.php
 
 # ==============================================
 # IDE & EDITOR FILES
