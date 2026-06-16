@@ -1,7 +1,7 @@
 # ==============================================
-# CUSC CRM - Git Ignore Configuration
+# CRM Demo - Git Ignore Configuration
 # ==============================================
-/cusc_local/
+/local/
 # ==============================================
 # ENVIRONMENT & SENSITIVE FILES
 # ==============================================
@@ -87,7 +87,6 @@ composer.lock
 # DATABASE FILES
 # ==============================================
 *.sql
-!database/schema.sql
 *.sqlite
 *.sqlite3
 *.db
@@ -178,9 +177,6 @@ php_errors.log
 
 # Except specific needed files
 !libraries/**/*.zip
-logs/
-
-
 logs/
 *.log
 database/*.sql
