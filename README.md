@@ -1,5 +1,4 @@
 # CRM Demo Source
-# CRM Demo Source
 
 <p align="center">
   <strong>Source Code Demo — Hệ thống Quản lý Quan hệ Khách hàng</strong><br>
@@ -35,7 +34,6 @@ Do dự án gắn với khách hàng cụ thể, phần source được chia s�
 
 Dự án gốc là hệ thống CRM tuỳ biến trên nền Vtiger, phục vụ nghiệp vụ tư vấn khách hàng thực tế, bao gồm các phần việc từ tuỳ biến chức năng, tối ưu hiệu năng, đến xử lý dữ liệu và vận hành server. Chi tiết cụ thể có thể trao đổi thêm khi cần.
 
-## 💻 Yêu Cầu Hệ Thống (Tham Khảo)
 ## 💻 Yêu Cầu Hệ Thống (Tham Khảo)
 
 | Requirement | Version |
