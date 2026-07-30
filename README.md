@@ -1,4 +1,5 @@
 # CRM Demo Source
+# CRM Demo Source
 
 <p align="center">
   <strong>Source Code Demo — Hệ thống Quản lý Quan hệ Khách hàng</strong><br>
@@ -35,6 +36,7 @@ Do dự án gắn với khách hàng cụ thể, phần source được chia s�
 Dự án gốc là hệ thống CRM tuỳ biến trên nền Vtiger, phục vụ nghiệp vụ tư vấn khách hàng thực tế, bao gồm các phần việc từ tuỳ biến chức năng, tối ưu hiệu năng, đến xử lý dữ liệu và vận hành server. Chi tiết cụ thể có thể trao đổi thêm khi cần.
 
 ## 💻 Yêu Cầu Hệ Thống (Tham Khảo)
+## 💻 Yêu Cầu Hệ Thống (Tham Khảo)
 
 | Requirement | Version |
 |------------|---------|
@@ -42,7 +44,14 @@ Dự án gốc là hệ thống CRM tuỳ biến trên nền Vtiger, phục vụ
 | MySQL/MariaDB | 5.7+ / 10.3+ |
 | Memory | 512MB+ |
 | Web Server | Apache 2.4+ |
+| Requirement | Version |
+|------------|---------|
+| PHP | 8.1+ |
+| MySQL/MariaDB | 5.7+ / 10.3+ |
+| Memory | 512MB+ |
+| Web Server | Apache 2.4+ |
 
+### PHP Extensions cần thiết
 ### PHP Extensions cần thiết
 - mysqli, imap, curl, gd, mbstring, xml, zip, openssl
 
@@ -53,6 +62,7 @@ Dự án gốc là hệ thống CRM tuỳ biến trên nền Vtiger, phục vụ
 ### 1. Clone Repository
 ```bash
 git clone <repository-url>
+git clone <repository-url>
 ```
 
 ### 2. Cài đặt Dependencies
@@ -60,6 +70,7 @@ git clone <repository-url>
 composer install
 ```
 
+### 3. Cấu hình
 ### 3. Cấu hình
 ```bash
 cp .env.example .env
@@ -78,16 +89,22 @@ cp config.csrf-secret.template.php config.csrf-secret.php
 ```
 CRM-Demo/
 ├── cache/              # Cache files
+CRM-Demo/
+├── cache/              # Cache files
 ├── cron/               # Cron job scripts
 ├── include/            # Core includes
 ├── includes/           # Additional includes
 ├── languages/          # Language files (vi_vn, en_us)
 ├── layouts/            # UI layouts & templates
+├── languages/          # Language files (vi_vn, en_us)
+├── layouts/            # UI layouts & templates
 ├── libraries/          # Third-party libraries
 ├── modules/            # CRM modules
 ├── vendor/             # Composer packages
+├── vendor/             # Composer packages
 ├── .env.example        # Environment template
 ├── composer.json       # PHP dependencies
+└── README.md           # File này
 └── README.md           # File này
 ```
 
@@ -105,6 +122,7 @@ CRM-Demo/
 
 ## 📄 License
 
+Nền tảng gốc được phát hành dưới [Vtiger Public License](LICENSE.txt).
 Nền tảng gốc được phát hành dưới [Vtiger Public License](LICENSE.txt).
 
 ---
