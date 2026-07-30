@@ -2,53 +2,37 @@
 
 <p align="center">
   <strong>Source Code Demo — Hệ thống Quản lý Quan hệ Khách hàng</strong><br>
-  <em>Customer Relationship Management — Demo / Research Only</em>
+  <em>Portfolio / Demo Project — trích từ dự án thực tế, đã lược bỏ dữ liệu và cấu hình nhạy cảm</em>
 </p>
 
 ---
 
-> ⚠️ **TUYÊN BỐ MIỄN TRỪ TRÁCH NHIỆM (DISCLAIMER)**
+> ℹ️ **GHI CHÚ**
 >
-> **Source code này chỉ được cung cấp cho mục đích DEMO, THỬ NGHIỆM và NGHIÊN CỨU CÁ NHÂN.**
+> Repo này là **bản demo trích từ một dự án CRM thực tế** (dựa trên nền tảng Vtiger CRM mã nguồn mở) mà tôi từng phát triển cho khách hàng.
 >
-> - ❌ **KHÔNG** phải source code production — đây là bản demo chưa hoàn chỉnh.
-> - ❌ **KHÔNG** đi kèm database — source này không bao gồm bất kỳ file cơ sở dữ liệu nào.
-> - ❌ **KHÔNG** khuyến khích sử dụng cho môi trường production — source có nhiều lỗi đã biết chưa được sửa.
-> - ❌ **KHÔNG** có bất kỳ bảo hành hay cam kết nào về tính ổn định, bảo mật, hoặc tính hoàn chỉnh.
->
-> Người sử dụng tự chịu hoàn toàn trách nhiệm khi sử dụng source code này.
-> Tác giả/người chia sẻ không chịu trách nhiệm cho bất kỳ thiệt hại, mất mát dữ liệu,
-> hoặc vấn đề pháp lý nào phát sinh từ việc sử dụng source code này.
+> Vì lý do **bảo mật thông tin khách hàng**, source code, database và cấu hình đầy đủ **không được công khai**. Bản demo này chỉ mang tính minh hoạ, phục vụ mục đích tham khảo.
 
 ---
 
 ## 📋 Giới Thiệu
 
-Đây là source code demo của một hệ thống CRM (Customer Relationship Management) được xây dựng dựa trên nền tảng Vtiger CRM mã nguồn mở. Source code này được chia sẻ **chỉ với mục đích tham khảo, nghiên cứu cá nhân, và học tập**.
+Đây là bản rút gọn của một hệ thống CRM (Customer Relationship Management) do tôi tuỳ biến trên nền tảng Vtiger CRM mã nguồn mở, phục vụ cho một đơn vị tư vấn/đào tạo. Công việc thực tế bao gồm tuỳ biến nghiệp vụ, tối ưu hiệu năng, xử lý dữ liệu backend, và bàn giao kỹ thuật.
 
-### ⚡ Trạng thái Source Code
+Do dự án gắn với khách hàng cụ thể, phần source được chia sẻ ở đây **đã được lược bỏ** thông tin cấu hình, dữ liệu, và các phần liên quan trực tiếp đến hạ tầng của khách hàng.
 
-| Hạng mục | Trạng thái |
-|----------|------------|
-| Database | ❌ Không bao gồm |
-| Bug fixes | ❌ Nhiều lỗi chưa được sửa |
-| Security audit | ❌ Chưa được kiểm tra bảo mật |
-| Production-ready | ❌ Không phù hợp cho production |
-| Mục đích sử dụng | ✅ Demo, thử nghiệm, nghiên cứu cá nhân |
+### ⚡ Phạm vi của bản demo này
 
-## ✨ Tính Năng (Tham Khảo)
+| Hạng mục | Trạng thái | Lý do |
+|----------|------------|-------|
+| Database | ❌ Không bao gồm | Chứa dữ liệu khách hàng |
+| Cấu hình server / secrets | ❌ Không bao gồm | Bảo mật hạ tầng thực tế |
+| Toàn bộ module tuỳ biến | ⚠️ Chỉ trích một phần | Giới hạn theo thỏa thuận với khách hàng |
+| Mục đích sử dụng | ✅ Xem tham khảo năng lực kỹ thuật | Portfolio cho nhà tuyển dụng |
 
-Hệ thống CRM demo có các tính năng tham khảo sau (có thể không hoạt động đầy đủ):
+## 💼 Về dự án gốc
 
-- 📊 **Quản lý Leads & Contacts** — Theo dõi và quản lý thông tin khách hàng
-- 📧 **Email Integration** — Tích hợp email
-- 📅 **Calendar & Tasks** — Lịch làm việc và quản lý công việc
-- 📈 **Reports & Analytics** — Báo cáo và phân tích dữ liệu
-- 🔔 **Notifications** — Thông báo và nhắc nhở
-- 🔐 **Role-based Access** — Phân quyền theo vai trò
-- 🔄 **Workflows** — Tự động hóa quy trình
-
-> **Lưu ý:** Các tính năng trên chỉ mang tính tham khảo. Do không có database đi kèm và nhiều lỗi chưa được sửa, các tính năng có thể không hoạt động hoặc hoạt động không chính xác.
+Dự án gốc là hệ thống CRM tuỳ biến trên nền Vtiger, phục vụ nghiệp vụ tư vấn khách hàng thực tế, bao gồm các phần việc từ tuỳ biến chức năng, tối ưu hiệu năng, đến xử lý dữ liệu và vận hành server. Chi tiết cụ thể có thể trao đổi thêm khi cần.
 
 ## 💻 Yêu Cầu Hệ Thống (Tham Khảo)
 
@@ -62,10 +46,9 @@ Hệ thống CRM demo có các tính năng tham khảo sau (có thể không ho�
 ### PHP Extensions cần thiết
 - mysqli, imap, curl, gd, mbstring, xml, zip, openssl
 
-## 🔧 Cài Đặt (Chỉ Cho Mục Đích Thử Nghiệm)
+## 🔧 Cài Đặt (Chỉ Cho Mục Đích Tham Khảo)
 
-> **⚠️ CẢNH BÁO:** Hướng dẫn này chỉ dành cho mục đích thử nghiệm/nghiên cứu.
-> **KHÔNG** sử dụng các bước này để triển khai production.
+> **⚠️ LƯU Ý:** Vì đã lược bỏ database và một số cấu hình, bản demo này **không thể chạy hoàn chỉnh** nếu không bổ sung thêm dữ liệu/config riêng. Phần dưới đây chỉ minh hoạ quy trình cài đặt gốc.
 
 ### 1. Clone Repository
 ```bash
@@ -85,9 +68,8 @@ cp config.csrf-secret.template.php config.csrf-secret.php
 ```
 
 ### 4. Database
-> ❌ **Source code này KHÔNG bao gồm database.**
-> Bạn cần tự tạo database schema nếu muốn thử nghiệm.
-> Không có file SQL nào được cung cấp.
+> ❌ **Không bao gồm trong repo này** vì lý do bảo mật dữ liệu khách hàng.
+> Cần tự tạo database schema nếu muốn thử nghiệm cục bộ.
 
 📖 **Xem thêm:** [INSTALLATION.md](INSTALLATION.md) để biết chi tiết cấu hình.
 
@@ -111,14 +93,10 @@ CRM-Demo/
 
 ## ⚖️ Điều Khoản Sử Dụng
 
-1. Source code này được cung cấp **"nguyên trạng" (AS-IS)** không có bất kỳ bảo hành nào, dù rõ ràng hay ngụ ý.
-2. Đây là sản phẩm nghiên cứu cá nhân, **không phải sản phẩm thương mại** và không liên kết với bất kỳ tổ chức nào.
-3. Việc sử dụng source code này cho bất kỳ mục đích nào ngoài demo/thử nghiệm/nghiên cứu là **không được khuyến khích** và người sử dụng tự chịu mọi rủi ro.
-4. Tác giả/người chia sẻ **không chịu trách nhiệm** cho:
-   - Mất mát dữ liệu
-   - Lỗ hổng bảo mật
-   - Thiệt hại tài chính
-   - Bất kỳ vấn đề pháp lý nào phát sinh từ việc sử dụng
+1. Source code này được cung cấp **"nguyên trạng" (AS-IS)**, chỉ nhằm mục đích tham khảo năng lực kỹ thuật, không có bảo hành nào.
+2. Đây là **bản trích từ dự án freelance thực tế**, đã được điều chỉnh để phù hợp với thỏa thuận bảo mật với khách hàng — **không phải source production đầy đủ**.
+3. Không sử dụng repo này để triển khai hệ thống thật; nhiều phần đã bị lược bỏ có chủ đích.
+4. Tác giả không chịu trách nhiệm cho bất kỳ vấn đề nào phát sinh từ việc sử dụng bản demo này ngoài mục đích tham khảo.
 5. Source code nền tảng gốc (Vtiger CRM) được phát hành dưới [Vtiger Public License](LICENSE.txt).
 
 ## 📧 Liên Hệ
@@ -132,5 +110,5 @@ Nền tảng gốc được phát hành dưới [Vtiger Public License](LICENSE.
 ---
 
 <p align="center">
-  <strong>⚠️ CHỈ SỬ DỤNG CHO MỤC ĐÍCH DEMO / THỬ NGHIỆM / NGHIÊN CỨU CÁ NHÂN ⚠️</strong>
+  <strong>📌 Bản demo minh hoạ kinh nghiệm thực tế — chi tiết đầy đủ xin trao đổi trong buổi phỏng vấn</strong>
 </p>
